@@ -1,9 +1,8 @@
 
-#include "stdafx.h"
-#include "MLP_Online.hpp"
-#include "MLP_Batch.hpp"
+#include "../lib/MLP_Online.hpp"
+#include "../lib/MLP_Batch.hpp"
 
-#include "../../../../DaatH/src/Utility/utility.hpp"
+#include "utility.hpp"
 
 
 void Test1(){
@@ -130,6 +129,8 @@ void Test3(){
 
 	Perceptron nn(std::vector<LayerPtr>{mid});
 
+	//nn.LoadParameter(L"test data/params.dat");
+
 	std::vector<std::vector<int>> train_data;
 	std::vector<int> train_ans;
 
@@ -148,15 +149,14 @@ void Test3(){
 	
 	std::vector<std::vector<int>> test_data;
 	std::vector<int> test_ans;
-	auto rows = *sig::File::ReadLine<std::string>(L"test data/test.txt");
-	for (auto const& row : rows){
-		test_data.push_back(std::vector<int>());
-		auto split = sig::String::Split(row, ",");
-		test_ans.push_back(std::stoi(split[0]));
-		std::transform(++split.begin(), split.end(), std::back_inserter(test_data.back()), [](std::string s){ return std::stoi(s); });
+	uint tds;
+	for (tds = train_data.size() - 1; tds > train_data.size() - 15; --tds){
+		test_data.push_back(train_data[tds]);
+		test_ans.push_back(train_ans[tds]);
 	}
+	train_data.resize(tds + 1);
+	train_ans.resize(tds + 1);
 
-	auto tpd = Perceptron::InputData(test_data[5].begin(), test_data[5].end(), test_ans[5]);
 
 	double p_esum = 0, esum = 0;
 	for (int loop = 0; true; ++loop){
@@ -166,7 +166,7 @@ void Test3(){
 		}
 		p_esum = esum;
 		esum = std::accumulate(moe.begin(), moe.end(), 0.0);
-		nn.SaveParameter(L"test data/params.dat");
+		nn.SaveParameter(L"test data/");
 
 		for (int i=0; i<test_data.size(); ++i){
 			auto est = nn.Test(test_data[i].begin(), test_data[i].end())->GetScore();

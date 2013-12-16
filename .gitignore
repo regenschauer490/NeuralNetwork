@@ -2,6 +2,16 @@
 *.slo
 *.lo
 *.o
+*.obj
+*.tlog
+*.lastbuildstate
+*.idb
+*.pdb
+*.sdf
+*.suo
+*.ilk
+*.opensdf
+*.exe
 
 # Compiled Dynamic libraries
 *.so

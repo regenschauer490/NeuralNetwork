@@ -1,3 +1,26 @@
+/*
+The MIT License(MIT)
+
+Copyright(c) 2013 Akihiro Nishimura
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files(the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and / or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions :
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
 #pragma once
 
 #include "InputLayer.hpp"
@@ -194,22 +217,40 @@ C_OutputLayerPtr<OutputInfo_> Perceptron_Online<InputInfo_, OutputInfo_>::Test(I
 template <class InputInfo_, class OutputInfo_>
 void Perceptron_Online<InputInfo_, OutputInfo_>::SaveParameter(std::wstring pass) const
 {
-	for(auto const& ledge : all_edges_){
-		std::vector<double> weight;
-		for (auto const& edge : ledge) weight.push_back(edge->Weight());
-		File::SaveLine(CatStr(weight, ","), pass);
+	pass = File::DirpassTailModify(pass, true);
+	uint l = 1;
+	for (auto const& layer : layers_){
+		for (auto const& node : *layer){
+			std::vector<double> weight;
+			for (auto edge = node->in_begin(), end = node->in_end(); edge != end; ++edge){
+				weight.push_back((*edge)->Weight());
+			}
+			File::SaveLine(CatStr(weight, ","), pass + L"weight" + std::to_wstring(l) + L".txt");
+		}
+		++l;
 	}
 }
 
 template <class InputInfo_, class OutputInfo_>
 void Perceptron_Online<InputInfo_, OutputInfo_>::LoadParameter(std::wstring pass) const
 {
-	std::vector<std::string> data;
-	File::ReadLine(data, pass);
+	pass = File::DirpassTailModify(pass, true);
+	uint l = 1;
+	for (auto const& layer : layers_){
+		std::vector<std::string> data;
+		uint n = 0;
+		File::ReadLine(data, pass + L"weight" + std::to_wstring(l) + L".txt");
 
-	for (uint l=0; l< all_edges_.size(); ++l){
-		auto split = Split(data[l], ",");
-		for (uint e = 0; e < all_edges_[l].size(); ++e) all_edges_[l][e]->Weight(std::stod(split[e]));
+		for (auto const& node : *layer){
+			uint e = 0;
+			auto split = Split(data[n], ",");
+			for (auto edge = node->in_begin(), end = node->in_end(); edge != end; ++edge){
+				(*edge)->Weight(std::stod(split[e]));
+				++e;
+			}
+			++n;
+		}
+		++l;
 	}
 }
 
