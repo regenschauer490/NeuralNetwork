@@ -218,14 +218,13 @@ template <class InputInfo_, class OutputInfo_>
 void Perceptron_Online<InputInfo_, OutputInfo_>::SaveParameter(std::wstring pass) const
 {
 	pass = File::DirpassTailModify(pass, true);
-	uint l = 1;
-	for (auto const& layer : layers_){
-		for (auto const& node : *layer){
+	for (uint l = 1; l < layers_.size(); ++l){
+		for (auto const& node : *(layers_[l-1])){
 			std::vector<double> weight;
-			for (auto edge = node->in_begin(), end = node->in_end(); edge != end; ++edge){
+			for (auto edge = node->out_begin(), end = node->out_end(); edge != end; ++edge){
 				weight.push_back((*edge)->Weight());
 			}
-			File::SaveLine(CatStr(weight, ","), pass + L"weight" + std::to_wstring(l) + L".txt");
+			File::SaveLineNum(weight, pass + L"weight" + std::to_wstring(l) + L".txt", File::WriteMode::append, ",");
 		}
 		++l;
 	}
@@ -235,16 +234,15 @@ template <class InputInfo_, class OutputInfo_>
 void Perceptron_Online<InputInfo_, OutputInfo_>::LoadParameter(std::wstring pass) const
 {
 	pass = File::DirpassTailModify(pass, true);
-	uint l = 1;
-	for (auto const& layer : layers_){
+	for (uint l = 1; l < layers_.size(); ++l){
 		std::vector<std::string> data;
 		uint n = 0;
 		File::ReadLine(data, pass + L"weight" + std::to_wstring(l) + L".txt");
 
-		for (auto const& node : *layer){
+		for (auto const& node : *(layers_[l-1])){
 			uint e = 0;
 			auto split = Split(data[n], ",");
-			for (auto edge = node->in_begin(), end = node->in_end(); edge != end; ++edge){
+			for (auto edge = node->out_begin(), end = node->out_end(); edge != end; ++edge){
 				(*edge)->Weight(std::stod(split[e]));
 				++e;
 			}

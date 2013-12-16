@@ -107,6 +107,7 @@ namespace File{
 		template <class FILE_STRING> struct OFS_SELECTION{};
 		template<> struct OFS_SELECTION<std::string>{
 			typedef std::ofstream type;
+			//typedef std::ostreambuf_iterator<char> buf_iter
 		};
 		template<> struct OFS_SELECTION<std::wstring>{
 			typedef std::wofstream type;
@@ -133,6 +134,10 @@ namespace File{
 		template <class String>
 		inline void SaveLine(std::vector<String> const& src, typename OFS_SELECTION<String>::type& ofs)
 		{
+			 p(is), end;
+			ostream_iterator<char> q(os);
+			copy(p, end, q);
+
 			std::for_each(src.begin(), src.end(), [&](String const& line){
 				SaveLine(line, ofs);
 			});
@@ -141,7 +146,7 @@ namespace File{
 		//ファイルへ1行ずつ保存
 		//args -> src: 保存対象, file_pass: 保存先のディレクトリとファイル名（フルパス）, open_mode: 上書き(overwrite) or 追記(append)
 		template <class String>
-		inline void SaveLine(String const& src, std::wstring const& file_pass, WriteMode mode = WriteMode::overwrite)
+		inline void SaveLine(String const& src, std::wstring const& file_pass, WriteMode mode)
 		{
 			static bool first = true;
 			if (first){
@@ -154,9 +159,8 @@ namespace File{
 			SaveLine(src, ofs);
 		}
 		template <class String>
-		inline void SaveLine(std::vector<String> const& src, std::wstring const& file_pass, WriteMode mode = WriteMode::overwrite)
+		inline void SaveLine(std::vector<String> const& src, std::wstring const& file_pass, WriteMode mode)
 		{
-
 			static bool first = true;
 			if (first){
 				std::locale::global(std::locale(""));
@@ -170,12 +174,9 @@ namespace File{
 
 		// int ver
 		template <class Num>
-		inline void SaveLineInt(std::vector<Num> const& src, std::wstring const& file_pass, std::ios::open_mode const open_mode = std::ios::out)
+		inline void SaveLineNum(std::vector<Num> const& src, std::wstring const& file_pass, WriteMode mode, std::string delimiter = "\n")
 		{
-			std::ofstream ofs(file_pass, open_mode);
-			std::for_each(src.begin(), src.end(), [&](Num val){
-				SaveLine(std::to_string(val), ofs);
-			});
+			SaveLine(CatStr(src, delimiter), file_pass, mode);
 		}
 
 		// Read Text
@@ -212,7 +213,7 @@ namespace File{
 
 		// int ver
 		template <class Num, class String = std::string>
-		inline void ReadLineInt(std::vector<Num>& empty_dest, std::wstring const& file_pass)
+		inline void ReadLineNum(std::vector<Num>& empty_dest, std::wstring const& file_pass)
 		{
 			typename IFS_SELECTION<String>::type ifs(file_pass);
 			if (!ifs){

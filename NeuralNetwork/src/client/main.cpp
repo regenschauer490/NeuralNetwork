@@ -121,6 +121,9 @@ void Test2(){
 void Test3(){
 	using namespace signn;
 
+	File::SaveLineNum(std::vector<double>{0.1, 0.3, 0.5}, L"./tes.txt", File::WriteMode::overwrite,  ",");
+	File::SaveLineNum(std::vector<double>{0.2, 0.4, 0.6}, L"./tes.txt", File::WriteMode::append, ",");
+
 	typedef InputInfo<int, 784> InInfo;
 	typedef OutputInfo<OutputLayerType::MultiClassClassification, 10> OutInfo;
 	typedef Perceptron_Online<InInfo, OutInfo> Perceptron;
@@ -129,7 +132,7 @@ void Test3(){
 
 	Perceptron nn(std::vector<LayerPtr>{mid});
 
-	//nn.LoadParameter(L"test data/params.dat");
+	//nn.LoadParameter(L"test data/");
 
 	std::vector<std::vector<int>> train_data;
 	std::vector<int> train_ans;
@@ -166,19 +169,19 @@ void Test3(){
 		}
 		p_esum = esum;
 		esum = std::accumulate(moe.begin(), moe.end(), 0.0);
-		nn.SaveParameter(L"test data/");
+		//nn.SaveParameter(L"test data/");
 
 		for (int i=0; i<test_data.size(); ++i){
 			auto est = nn.Test(test_data[i].begin(), test_data[i].end())->GetScore();
 			for (uint j = 0; j < est.size(); ++j){
 				if (est[j]) std::cout << j << ", ";
 			}
-			std::cout << ", ans:" << test_ans[i] << std::endl;
+			std::cout << " ans:" << test_ans[i] << std::endl;
 		}
 
 		if (loop % 1 == 0) std::cout << esum << std::endl;
 		if (std::abs(p_esum - esum) < 0.0000000001) break;
-		if (esum < 0.00005) break;
+		if (esum < 50) break;
 	}
 }
 
