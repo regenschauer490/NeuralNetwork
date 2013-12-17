@@ -1,7 +1,7 @@
 #ifndef UTILITY_H
 #define UTILITY_H
 
-/* Last Update : 2013 12 15 */
+/* Last Update : 2013 12 17 */
 
 #define ENABLE_BOOST
 
@@ -52,7 +52,7 @@ auto const nothing = boost::none;
 #endif
 
 namespace sig{
-#undef min()
+#undef min
 
 /* メタ関数・メタクラス */
 	struct NullType{};
@@ -732,9 +732,10 @@ namespace sig{
 		{
 			std::ostringstream ostream;
 
-			for (auto const& src : container){
-				ostream << src << delimiter;
+			for (uint i = 0; i < container.size()-1; ++i){
+				ostream << container[i] << delimiter;
 			}
+			ostream << container[container.size() - 1];
 			return ostream.str();
 		}
 
@@ -1104,44 +1105,91 @@ namespace sig{
 #endif
 
 		//for type map
-		template <class PASS_STRING> struct OFS_SELECTION{};
+		template <class FILE_STRING> struct OFS_SELECTION{};
+		template<> struct OFS_SELECTION<char const*>{
+			typedef std::ofstream fstream;
+			typedef std::ostreambuf_iterator<char> fstreambuf_iter;
+		};
 		template<> struct OFS_SELECTION<std::string>{
-			typedef std::ofstream type;
+			typedef std::ofstream fstream;
+			typedef std::ostreambuf_iterator<char> fstreambuf_iter;
+		};
+		template<> struct OFS_SELECTION<wchar_t const*>{
+			typedef std::wofstream fstream;
+			typedef std::ostreambuf_iterator<wchar_t> fstreambuf_iter;
 		};
 		template<> struct OFS_SELECTION<std::wstring>{
-			typedef std::wofstream type;
+			typedef std::wofstream fstream;
+			typedef std::ostreambuf_iterator<wchar_t> fstreambuf_iter;
 		};
 
-		template <class PASS_STRING> struct IFS_SELECTION{};
+		template <class FILE_STRING> struct IFS_SELECTION{};
 		template<> struct IFS_SELECTION<std::string>{
-			typedef std::ifstream type;
+			typedef std::ifstream fstream;
+			typedef std::istreambuf_iterator<char> fstreambuf_iter;
 		};
 		template<> struct IFS_SELECTION<std::wstring>{
-			typedef std::wifstream type;
+			typedef std::wifstream fstream;
+			typedef std::istreambuf_iterator<wchar_t> fstreambuf_iter;
+		};
+
+		template <class NUM> struct S2NUM_SELECTION{};
+		template <> struct S2NUM_SELECTION<int>{
+			 int operator()(std::string s){ return std::stoi(s); }
+		};
+		template <> struct S2NUM_SELECTION<long>{
+			long operator()(std::string s){ return std::stol(s); }
+		};
+		template <> struct S2NUM_SELECTION<long long>{
+			long long operator()(std::string s){ return std::stoll(s); }
+		};
+		template <> struct S2NUM_SELECTION<unsigned int>{
+			unsigned int operator()(std::string s){ return std::stoul(s); }
+		};
+		template <> struct S2NUM_SELECTION<unsigned long>{
+			unsigned long operator()(std::string s){ return std::stoul(s); }
+		};
+		template <> struct S2NUM_SELECTION<unsigned long long>{
+			unsigned long long operator()(std::string s){ return std::stoull(s); }
+		};
+		template <> struct S2NUM_SELECTION<float>{
+			float operator()(std::string s){ return std::stof(s); }
+		};
+		template <> struct S2NUM_SELECTION<double>{
+			double operator()(std::string s){ return std::stod(s); }
 		};
 		
 		enum class WriteMode{ overwrite, append };
 
-		// Save Text
+
+		inline void RemakeFile(std::wstring const& file_pass)
+		{
+			std::ofstream ofs(file_pass);
+			ofs << "";
+		}
+
+		//-- Save Text
 
 		template <class String>
-		inline void SaveLine(String const& src, typename OFS_SELECTION<String>::type& ofs)
+		inline void SaveLine(String const& src, typename OFS_SELECTION<String>::fstream& ofs)
 		{
 			ofs << src << std::endl;
 		}
 
 		template <class String>
-		inline void SaveLine(std::vector<String> const& src, typename OFS_SELECTION<String>::type& ofs)
+		inline void SaveLine(std::vector<String> const& src, typename OFS_SELECTION<String>::fstream& ofs)
 		{
-			std::for_each(src.begin(), src.end(), [&](String const& line){
-				SaveLine(line, ofs);
-			});
+			typename OFS_SELECTION<String>::fstreambuf_iter streambuf_iter(ofs);
+			for (auto const& str : src){
+				std::copy(str.begin(), str.end(), streambuf_iter);
+				streambuf_iter = '\n';
+			}
 		}
 
 		//ファイルへ1行ずつ保存
 		//args -> src: 保存対象, file_pass: 保存先のディレクトリとファイル名（フルパス）, open_mode: 上書き(overwrite) or 追記(append)
 		template <class String>
-		inline void SaveLine(String const& src, std::wstring const& file_pass, WriteMode mode = WriteMode::overwrite)
+		inline void SaveLine(String src, std::wstring const& file_pass, WriteMode mode)
 		{
 			static bool first = true;
 			if (first){
@@ -1150,13 +1198,12 @@ namespace sig{
 			}
 
 			std::ios::open_mode const open_mode = mode == WriteMode::overwrite ? std::ios::out : std::ios::out | std::ios::app;
-			typename OFS_SELECTION<String>::type ofs(file_pass, open_mode);
+			typename OFS_SELECTION<std::decay<String>::type>::fstream ofs(file_pass, open_mode);
 			SaveLine(src, ofs);
 		}
 		template <class String>
-		inline void SaveLine(std::vector<String> const& src, std::wstring const& file_pass, WriteMode mode = WriteMode::overwrite)
+		inline void SaveLine(std::vector<String> const& src, std::wstring const& file_pass, WriteMode mode)
 		{
-
 			static bool first = true;
 			if (first){
 				std::locale::global(std::locale(""));
@@ -1164,164 +1211,82 @@ namespace sig{
 			}
 
 			std::ios::open_mode const open_mode = mode == WriteMode::overwrite ? std::ios::out : std::ios::out | std::ios::app;
-			typename OFS_SELECTION<String>::type ofs(file_pass, open_mode);
+			typename OFS_SELECTION<String>::fstream ofs(file_pass, open_mode);
 			SaveLine(src, ofs);
 		}
 
-		// int ver
 		template <class Num>
-		inline void SaveLineInt(std::vector<Num> const& src, std::wstring const& file_pass, std::ios::open_mode const open_mode = std::ios::out)
+		inline void SaveLineNum(std::vector<Num> const& src, std::wstring const& file_pass, WriteMode mode, std::string delimiter = "\n")
 		{
-			std::ofstream ofs(file_pass, open_mode);
-			std::for_each(src.begin(), src.end(), [&](Num val){
-				SaveLine(std::to_string(val), ofs);
-			});
+			SaveLine(String::CatStr(src, delimiter), file_pass, mode);
 		}
 
-		/*	inline void SaveLine(std::wstring const& src, std::wofstream& _ofs)
+
+		//-- Read Text
+
+		template <class R>
+		inline void ReadLine(std::vector<R>& empty_dest, typename IFS_SELECTION<R>::fstream& ifs, std::function< R(typename std::conditional<std::is_same<typename IFS_SELECTION<R>::fstream, std::ifstream>::value, std::string, std::wstring>::type)> const& conv = nullptr)
 		{
-		_ofs.imbue(std::locale("Japanese", LC_COLLATE));
-		_ofs.imbue(std::locale("Japanese", LC_CTYPE));
-		_ofs << src << std::endl;
+			typename std::conditional<std::is_same<typename IFS_SELECTION<R>::fstream, std::ifstream>::value, std::string, std::wstring>::type line;
+
+			while (ifs && getline(ifs, line)){
+				conv ? empty_dest.push_back(conv(std::move(line))) : empty_dest.push_back(std::move(line));
+			}
+		}
+		
+		template <class R>
+		inline void ReadLine(std::vector<R>& empty_dest, std::wstring const& file_pass, std::function< R(typename std::conditional<std::is_same<typename IFS_SELECTION<R>::fstream, std::ifstream>::value, std::string, std::wstring>::type)> const& conv = nullptr)
+		{
+			typename IFS_SELECTION<R>::fstream ifs(file_pass);
+			if (!ifs){
+				wprintf(L"file open error: %s \n", file_pass);
+				return;
+			}
+			ReadLine(empty_dest, ifs);
 		}
 
-		inline void SaveLine(std::wstring const& src, std::wstring const& file_pass, std::wios::open_mode const open_mode = std::wios::out)
+		template <class Num>
+		inline void ReadLineNum(std::vector<Num>& empty_dest, std::wstring const& file_pass)
 		{
-		std::wofstream ofs(file_pass, open_mode);
-		SaveLine(src, ofs);
-		}
-
-		inline void SaveLine(std::vector<std::wstring> const& src, std::wofstream& _ofs)
-		{
-		std::for_each(src.begin(), src.end(), [&](std::wstring const& line){
-		_ofs << line << std::endl;
-		} );
-		}
-
-		inline void SaveLine(std::vector<std::wstring> const& src, std::wstring const& file_pass, std::wios::open_mode const open_mode = std::wios::out)
-		{
-		std::wofstream _ofs(file_pass, open_mode);
-		SaveLine(src, _ofs);
-		}
-		*/
-
-		// Read Text
-
-		template <class R, class Stream>
-		inline void ReadLine(std::vector<R>& empty_dest, Stream& ifs, std::function< R(typename std::conditional<std::is_same<Stream, std::ifstream>::value, std::string, std::wstring>::type)> const& conv)
-		{
-			typename std::conditional<std::is_same<Stream, std::ifstream>::value, std::string, std::wstring>::type line;
-
-			empty_dest.clear();
-			//ifs.seekg(0, std::ios::beg).read(&empty_dest[0], static_cast<std::streamsize>(empty_dest.size()));
-			while (ifs && getline(ifs, line)){ empty_dest.push_back(conv(std::move(line))); }
-		}
-
-		/*
-		//読み込み失敗: empty_dest.size() == 0
-		inline void ReadLine(std::vector<std::string>& empty_dest, std::ifstream& _ifs)
-		{
-			empty_dest.clear();
+			typename IFS_SELECTION<std::string>::fstream ifs(file_pass);
+			S2NUM_SELECTION<Num> conv;
 			std::string line;
-			while (_ifs && getline(_ifs, line)){ empty_dest.push_back(line); }
-		}
-
-		//読み込み失敗: empty_dest.size() == 0
-		template <class STRING>
-		inline void ReadLine(std::vector<std::string>& empty_dest, STRING const& file_pass)
-		{
-			std::ifstream _ifs(file_pass);
-			if (!_ifs){
-				if (std::is_same<std::string, STRING>::value) printf("file open error: %s \n", file_pass);
-				else wprintf(L"file open error: %s \n", file_pass);
-				return;
-			}
-			ReadLine(empty_dest, _ifs);
-		}
-		*/
-
-		//読み込み失敗: empty_dest.size() == 0
-		template <class String>
-		inline void ReadLine(std::vector<String>& empty_dest, typename IFS_SELECTION<String>::type& ifs)
-		{
-			ReadLine<String>(empty_dest, ifs, [](String line){ return line; });
-		}
-
-		//読み込み失敗: empty_dest.size() == 0
-		template <class String>
-		inline void ReadLine(std::vector<String>& empty_dest, std::wstring const& file_pass)
-		{
-			typename IFS_SELECTION<String>::type ifs(file_pass);
 			if (!ifs){
 				wprintf(L"file open error: %s \n", file_pass);
 				return;
 			}
-			ReadLine<String>(empty_dest, ifs);
-		}
-
-
-		// int ver
-		template <class Num, class String = std::string>
-		inline void ReadLineInt(std::vector<Num>& empty_dest, std::wstring const& file_pass)
-		{
-			typename IFS_SELECTION<String>::type ifs(file_pass);
-			if (!ifs){
-				wprintf(L"file open error: %s \n", file_pass);
-				return;
-			}
-			ReadLine<Num>(empty_dest, ifs, [](String text){ return std::stol(text); });
+			while (ifs && getline(ifs, line))
+				empty_dest.push_back(conv(std::move(line)));
 		}
 
 #ifdef ENABLE_BOOST
 
 		//読み込み失敗: return -> maybe == nothing
 		template <class String>
-		inline maybe<std::vector<String>> ReadLine(typename IFS_SELECTION<String>::type& ifs)
+		inline maybe<std::vector<String>> ReadLine(typename IFS_SELECTION<String>::fstream& ifs)
 		{
 			typedef std::vector<String> R;
 			R tmp;
-			ReadLine<String>(tmp, ifs);
+			ReadLine(tmp, ifs);
 			return tmp.size() ? maybe<R>(std::move(tmp)) : nothing;
 		}
 
-		//読み込み失敗: return -> maybe == nothing
 		template <class String>
 		inline maybe<std::vector<String>> ReadLine(std::wstring const& file_pass)
 		{
-			typename IFS_SELECTION<String>::type ifs(file_pass);
+			typename IFS_SELECTION<String>::fstream ifs(file_pass);
 			if (!ifs){
 				std::wcout << L"file open error: " << file_pass << std::endl;
 				return nothing;
 			}
 			return ReadLine<String>(ifs);
 		}
-		/*
-		//読み込み失敗: return -> maybe == nothing
-		inline maybe<std::vector<std::wstring>> ReadLine(std::wifstream& _ifs)
-		{
-			std::vector<std::wstring> tmp;
-			ReadLine(tmp, _ifs);
-			return tmp.size() ? maybe<std::vector<std::wstring>>(std::move(tmp)) : nothing;
-		}
 
-		//読み込み失敗: return -> maybe == nothing
-		inline maybe<std::vector<std::wstring>> ReadLine(std::wstring const& file_pass)
-		{
-			std::wifstream _ifs(file_pass);
-			if (!_ifs){
-				std::wcout << L"file open error: " << file_pass << std::endl;
-				return nothing;
-			}
-			return ReadLine(_ifs);
-		}
-		*/
-
-		// int ver
-		template <class Num, class String = std::string>
-		inline maybe<std::vector<Num>> ReadLineInt(std::wstring const& file_pass)
+		template <class Num>
+		inline maybe<std::vector<Num>> ReadLineNum(std::wstring const& file_pass)
 		{
 			std::vector<Num> tmp;
-			ReadLineInt<Num, String>(tmp, file_pass);
+			ReadLineNum<Num>(tmp, file_pass);
 			return tmp.size() ? maybe<std::vector<Num>>(std::move(tmp)) : nothing;
 		}
 

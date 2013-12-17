@@ -218,7 +218,9 @@ template <class InputInfo_, class OutputInfo_>
 void Perceptron_Online<InputInfo_, OutputInfo_>::SaveParameter(std::wstring pass) const
 {
 	pass = File::DirpassTailModify(pass, true);
+
 	for (uint l = 1; l < layers_.size(); ++l){
+		File::RemakeFile(pass + L"weight" + std::to_wstring(l) + L".txt");
 		for (auto const& node : *(layers_[l-1])){
 			std::vector<double> weight;
 			for (auto edge = node->out_begin(), end = node->out_end(); edge != end; ++edge){

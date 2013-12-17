@@ -120,10 +120,7 @@ void Test2(){
 
 void Test3(){
 	using namespace signn;
-
-	File::SaveLineNum(std::vector<double>{0.1, 0.3, 0.5}, L"./tes.txt", File::WriteMode::overwrite,  ",");
-	File::SaveLineNum(std::vector<double>{0.2, 0.4, 0.6}, L"./tes.txt", File::WriteMode::append, ",");
-
+		
 	typedef InputInfo<int, 784> InInfo;
 	typedef OutputInfo<OutputLayerType::MultiClassClassification, 10> OutInfo;
 	typedef Perceptron_Online<InInfo, OutInfo> Perceptron;
@@ -139,7 +136,7 @@ void Test3(){
 
 	for (int doc = 0; doc <10; ++doc){
 		auto rows = *sig::File::ReadLine<std::string>(L"test data/train" + std::to_wstring(doc) + L".txt");
-
+		
 		for (auto const& row : rows){
 			train_data.push_back(std::vector<int>());
 			auto split = sig::String::Split(row, ",");
@@ -169,7 +166,7 @@ void Test3(){
 		}
 		p_esum = esum;
 		esum = std::accumulate(moe.begin(), moe.end(), 0.0);
-		//nn.SaveParameter(L"test data/");
+		nn.SaveParameter(L"test data/");
 
 		for (int i=0; i<test_data.size(); ++i){
 			auto est = nn.Test(test_data[i].begin(), test_data[i].end())->GetScore();
@@ -181,7 +178,7 @@ void Test3(){
 
 		if (loop % 1 == 0) std::cout << esum << std::endl;
 		if (std::abs(p_esum - esum) < 0.0000000001) break;
-		if (esum < 50) break;
+		if (esum < 1000) break;
 	}
 }
 
