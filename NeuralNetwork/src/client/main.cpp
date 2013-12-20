@@ -123,7 +123,7 @@ void Test3(){
 		
 	typedef InputInfo<int, 784> InInfo;
 	typedef OutputInfo<OutputLayerType::MultiClassClassification, 10> OutInfo;
-	typedef Perceptron_Online<InInfo, OutInfo> Perceptron;
+	typedef Perceptron_Batch<InInfo, OutInfo> Perceptron;
 
 	auto mid = Layer::MakeInstance(100);
 
@@ -158,15 +158,22 @@ void Test3(){
 	train_ans.resize(tds + 1);
 
 
+	std::vector<Perceptron::InputData> inputs;
+	for (uint i = 0; i < train_ans.size(); ++i){
+		inputs.push_back(Perceptron::InputData(train_data[i].begin(), train_data[i].end(), train_ans[i]));
+	}
+
 	double p_esum = 0, esum = 0;
 	for (int loop = 0; true; ++loop){
 		std::vector<double> moe;
-		for (int i = 0; i < train_data.size(); ++i){
+		/*for (int i = 0; i < train_data.size(); ++i){
 			moe.push_back(nn.Learn(Perceptron::InputData(train_data[i].begin(), train_data[i].end(), train_ans[i])));
-		}
+		}*/
+		moe.push_back(nn.Learn(inputs));
+
 		p_esum = esum;
 		esum = std::accumulate(moe.begin(), moe.end(), 0.0);
-		nn.SaveParameter(L"test data/");
+		//nn.SaveParameter(L"test data/");
 
 		for (int i=0; i<test_data.size(); ++i){
 			auto est = nn.Test(test_data[i].begin(), test_data[i].end())->GetScore();
