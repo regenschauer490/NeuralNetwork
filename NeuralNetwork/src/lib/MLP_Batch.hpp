@@ -44,26 +44,26 @@ public:
 
 	public:
 		template<class Iter1, class Iter2>
-		InputData(Iter1 input_first, Iter1 input_last, Iter2 teacher_first, Iter2 teacher_last){
+		InputData(Iter1 input_begin, Iter1 input_end, Iter2 teacher_begin, Iter2 teacher_end){input_end
 			uint i,j;
-			for (i = 0; i < InputInfo::dim && input_first != input_last; ++i, ++input_first) input_[i] = *input_first;
-			for (j = 0; j < OutputInfo::dim && teacher_first != teacher_last; ++j, ++taecher_first) teacher_[j] = *teacher_first;
-			assert(i == InputInfo::dim && j == OutputInfo::dim && input_first == input_last && teacher_first == teacher_las, "invalid input data");
+			for (i = 0; i < InputInfo::dim && input_begin != input_end; ++i, ++input_begin) input_[i] = *input_begin;
+			for (j = 0; j < OutputInfo::dim && teacher_begin != teacher_end; ++j, ++taecher_first) teacher_[j] = *teacher_begin;
+			assert(i == InputInfo::dim && j == OutputInfo::dim && input_begin == input_end && teacher_begin == teacher_las, "invalid input data");
 		}
 
 		template<class Iter1>
-		InputData(Iter1 input_first, Iter1 input_last, typename OutputInfo_::type teacher){
+		InputData(Iter1 input_begin, Iter1 input_end, typename OutputInfo_::type teacher){
 			uint i;
-			for (i = 0; i < InputInfo_::dim && input_first != input_last; ++i, ++input_first) input_[i] = *input_first;
+			for (i = 0; i < InputInfo_::dim && input_begin != input_end; ++i, ++input_begin) input_[i] = *input_begin;
 			teacher_[0] = teacher;
-			assert(i == InputInfo_::dim && 1 == OutputInfo_::dim && input_first == input_last, "invalid input data");
+			assert(i == InputInfo_::dim && 1 == OutputInfo_::dim && input_begin == input_end, "invalid input data");
 		}
 
 		template<class Iter1>
-		InputData(Iter1 input_first, Iter1 input_last){
+		InputData(Iter1 input_begin, Iter1 input_end){
 			uint i;
-			for (i = 0; i < InputInfo_::dim && input_first != input_last; ++i, ++input_first) input_[i] = *input_first;
-			assert(i == InputInfo_::dim && 1 == OutputInfo_::dim && input_first == input_last, "invalid input data");
+			for (i = 0; i < InputInfo_::dim && input_begin != input_end; ++i, ++input_begin) input_[i] = *input_begin;
+			assert(i == InputInfo_::dim && 1 == OutputInfo_::dim && input_begin == input_end, "invalid input data");
 		}
 
 		std::array<typename InputInfo_::type, InputInfo_::dim> const& Input() const{ return input_; }
@@ -123,8 +123,8 @@ public:
 
 	double Learn(std::vector<InputData> const& inputs);
 
-	template<class Iter1>
-	C_OutputLayerPtr<OutputInfo_> Test(Iter1 input_first, Iter1 input_last);
+	template<class Iter>
+	C_OutputLayerPtr<OutputInfo_> Test(Iter input_begin, Iter input_end);
 };
 
 
@@ -254,10 +254,10 @@ double Perceptron_Batch<InputInfo_, OutputInfo_>::Learn(std::vector<InputData> c
 }
 
 template <class InputInfo_, class OutputInfo_>
-template<class Iter1>
-C_OutputLayerPtr<OutputInfo_> Perceptron_Batch<InputInfo_, OutputInfo_>::Test(Iter1 input_first, Iter1 input_last)
+template<class Iter>
+C_OutputLayerPtr<OutputInfo_> Perceptron_Batch<InputInfo_, OutputInfo_>::Test(Iter input_begin, Iter input_end)
 {
-	InputData input(input_first, input_last);
+	InputData input(input_begin, input_end);
 	mlp_.ForwardPropagation(input);
 	return mlp_.out_layer_;
 }

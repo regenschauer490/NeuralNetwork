@@ -43,8 +43,8 @@ protected:
 
 	virtual std::vector<double> CalcEdgeWeight(double alpha, std::array<typename OutputInfo_::type, OutputInfo_::dim> teacher_signals) = 0;
 
-	double SquareError(std::array<typename OutputInfo_::type, OutputInfo_::dim> const& teacher){
-		return std::inner_product(begin(), end(), teacher.begin(), 0.0, std::plus<double>(), [](NodePtr& n, typename OutputInfo_::type v){ return pow(n->Score() - v, 2); });
+	double SquareError_(std::array<typename OutputInfo_::type, OutputInfo_::dim> const& teacher) const{
+		return Metrics::SquareError(begin(), end(), teacher.begin());
 	}
 
 public:
@@ -57,7 +57,27 @@ public:
 		for (uint i = 0; i < NodeNum(); ++i) score[i] = this->operator[](i)->Score();
 		return score;
 	}
+
+	template<class Iter>
+	double SquareError(Iter ans_vector_begin) const;
+
+	template<class Dummy>
+	double SquareError(typename OutputInfo_::type ans) const;
 };
+
+template <class OutputInfo_>
+template<class Iter>
+double OutputLayer<OutputInfo_>::SquareError(Iter ans_vector_begin) const{
+	static_assert(OutputInfo_::dim > 1, "error in OutputLayer::SquareError() : need OutputLayer_::dim > 1");
+	return Metrics::SquareError(begin(), end(), ans_vector_begin);
+}
+
+template <class OutputInfo_>
+template<class Dummy>
+double OutputLayer<OutputInfo_>::SquareError(typename OutputInfo_::type ans) const{
+	static_assert(OutputInfo_::dim < 2, "error in OutputLayer::SquareError() : need OutputLayer_::dim < 2");
+	return pow((*this)[0]->Score() - ans, 2);
+}
 
 
 #define PP_UpdateNodeScore(ACTIVATE_FUNC)\
@@ -92,6 +112,7 @@ public:
 			}\
 		}\
 	}
+
 
 template <class OutputInfo_>
 class RegressionLayer : public OutputLayer<OutputInfo_>

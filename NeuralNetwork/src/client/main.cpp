@@ -1,62 +1,99 @@
-
 #include "../lib/MLP_Online.hpp"
 #include "../lib/MLP_Batch.hpp"
 
 #include "utility.hpp"
 
+#define IS_BATCH 0
 
+//‰ñ‹A
 void Test1(){
 	using namespace signn;
+	const uint MAX_LOOP = 1000000;
+	const uint DNUM = 1000;
+	const uint VNUM = 10;
 
-	std::vector<std::vector<double>> zero{ { 0.40, 0.20 }, { 0.30, 0.40 }, { 0.80, 0.10 }, { 0.00, 0.00 }, { 0.10, 0.70 }, { 0.10, 0.20 }, { 0.50, 0.50 }, { 0.60, 0.20 }, { 0.20, 0.80 } };
-	std::vector<std::vector<double>> test{{0.50, 0.10}, {0.20, 0.70}, {0.10, 0.10}};
+	//std::vector<std::vector<double>> zero{ { 0.40, 0.20 }, { 0.30, 0.40 }, { 0.80, 0.10 }, { 0.00, 0.00 }, { 0.10, 0.70 }, { 0.10, 0.20 }, { 0.50, 0.50 }, { 0.60, 0.20 }, { 0.20, 0.80 } };
+	//std::vector<std::vector<double>> test{{0.40, 0.10}, {0.20, 0.70}, {0.10, 0.10}};
+	//std::vector<double> ans{ 0.60, 0.70, 0.90, 0.00, 0.80, 0.30, 1.00, 0.80, 1.00 };
 
-	std::vector<double> ans{ 0.60, 0.70, 0.90, 0.00, 0.80, 0.30, 1.00, 0.80, 1.00 };
-
-	typedef InputInfo<double, 2> InInfo;
+	typedef InputInfo<double, VNUM> InInfo;
 	typedef OutputInfo<OutputLayerType::Regression, 1> OutInfo;
+#if IS_BATCH
 	typedef Perceptron_Batch<InInfo, OutInfo> Perceptron;
-
+#else
+	typedef Perceptron_Online<InInfo, OutInfo> Perceptron;
+#endif
 	auto mid = Layer::MakeInstance(2);
+	Perceptron nn({ mid });
 
+	auto MakeData = [](uint data_num, uint elem_num){
+		static SimpleRandom<double> rgen(0.0, 1.0, true);
+
+		std::vector<std::vector<double>> d; d.reserve(data_num);
+		std::vector<double> a;	a.reserve(elem_num);
+
+		for (uint i = 0; i < data_num; ++i){
+			std::vector<double> vec;
+			for (uint j = 0; j < elem_num; +j){
+				vec.push_back(rgen());
+			}
+			d.push_back(std::move(vec));
+
+			a.push_back( std::accumulate(d[i].begin(), d[i].end(), 0.0) );
+		}
+
+		return std::make_tuple(std::move(d), std::move(a));
+	};
+
+	auto train = MakeData(DNUM, VNUM);
+	auto train_data = std::move(std::get<0>(train));
+	auto train_ans = std::move(std::get<1>(train));
+	
+	auto test = MakeData(DNUM / 10, VNUM);
+	auto test_data = std::move(std::get<0>(test));
+	auto test_ans = std::move(std::get<1>(test));
+
+#if IS_BATCH
 	std::vector<Perceptron::InputData> inputs;
-	for (int i = 0; i < ans.size(); ++i){
-		inputs.push_back(Perceptron::InputData(zero[i].begin(), zero[i].end(), ans[i]));
+	for (int i = 0; i < train_ans.size(); ++i){
+		inputs.push_back(Perceptron::InputData(train_data[i].begin(), train_data[i].end(), train_ans[i]));
 	}
+#endif
 
 	sig::TimeWatch tw;
+	double p_mse = -1, mse = -1;
 
-	Perceptron nn(std::vector<LayerPtr>{mid});
-
-//	std::vector<double> weight{ -1.10566906, 1.10261568, -1.16590520, 1.18427171, -13.39621577, 7.56436575 };
-//	nn.DebugWeight(weight);
-//	auto result = nn.Test(test[0].begin(), test[0].end())->GetScore();
-	
-	double p_esum = 0, esum = 0;
-	for(int loop = 0; true; ++loop){
+	for (uint loop = 0; loop < MAX_LOOP; ++loop){
 		std::vector<double> moe;
-		/*
-		for(int i=0; i<ans.size(); ++i){
-			moe.push_back(nn.Learn(Perceptron::InputData(zero[i].begin(), zero[i].end(), ans[i])));
-		}*/
-		//inputs.push_back(Perceptron::InputData(zero[loop % 9].begin(), zero[loop % 9].end(), ans[loop % 9]));
+#if !IS_BATCH
+		for (int i = 0; i <train_ans.size(); ++i){
+			moe.push_back(nn.Learn(Perceptron::InputData(train_data[i].begin(), train_data[i].end(), train_ans[i])));
+		}
+#else
 		moe.push_back(nn.Learn(inputs));
+#endif
+		p_mse = mse;
+		mse = std::accumulate(moe.begin(), moe.end(), 0.0);
+		if (loop%100 == 0){
+			auto tmse = 0;
+			for (uint k = 0; k < test_data.size(); ++k){
+				auto tresult = nn.Test(test_data[k].begin(), test_data[k].end());
+				//tmse += tresult->SquareError(test_ans[k]);
+			}
+			std::cout << "mse:" << mse << ", test_mse:" << tmse << std::endl;
+		}
 
-		p_esum = esum;
-		esum = std::accumulate(moe.begin(), moe.end(), 0.0);
-		if (loop%100 == 0) std::cout << esum  << std::endl;
-		if (std::abs(p_esum-esum)<0.0000000001) break;
-		if (esum < 0.00005) break;
+		if (std::abs(p_mse - mse)<0.0000000001) break;
+		if (mse < 0.00005) break;
 	}
 
 	tw.Stop();
 	std::cout << "time: " << tw.GetTime<std::chrono::seconds>() << std::endl;
 
-	auto result1 = nn.Test(test[0].begin(), test[0].end())->GetScore();
-	auto result2 = nn.Test(test[1].begin(), test[1].end())->GetScore();
-	auto result3 = nn.Test(test[2].begin(), test[2].end())->GetScore();
-
-	std::cout << result1[0] << ", " << result2[0] << ", " << result3[0];
+	std::array<double, 3> ar;
+	typedef decltype(ar.begin()) tt;
+	tt::value_type d;
+	
 }
 
 /*
@@ -190,6 +227,6 @@ void Test3(){
 }
 
 int main(){
-	Test3();
+	Test1();
 }
 

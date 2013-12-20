@@ -282,4 +282,24 @@ namespace File{
 		
 	}
 
+namespace Metrics{
+
+	template <class Iter1, class Iter2>
+	inline double SquareError(Iter1 vec1_begin, Iter1 vec1_end, Iter2 vec2_begin) {
+		return std::inner_product(vec1_begin, vec1_end, vec2_begin, 0.0, std::plus<double>(), [](Iter1::value_type& v1, Iter2::value_type v2){ return pow(v1 - v2, 2); });
+	}
+
+	template <class T>
+	double MeanSquareError(std::vector < std::vector < T >> const& inputs, std::vector < std::vector < T >> const& answers)
+	{
+		const uint dsize = std::min(inputs.size(), answers.size());
+		double error = 0;
+
+		for (uint i = 0; i < dsize; ++i){
+			error += SquareError(inputs[i].befin(), inputs[i].end(), answers[i].begin());
+		}
+		return error / dsize;
+	}
+}
+
 }
