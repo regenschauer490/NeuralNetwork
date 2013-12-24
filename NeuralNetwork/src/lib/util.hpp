@@ -33,6 +33,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <functional>
 #include <algorithm>
 #include <numeric>
+#include <type_traits>
 
 /* namespace / typedef */
 typedef unsigned long int uint;
@@ -286,7 +287,7 @@ namespace Metrics{
 
 	template <class Iter1, class Iter2>
 	inline double SquareError(Iter1 vec1_begin, Iter1 vec1_end, Iter2 vec2_begin) {
-		return std::inner_product(vec1_begin, vec1_end, vec2_begin, 0.0, std::plus<double>(), [](Iter1::value_type& v1, Iter2::value_type v2){ return pow(v1 - v2, 2); });
+		return std::inner_product(vec1_begin, vec1_end, vec2_begin, 0.0, std::plus<double>(), [](Iter1::value_type v1, Iter2::value_type v2){ return pow(v1 - v2, 2); });
 	}
 
 	template <class T>

@@ -34,7 +34,7 @@ void Test1(){
 
 		for (uint i = 0; i < data_num; ++i){
 			std::vector<double> vec;
-			for (uint j = 0; j < elem_num; +j){
+			for (uint j = 0; j < elem_num; ++j){
 				vec.push_back(rgen());
 			}
 			d.push_back(std::move(vec));
@@ -43,6 +43,16 @@ void Test1(){
 		}
 
 		return std::make_tuple(std::move(d), std::move(a));
+	};
+
+	auto CheckMSE = [](Perceptron const& nn, std::vector< std::vector<double>> const& test_data, std::vector<double> const& test_ans){
+		double tmse = 0;
+		for (uint k = 0; k < test_data.size(); ++k){
+			auto tresult = nn.Test(test_data[k].begin(), test_data[k].end());
+			tmse += tresult->SquareError(test_ans[k]);
+		}
+		tmse /= test_data.size();
+		std::cout << "test_mse:" << tmse << std::endl;
 	};
 
 	auto train = MakeData(DNUM, VNUM);
@@ -75,24 +85,17 @@ void Test1(){
 		p_mse = mse;
 		mse = std::accumulate(moe.begin(), moe.end(), 0.0);
 		if (loop%100 == 0){
-			auto tmse = 0;
-			for (uint k = 0; k < test_data.size(); ++k){
-				auto tresult = nn.Test(test_data[k].begin(), test_data[k].end());
-				//tmse += tresult->SquareError(test_ans[k]);
-			}
-			std::cout << "mse:" << mse << ", test_mse:" << tmse << std::endl;
+			CheckMSE(nn, test_data, test_ans);
 		}
 
 		if (std::abs(p_mse - mse)<0.0000000001) break;
-		if (mse < 0.00005) break;
+		//if (mse < 0.00005) break;
 	}
 
 	tw.Stop();
 	std::cout << "time: " << tw.GetTime<std::chrono::seconds>() << std::endl;
 
-	std::array<double, 3> ar;
-	typedef decltype(ar.begin()) tt;
-	tt::value_type d;
+	CheckMSE(nn, test_data, test_ans);
 	
 }
 

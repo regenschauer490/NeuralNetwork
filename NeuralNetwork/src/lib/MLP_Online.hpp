@@ -25,58 +25,15 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "InputLayer.hpp"
 #include "OutputLayer.hpp"
-#include "ParameterPack.hpp"
 #include "Node.h"
 #include "Edge.h"
-#include "info.hpp"
+#include "MLP_Base.hpp"
 
 namespace signn{
 	
 template <class InputInfo_, class OutputInfo_>
-class Perceptron_Online
+class Perceptron_Online : public MLP_Base<InputInfo_, OutputInfo_>
 {
-public:
-	class InputData
-	{
-		std::array<typename InputInfo_::type, InputInfo_::dim> input_;
-		std::array<typename OutputInfo_::type, OutputInfo_::dim> teacher_;
-
-	public:
-		template<class Iter1, class Iter2>
-		InputData(Iter1 input_begin, Iter1 input_end, Iter2 teacher_begin, Iter2 teacher_end){
-			uint i,j;
-			for (i = 0; i < InputInfo_::dim && input_begin != input_end; ++i, ++input_begin) input_[i] = *input_begin;
-			for (j = 0; j < OutputInfo_::dim && teacher_begin != teacher_end; ++j, ++taecher_first) teacher_[j] = *teacher_begin;
-			assert(i == InputInfo_::dim && j == OutputInfo_::dim && input_begin == input_end && teacher_begin == teacher_las, "invalid input data");
-		}
-
-		template<class Iter1>
-		InputData(Iter1 input_begin, Iter1 input_end, typename OutputInfo_::type teacher){
-			uint i, j = 0;
-			for (i = 0; i < InputInfo_::dim && input_begin != input_end; ++i, ++input_begin) input_[i] = *input_begin;
-			if (OutputInfo_::e_layertype == OutputLayerType::MultiClassClassification){
-				assert(teacher < OutputInfo_::dim);
-				for (; j < OutputInfo_::dim; ++j){
-					if (teacher == j) teacher_[j] = 1;
-					else teacher_[j] = 0;
-				}
-			}
-			else teacher_[j++] = teacher;
-			assert(i == InputInfo_::dim && j == OutputInfo_::dim && input_begin == input_end, "invalid input data");
-		}
-
-		/*template<class Iter1>
-		InputData(Iter1 input_begin, Iter1 input_end){
-			uint i;
-			for (i = 0; i < InputInfo_::dim && input_begin != input_end; ++i, ++input_begin) input_[i] = *input_begin;
-			assert(i == InputInfo_::dim && 1 == OutputInfo_::dim && input_begin == input_end, "invalid input data");
-		}*/
-
-		std::array<typename InputInfo_::type, InputInfo_::dim> const& Input() const{ return input_; }
-		std::array<typename OutputInfo_::type, OutputInfo_::dim> const& Teacher() const{ return teacher_; }
-	};
-
-private:
 	InputLayerPtr<InputInfo_> in_layer_;
 	OutputLayerPtr<OutputInfo_> out_layer_;
 	std::vector<LayerPtr> layers_;	//all layers
@@ -91,7 +48,7 @@ private:
 private:
 	void MakeLink();
 
-	void ForwardPropagation(InputData const& input);
+	void ForwardPropagation(InputData const& input) const;
 
 	double BackPropagation(InputData const& input);
 
@@ -116,13 +73,13 @@ public:
 	double Learn(InputData const& input);
 
 	template<class Iter>
-	C_OutputLayerPtr<OutputInfo_> Test(Iter input_begin, Iter input_end);
+	C_OutputLayerPtr<OutputInfo_> Test(Iter input_begin, Iter input_end) const;
 
 	void SaveParameter(std::wstring pass) const;
 
 	void LoadParameter(std::wstring pass) const;
 
-	void DebugWeight(std::vector<double> weight){ for (uint i=0; i<all_edges_.size(); ++i) all_edges_[i]->Weight(weight[i]); }
+	void DebugWeight(std::vector<double> weight) const{ for (uint i=0; i<all_edges_.size(); ++i) all_edges_[i]->Weight(weight[i]); }
 };
 
 
@@ -149,7 +106,7 @@ void Perceptron_Online<InputInfo_, OutputInfo_>::MakeLink()
 
 
 template <class InputInfo_, class OutputInfo_>
-void Perceptron_Online<InputInfo_, OutputInfo_>::ForwardPropagation(InputData const& input)
+void Perceptron_Online<InputInfo_, OutputInfo_>::ForwardPropagation(InputData const& input) const
 {
 	in_layer_->SetData(input.Input());
 	for (auto& l : layers_){
@@ -207,11 +164,11 @@ double Perceptron_Online<InputInfo_, OutputInfo_>::Learn(Iter1 input_begin, Iter
 
 template <class InputInfo_, class OutputInfo_>
 template<class Iter>
-C_OutputLayerPtr<OutputInfo_> Perceptron_Online<InputInfo_, OutputInfo_>::Test(Iter input_begin, Iter input_end)
+C_OutputLayerPtr<OutputInfo_> Perceptron_Online<InputInfo_, OutputInfo_>::Test(Iter input_begin, Iter input_end) const
 {
 	InputData input(input_begin, input_end, 0);
 	ForwardPropagation(input);
-	return out_layer_;
+	return out_layer_->;
 }
 
 template <class InputInfo_, class OutputInfo_>

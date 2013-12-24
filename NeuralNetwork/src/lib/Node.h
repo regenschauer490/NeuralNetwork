@@ -35,7 +35,7 @@ class Node
 	std::vector<DEdgePtr> in_;
 	std::vector<DEdgePtr> out_;
 
-	double score_;
+	mutable double score_;
 	
 	//cache
 	double raw_score_;

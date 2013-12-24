@@ -83,6 +83,7 @@
     <ClInclude Include="src\lib\info.hpp" />
     <ClInclude Include="src\lib\InputLayer.hpp" />
     <ClInclude Include="src\lib\Layer.h" />
+    <ClInclude Include="src\lib\MLP_Base.hpp" />
     <ClInclude Include="src\lib\MLP_Batch.hpp" />
     <ClInclude Include="src\lib\MLP_Online.hpp" />
     <ClInclude Include="src\lib\Node.h" />

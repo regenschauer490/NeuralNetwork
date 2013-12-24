@@ -25,52 +25,14 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "InputLayer.hpp"
 #include "OutputLayer.hpp"
-#include "ParameterPack.hpp"
 #include "Node.h"
 #include "Edge.h"
-#include "info.hpp"
-#include "info.hpp"
 
 namespace signn{
 	
 template <class InputInfo_, class OutputInfo_>
-class Perceptron_Batch
+class Perceptron_Batch : public MLP_Base<InputInfo_, OutputInfo_>
 {
-public:
-	class InputData
-	{
-		std::array<typename InputInfo_::type, InputInfo_::dim> input_;
-		std::array<typename OutputInfo_::type, OutputInfo_::dim> teacher_;
-
-	public:
-		template<class Iter1, class Iter2>
-		InputData(Iter1 input_begin, Iter1 input_end, Iter2 teacher_begin, Iter2 teacher_end){input_end
-			uint i,j;
-			for (i = 0; i < InputInfo::dim && input_begin != input_end; ++i, ++input_begin) input_[i] = *input_begin;
-			for (j = 0; j < OutputInfo::dim && teacher_begin != teacher_end; ++j, ++taecher_first) teacher_[j] = *teacher_begin;
-			assert(i == InputInfo::dim && j == OutputInfo::dim && input_begin == input_end && teacher_begin == teacher_las, "invalid input data");
-		}
-
-		template<class Iter1>
-		InputData(Iter1 input_begin, Iter1 input_end, typename OutputInfo_::type teacher){
-			uint i;
-			for (i = 0; i < InputInfo_::dim && input_begin != input_end; ++i, ++input_begin) input_[i] = *input_begin;
-			teacher_[0] = teacher;
-			assert(i == InputInfo_::dim && 1 == OutputInfo_::dim && input_begin == input_end, "invalid input data");
-		}
-
-		template<class Iter1>
-		InputData(Iter1 input_begin, Iter1 input_end){
-			uint i;
-			for (i = 0; i < InputInfo_::dim && input_begin != input_end; ++i, ++input_begin) input_[i] = *input_begin;
-			assert(i == InputInfo_::dim && 1 == OutputInfo_::dim && input_begin == input_end, "invalid input data");
-		}
-
-		std::array<typename InputInfo_::type, InputInfo_::dim> const& Input() const{ return input_; }
-		std::array<typename OutputInfo_::type, OutputInfo_::dim> const& Teacher() const{ return teacher_; }
-	};
-
-private:
 	struct MLP_Impl{
 		InputLayerPtr<InputInfo_> in_layer_;
 		OutputLayerPtr<OutputInfo_> out_layer_;
@@ -204,12 +166,12 @@ double Perceptron_Batch<InputInfo_, OutputInfo_>::Learn(std::vector<InputData> c
 			auto d_weight = mlp.BackPropagation(*begin);
 
 			if (first){
-				l_mse = mlp.out_layer_->SquareError(begin->Teacher());
+				l_mse = mlp.out_layer_->SquareError_(begin->Teacher());
 				result = std::move(d_weight);
 				first = false;
 			}
 			else{
-				l_mse += mlp.out_layer_->SquareError(begin->Teacher());
+				l_mse += mlp.out_layer_->SquareError_(begin->Teacher());
 				l_mse *= 0.5;
 
 				for (uint l = 0; l < d_weight.size(); ++l){
