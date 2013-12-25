@@ -9,12 +9,14 @@
 void Test1(){
 	using namespace signn;
 	const uint MAX_LOOP = 1000000;
-	const uint DNUM = 1000;
-	const uint VNUM = 10;
+	const uint DNUM = 10;
+	const uint VNUM = 2;
 
-	//std::vector<std::vector<double>> zero{ { 0.40, 0.20 }, { 0.30, 0.40 }, { 0.80, 0.10 }, { 0.00, 0.00 }, { 0.10, 0.70 }, { 0.10, 0.20 }, { 0.50, 0.50 }, { 0.60, 0.20 }, { 0.20, 0.80 } };
-	//std::vector<std::vector<double>> test{{0.40, 0.10}, {0.20, 0.70}, {0.10, 0.10}};
-	//std::vector<double> ans{ 0.60, 0.70, 0.90, 0.00, 0.80, 0.30, 1.00, 0.80, 1.00 };
+	std::vector<std::vector<double>> train_data{ { 0.40, 0.20 }, { 0.30, 0.40 }, { 0.80, 0.10 }, { 0.00, 0.00 }, { 0.10, 0.70 }, { 0.10, 0.20 }, { 0.50, 0.50 }, { 0.60, 0.20 }, { 0.20, 0.80 } };
+	std::vector<double> train_ans{ 0.60, 0.70, 0.90, 0.00, 0.80, 0.30, 1.00, 0.80, 1.00 };
+
+	std::vector<std::vector<double>> test_data{ { 0.40, 0.10 }, { 0.20, 0.70 }, { 0.10, 0.10 } };
+	std::vector<double> test_ans{ 0.50, 0.90, 0.20 };
 
 	typedef InputInfo<double, VNUM> InInfo;
 	typedef OutputInfo<OutputLayerType::Regression, 1> OutInfo;
@@ -48,13 +50,13 @@ void Test1(){
 	auto CheckMSE = [](Perceptron const& nn, std::vector< std::vector<double>> const& test_data, std::vector<double> const& test_ans){
 		double tmse = 0;
 		for (uint k = 0; k < test_data.size(); ++k){
-			auto tresult = nn.Test(test_data[k].begin(), test_data[k].end());
+			auto tresult = nn.Test(nn.MakeInputData(test_data[k].begin(), test_data[k].end()));
 			tmse += tresult->SquareError(test_ans[k]);
 		}
 		tmse /= test_data.size();
 		std::cout << "test_mse:" << tmse << std::endl;
 	};
-
+/*
 	auto train = MakeData(DNUM, VNUM);
 	auto train_data = std::move(std::get<0>(train));
 	auto train_ans = std::move(std::get<1>(train));
@@ -62,7 +64,7 @@ void Test1(){
 	auto test = MakeData(DNUM / 10, VNUM);
 	auto test_data = std::move(std::get<0>(test));
 	auto test_ans = std::move(std::get<1>(test));
-
+*/
 #if IS_BATCH
 	std::vector<Perceptron::InputData> inputs;
 	for (int i = 0; i < train_ans.size(); ++i){
@@ -77,7 +79,7 @@ void Test1(){
 		std::vector<double> moe;
 #if !IS_BATCH
 		for (int i = 0; i <train_ans.size(); ++i){
-			moe.push_back(nn.Learn(Perceptron::InputData(train_data[i].begin(), train_data[i].end(), train_ans[i])));
+			moe.push_back(nn.Learn(nn.MakeInputData(train_data[i].begin(), train_data[i].end(), train_ans[i]), true));
 		}
 #else
 		moe.push_back(nn.Learn(inputs));
@@ -88,8 +90,8 @@ void Test1(){
 			CheckMSE(nn, test_data, test_ans);
 		}
 
-		if (std::abs(p_mse - mse)<0.0000000001) break;
-		//if (mse < 0.00005) break;
+		//if (std::abs(p_mse - mse)<0.0000000001) break;
+		if (mse < 0.00005) break;
 	}
 
 	tw.Stop();
@@ -157,7 +159,7 @@ void Test2(){
 }
 */
 
-
+/*
 void Test3(){
 	using namespace signn;
 		
@@ -206,9 +208,9 @@ void Test3(){
 	double p_esum = 0, esum = 0;
 	for (int loop = 0; true; ++loop){
 		std::vector<double> moe;
-		/*for (int i = 0; i < train_data.size(); ++i){
-			moe.push_back(nn.Learn(Perceptron::InputData(train_data[i].begin(), train_data[i].end(), train_ans[i])));
-		}*/
+		//for (int i = 0; i < train_data.size(); ++i){
+		//	moe.push_back(nn.Learn(Perceptron::InputData(train_data[i].begin(), train_data[i].end(), train_ans[i])));
+		//}
 		moe.push_back(nn.Learn(inputs));
 
 		p_esum = esum;
@@ -228,6 +230,7 @@ void Test3(){
 		if (esum < 1000) break;
 	}
 }
+*/
 
 int main(){
 	Test1();

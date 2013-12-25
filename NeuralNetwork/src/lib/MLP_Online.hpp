@@ -50,7 +50,7 @@ private:
 
 	void ForwardPropagation(InputData const& input) const;
 
-	double BackPropagation(InputData const& input);
+	void BackPropagation(InputData const& input);
 
 public:
 	Perceptron_Online(std::vector<LayerPtr> hidden_layers) :
@@ -62,18 +62,18 @@ public:
 		layers_.push_back(out_layer_);
 		MakeLink();
 	}
-	~Perceptron_Online(){};
+	virtual ~Perceptron_Online(){};
 
+/*
 	template<class Iter1, class Iter2>
 	double Learn(Iter1 input_begin, Iter1 input_end, Iter2 teacher_begin, Iter2 teacher_end);
 
 	template<class Iter1>
 	double Learn(Iter1 input_begin, Iter1 input_end, typename OutputInfo_::type teacher);
+*/
+	double Learn(InputDataPtr<InputInfo_, OutputInfo_> train_data, bool return_sqerror = false);
 
-	double Learn(InputData const& input);
-
-	template<class Iter>
-	C_OutputLayerPtr<OutputInfo_> Test(Iter input_begin, Iter input_end) const;
+	OutputDataPtr<InputInfo_, OutputInfo_> Test(InputDataPtr<InputInfo_, OutputInfo_> test_data) const;
 
 	void SaveParameter(std::wstring pass) const;
 
@@ -108,15 +108,16 @@ void Perceptron_Online<InputInfo_, OutputInfo_>::MakeLink()
 template <class InputInfo_, class OutputInfo_>
 void Perceptron_Online<InputInfo_, OutputInfo_>::ForwardPropagation(InputData const& input) const
 {
-	in_layer_->SetData(input.Input());
-	for (auto& l : layers_){
+	auto* tp = const_cast<Perceptron_Online<InputInfo_, OutputInfo_>*>(this);
+	tp->in_layer_->SetData(input.Input());
+	for (auto& l : tp->layers_){
 		l->UpdateNodeScore();
 	}
 }
 
 
 template <class InputInfo_, class OutputInfo_>
-double Perceptron_Online<InputInfo_, OutputInfo_>::BackPropagation(InputData const& input)
+void Perceptron_Online<InputInfo_, OutputInfo_>::BackPropagation(InputData const& input)
 {
 	auto& teacher = input.Teacher();
 
@@ -124,28 +125,22 @@ double Perceptron_Online<InputInfo_, OutputInfo_>::BackPropagation(InputData con
 	for (int i = layers_.size() - 2; i >= 0; --i){
 		layers_[i]->UpdateEdgeWeight(alpha_);
 	}
-	
-/*
-	std::cout << out_layer_->operator[](0)->Score() << ", t: " << teacher[0] << ", se:" << pow(out_layer_->operator[](0)->Score() - teacher[0], 2) << std::endl;
-	uint i = 0;
-	for (auto& e : all_edges_){
-		std::cout << ++i << " : " << e->PreWeight() << " -> " << e->Weight() << ", d: " << e->Weight() - e->PreWeight() << std::endl;
-	}
-	std::cout << std::endl;
-*/
-
-	return pow((*out_layer_)[0]->Score() - teacher[0], 2);
 }
 
 
 template <class InputInfo_, class OutputInfo_>
-double Perceptron_Online<InputInfo_, OutputInfo_>::Learn(InputData const& input)
+double Perceptron_Online<InputInfo_, OutputInfo_>::Learn(InputDataPtr<InputInfo_, OutputInfo_> train_data, bool return_sqerror)
 {
-	ForwardPropagation(input);
-	return BackPropagation(input);
+	ForwardPropagation(*train_data);
+	BackPropagation(*train_data);
 
+	if (return_sqerror){
+		return out_layer_->SquareError_(train_data->Teacher());
+	}
+	else return -1;
 }
 
+/*
 template <class InputInfo_, class OutputInfo_>
 template<class Iter1, class Iter2>
 double Perceptron_Online<InputInfo_, OutputInfo_>::Learn(Iter1 input_begin, Iter1 input_end, Iter2 teacher_begin, Iter2 teacher_end)
@@ -161,14 +156,13 @@ double Perceptron_Online<InputInfo_, OutputInfo_>::Learn(Iter1 input_begin, Iter
 	InputData input(input_begin, input_end, teacher);
 	return Learn(input);
 }
+*/
 
 template <class InputInfo_, class OutputInfo_>
-template<class Iter>
-C_OutputLayerPtr<OutputInfo_> Perceptron_Online<InputInfo_, OutputInfo_>::Test(Iter input_begin, Iter input_end) const
+OutputDataPtr<InputInfo_, OutputInfo_> Perceptron_Online<InputInfo_, OutputInfo_>::Test(InputDataPtr<InputInfo_, OutputInfo_> test_data) const
 {
-	InputData input(input_begin, input_end, 0);
-	ForwardPropagation(input);
-	return out_layer_->;
+	ForwardPropagation(*test_data);
+	return std::make_shared<OutputData>(test_data, out_layer_->GetScore());
 }
 
 template <class InputInfo_, class OutputInfo_>

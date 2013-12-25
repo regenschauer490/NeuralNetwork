@@ -81,7 +81,7 @@ public:
 			copy_mlp_[i].CopyWeight(mlp_);
 		}
 	}
-	~Perceptron_Batch(){};
+	virtual ~Perceptron_Batch(){};
 
 	double Learn(std::vector<InputData> const& inputs);
 

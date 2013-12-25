@@ -57,7 +57,7 @@ public:
 		for (uint i = 0; i < NodeNum(); ++i) score[i] = this->operator[](i)->Score();
 		return score;
 	}
-
+/*
 	template<class Iter, typename = decltype(*std::declval<Iter&>(), void(), ++std::declval<Iter&>(), void())>
 	double SquareError(Iter ans_vector_begin) const;
 
@@ -65,15 +65,17 @@ public:
 		static_assert(OutputInfo_::dim < 2, "error in OutputLayer::SquareError() : need OutputLayer_::dim < 2");
 		return pow((*this)[0]->Score() - ans, 2);
 	}
+*/
 };
 
+/*
 template <class OutputInfo_>
 template<class Iter, typename = decltype(*std::declval<Iter&>(), void(), ++std::declval<Iter&>(), void())>
 double OutputLayer<OutputInfo_>::SquareError(Iter ans_vector_begin) const{
 	static_assert(OutputInfo_::dim > 1, "error in OutputLayer::SquareError() : need OutputLayer_::dim > 1");
 	return std::inner_product(begin(), end(), ans_vector_begin, 0.0, std::plus<double>(), [](NodePtr const& v1, typename std::iterator_traits<Iter>::value_type v2){ return pow(v1->Score() - v2, 2); });
 }
-
+*/
 
 #define PP_UpdateNodeScore(ACTIVATE_FUNC)\
 	void UpdateNodeScore() override{\
