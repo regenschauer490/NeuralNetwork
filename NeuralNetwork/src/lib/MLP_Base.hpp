@@ -69,6 +69,13 @@ public:
 			return pow(estimate_[0] - answer, 2);
 		}
 
+		uint size() const{ return OutputInfo_::dim; }
+
+		auto begin() const ->decltype(estimate_.cbegin()){ return estimate_.cbegin(); }
+
+		auto end() const ->decltype(estimate_.cend()){ return estimate_.cend(); }
+
+		typename OutputInfo_::type operator [](uint index) const{ return estimate_[index]; }
 	};
 
 public:

@@ -9,15 +9,14 @@
 void Test1(){
 	using namespace signn;
 	const uint MAX_LOOP = 1000000;
-	const uint DNUM = 10;
-	const uint VNUM = 2;
-
+	const uint DNUM = 100;
+	const uint VNUM = 5;
+/*
 	std::vector<std::vector<double>> train_data{ { 0.40, 0.20 }, { 0.30, 0.40 }, { 0.80, 0.10 }, { 0.00, 0.00 }, { 0.10, 0.70 }, { 0.10, 0.20 }, { 0.50, 0.50 }, { 0.60, 0.20 }, { 0.20, 0.80 } };
 	std::vector<double> train_ans{ 0.60, 0.70, 0.90, 0.00, 0.80, 0.30, 1.00, 0.80, 1.00 };
-
-	std::vector<std::vector<double>> test_data{ { 0.40, 0.10 }, { 0.20, 0.70 }, { 0.10, 0.10 } };
-	std::vector<double> test_ans{ 0.50, 0.90, 0.20 };
-
+	std::vector<std::vector<double>> test_data{ { 0.40, 0.10 }, { 0.20, 0.70 }, { 0.10, 0.10 }, { 0.40, 0.40 } };
+	std::vector<double> test_ans{ 0.50, 0.90, 0.20, 0.80 };
+*/
 	typedef InputInfo<double, VNUM> InInfo;
 	typedef OutputInfo<OutputLayerType::Regression, 1> OutInfo;
 #if IS_BATCH
@@ -41,7 +40,7 @@ void Test1(){
 			}
 			d.push_back(std::move(vec));
 
-			a.push_back( std::accumulate(d[i].begin(), d[i].end(), 0.0) );
+			a.push_back( std::accumulate(++d[i].begin(), d[i].end(), 0.0) );
 		}
 
 		return std::make_tuple(std::move(d), std::move(a));
@@ -55,16 +54,17 @@ void Test1(){
 		}
 		tmse /= test_data.size();
 		std::cout << "test_mse:" << tmse << std::endl;
+		return tmse;
 	};
-/*
+
 	auto train = MakeData(DNUM, VNUM);
 	auto train_data = std::move(std::get<0>(train));
 	auto train_ans = std::move(std::get<1>(train));
 	
-	auto test = MakeData(DNUM / 10, VNUM);
+	auto test = MakeData(DNUM / 10 + 10, VNUM);
 	auto test_data = std::move(std::get<0>(test));
 	auto test_ans = std::move(std::get<1>(test));
-*/
+
 #if IS_BATCH
 	std::vector<Perceptron::InputData> inputs;
 	for (int i = 0; i < train_ans.size(); ++i){
@@ -72,8 +72,10 @@ void Test1(){
 	}
 #endif
 
-	sig::TimeWatch tw;
 	double p_mse = -1, mse = -1;
+	std::tuple<uint, double> mse_min{0, 1000000};
+	auto tmse_min = mse_min;
+	sig::TimeWatch tw;
 
 	for (uint loop = 0; loop < MAX_LOOP; ++loop){
 		std::vector<double> moe;
@@ -85,13 +87,23 @@ void Test1(){
 		moe.push_back(nn.Learn(inputs));
 #endif
 		p_mse = mse;
-		mse = std::accumulate(moe.begin(), moe.end(), 0.0);
-		if (loop%100 == 0){
-			CheckMSE(nn, test_data, test_ans);
+		mse = std::accumulate(moe.begin(), moe.end(), 0.0) / train_data.size();
+		if (mse < std::get<1>(mse_min)){
+			std::get<0>(mse_min) = loop;
+			std::get<1>(mse_min) = mse;
 		}
 
-		//if (std::abs(p_mse - mse)<0.0000000001) break;
-		if (mse < 0.00005) break;
+		if (loop%1 == 0){
+			auto tmse = CheckMSE(nn, test_data, test_ans);
+			if (tmse < std::get<1>(tmse_min)){
+				std::get<0>(tmse_min) = loop;
+				std::get<1>(tmse_min) = tmse;
+			}
+			if (tmse < 0.0001) break;
+		}
+
+		if (std::abs(p_mse - mse)<0.00000001) break;
+		//if (mse < 0.00005) break;
 	}
 
 	tw.Stop();
@@ -159,13 +171,17 @@ void Test2(){
 }
 */
 
-/*
+
 void Test3(){
 	using namespace signn;
 		
 	typedef InputInfo<int, 784> InInfo;
 	typedef OutputInfo<OutputLayerType::MultiClassClassification, 10> OutInfo;
+#if IS_BATCH
 	typedef Perceptron_Batch<InInfo, OutInfo> Perceptron;
+#else
+	typedef Perceptron_Online<InInfo, OutInfo> Perceptron;
+#endif
 
 	auto mid = Layer::MakeInstance(100);
 
@@ -199,38 +215,41 @@ void Test3(){
 	train_data.resize(tds + 1);
 	train_ans.resize(tds + 1);
 
-
+#if IS_BATCH
 	std::vector<Perceptron::InputData> inputs;
 	for (uint i = 0; i < train_ans.size(); ++i){
 		inputs.push_back(Perceptron::InputData(train_data[i].begin(), train_data[i].end(), train_ans[i]));
 	}
+#endif
 
 	double p_esum = 0, esum = 0;
 	for (int loop = 0; true; ++loop){
 		std::vector<double> moe;
-		//for (int i = 0; i < train_data.size(); ++i){
-		//	moe.push_back(nn.Learn(Perceptron::InputData(train_data[i].begin(), train_data[i].end(), train_ans[i])));
-		//}
+#if !IS_BATCH
+		for (int i = 0; i < train_data.size(); ++i){
+			moe.push_back(nn.Learn(nn.MakeInputData(train_data[i].begin(), train_data[i].end(), train_ans[i]), true));
+		}
+#else
 		moe.push_back(nn.Learn(inputs));
-
+#endif
 		p_esum = esum;
-		esum = std::accumulate(moe.begin(), moe.end(), 0.0);
+		esum = std::accumulate(moe.begin(), moe.end(), 0.0) / train_data.size();
 		//nn.SaveParameter(L"test data/");
 
 		for (int i=0; i<test_data.size(); ++i){
-			auto est = nn.Test(test_data[i].begin(), test_data[i].end())->GetScore();
-			for (uint j = 0; j < est.size(); ++j){
-				if (est[j]) std::cout << j << ", ";
+			auto est = nn.Test(nn.MakeInputData(test_data[i].begin(), test_data[i].end()));
+			for (uint j = 0; j < est->size(); ++j){
+				if ((*est)[j]) std::cout << j << ", ";
 			}
 			std::cout << " ans:" << test_ans[i] << std::endl;
 		}
 
 		if (loop % 1 == 0) std::cout << esum << std::endl;
 		if (std::abs(p_esum - esum) < 0.0000000001) break;
-		if (esum < 1000) break;
+		//if (esum < 1000) break;
 	}
 }
-*/
+
 
 int main(){
 	Test1();
