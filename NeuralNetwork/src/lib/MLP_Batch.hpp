@@ -65,7 +65,7 @@ class Perceptron_Batch : public MLP_Base<InputInfo_, OutputInfo_>
 
 		void MakeLink();
 
-		void ForwardPropagation(InputData const& input);
+		void ForwardPropagation(InputData const& input) const;
 
 		std::vector< std::vector<double>> BackPropagation(InputData const& input);
 	};
@@ -83,10 +83,9 @@ public:
 	}
 	virtual ~Perceptron_Batch(){};
 
-	double Learn(std::vector<InputData> const& inputs);
+	double Learn(std::vector<InputDataPtr> const& inputs);
 
-	template<class Iter>
-	C_OutputLayerPtr<OutputInfo_> Test(Iter input_begin, Iter input_end);
+	OutputDataPtr Test(InputDataPtr test_data) const;
 };
 
 
@@ -114,9 +113,10 @@ void Perceptron_Batch<InputInfo_, OutputInfo_>::MLP_Impl::MakeLink()
 
 
 template <class InputInfo_, class OutputInfo_>
-void Perceptron_Batch<InputInfo_, OutputInfo_>::MLP_Impl::ForwardPropagation(InputData const& input)
+void Perceptron_Batch<InputInfo_, OutputInfo_>::MLP_Impl::ForwardPropagation(InputData const& input) const
 {
-	in_layer_->SetData(input.Input());
+	auto* tp = const_cast<Perceptron_Online<InputInfo_, OutputInfo_>*>(this);
+	tp->in_layer_->SetData(input.Input());
 	for (auto& l : layers_){
 		l->UpdateNodeScore();
 	}
@@ -149,29 +149,29 @@ std::vector< std::vector<double>> Perceptron_Batch<InputInfo_, OutputInfo_>::MLP
 
 
 template <class InputInfo_, class OutputInfo_>
-double Perceptron_Batch<InputInfo_, OutputInfo_>::Learn(std::vector<InputData> const& inputs)
+double Perceptron_Batch<InputInfo_, OutputInfo_>::Learn(std::vector<InputDataPtr> const& inputs)
 {
 	const uint div_size = inputs.size() / THREAD_NUM;
 	std::vector< std::future< std::tuple< double, std::vector< std::vector<double >>> >> task;
 	double mse = 0;
 
-	auto LearnImpl = [](MLP_Impl& mlp, std::vector<InputData>::const_iterator begin, std::vector<InputData>::const_iterator end)
+	auto LearnImpl = [](MLP_Impl& mlp, std::vector<InputDataPtr> ::const_iterator begin, std::vector< InputDataPtr< InputInfo_, OutputInfo_ >> ::const_iterator end)
 	{
 		std::vector< std::vector<double>> result;
 		double l_mse;
 		bool first = true;
 
 		while(true){
-			mlp.ForwardPropagation(*begin);
-			auto d_weight = mlp.BackPropagation(*begin);
+			mlp.ForwardPropagation(**begin);
+			auto d_weight = mlp.BackPropagation(**begin);
 
 			if (first){
-				l_mse = mlp.out_layer_->SquareError_(begin->Teacher());
+				l_mse = mlp.out_layer_->SquareError_((*begin)->Teacher());
 				result = std::move(d_weight);
 				first = false;
 			}
 			else{
-				l_mse += mlp.out_layer_->SquareError_(begin->Teacher());
+				l_mse += mlp.out_layer_->SquareError_((*begin)->Teacher());
 				l_mse *= 0.5;
 
 				for (uint l = 0; l < d_weight.size(); ++l){
@@ -216,12 +216,10 @@ double Perceptron_Batch<InputInfo_, OutputInfo_>::Learn(std::vector<InputData> c
 }
 
 template <class InputInfo_, class OutputInfo_>
-template<class Iter>
-C_OutputLayerPtr<OutputInfo_> Perceptron_Batch<InputInfo_, OutputInfo_>::Test(Iter input_begin, Iter input_end)
+typename Perceptron_Batch<InputInfo_, OutputInfo_>::OutputDataPtr Perceptron_Batch<InputInfo_, OutputInfo_>::Test(InputDataPtr test_data) const
 {
-	InputData input(input_begin, input_end);
-	mlp_.ForwardPropagation(input);
-	return mlp_.out_layer_;
+	mlp_.ForwardPropagation(*test_data);
+	return std::make_shared<OutputData>(test_data, mlp_.out_layer_->GetScore());
 }
 
 }

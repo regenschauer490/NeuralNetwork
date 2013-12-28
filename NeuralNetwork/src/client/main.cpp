@@ -3,7 +3,7 @@
 
 #include "utility.hpp"
 
-#define IS_BATCH 0
+#define IS_BATCH 1
 
 //‰ñ‹A
 void Test1(){
@@ -66,7 +66,7 @@ void Test1(){
 	auto test_ans = std::move(std::get<1>(test));
 
 #if IS_BATCH
-	std::vector<Perceptron::InputData> inputs;
+	std::vector<Perceptron::InputDataPtr> inputs;
 	for (int i = 0; i < train_ans.size(); ++i){
 		inputs.push_back(Perceptron::InputData(train_data[i].begin(), train_data[i].end(), train_ans[i]));
 	}

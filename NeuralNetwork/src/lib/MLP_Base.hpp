@@ -79,6 +79,11 @@ public:
 	};
 
 public:
+	typedef std::shared_ptr<typename MLP_Base<InputInfo_, OutputInfo_>::InputData> InputDataPtr;
+
+	typedef std::shared_ptr<typename MLP_Base<InputInfo_, OutputInfo_>::OutputData> OutputDataPtr;
+
+public:
 	MLP_Base(){};
 	virtual ~MLP_Base(){};
 
@@ -97,12 +102,6 @@ public:
 		return std::make_shared<InputData>(input_begin, input_end);
 	}
 };
-
-template <class InputInfo_, class OutputInfo_>
-using InputDataPtr = std::shared_ptr<typename MLP_Base<InputInfo_, OutputInfo_>::InputData>;
-
-template <class InputInfo_, class OutputInfo_>
-using OutputDataPtr = std::shared_ptr<typename MLP_Base<InputInfo_, OutputInfo_>::OutputData>;
 
 
 }

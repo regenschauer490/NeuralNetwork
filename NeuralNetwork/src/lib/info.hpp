@@ -38,7 +38,7 @@ namespace signn
 {
 
 //parameter constant
-const bool DEBUG_MODE = false;
+const bool DEBUG_MODE = true;
 const uint THREAD_NUM = 3;
 const double threshold_theta = 0.5;
 const double learning_rate = 0.01;

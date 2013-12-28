@@ -71,9 +71,9 @@ public:
 	template<class Iter1>
 	double Learn(Iter1 input_begin, Iter1 input_end, typename OutputInfo_::type teacher);
 */
-	double Learn(InputDataPtr<InputInfo_, OutputInfo_> train_data, bool return_sqerror = false);
+	double Learn(InputDataPtr train_data, bool return_sqerror = false);
 
-	OutputDataPtr<InputInfo_, OutputInfo_> Test(InputDataPtr<InputInfo_, OutputInfo_> test_data) const;
+	OutputDataPtr Test(InputDataPtr test_data) const;
 
 	void SaveParameter(std::wstring pass) const;
 
@@ -129,7 +129,7 @@ void Perceptron_Online<InputInfo_, OutputInfo_>::BackPropagation(InputData const
 
 
 template <class InputInfo_, class OutputInfo_>
-double Perceptron_Online<InputInfo_, OutputInfo_>::Learn(InputDataPtr<InputInfo_, OutputInfo_> train_data, bool return_sqerror)
+double Perceptron_Online<InputInfo_, OutputInfo_>::Learn(InputDataPtr train_data, bool return_sqerror)
 {
 	ForwardPropagation(*train_data);
 	BackPropagation(*train_data);
@@ -159,7 +159,7 @@ double Perceptron_Online<InputInfo_, OutputInfo_>::Learn(Iter1 input_begin, Iter
 */
 
 template <class InputInfo_, class OutputInfo_>
-OutputDataPtr<InputInfo_, OutputInfo_> Perceptron_Online<InputInfo_, OutputInfo_>::Test(InputDataPtr<InputInfo_, OutputInfo_> test_data) const
+typename Perceptron_Online<InputInfo_, OutputInfo_>::OutputDataPtr Perceptron_Online<InputInfo_, OutputInfo_>::Test(InputDataPtr test_data) const
 {
 	ForwardPropagation(*test_data);
 	return std::make_shared<OutputData>(test_data, out_layer_->GetScore());
