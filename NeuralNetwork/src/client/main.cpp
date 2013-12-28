@@ -9,7 +9,7 @@
 void Test1(){
 	using namespace signn;
 	const uint MAX_LOOP = 1000000;
-	const uint DNUM = 100;
+	const uint DNUM = 200;
 	const uint VNUM = 5;
 /*
 	std::vector<std::vector<double>> train_data{ { 0.40, 0.20 }, { 0.30, 0.40 }, { 0.80, 0.10 }, { 0.00, 0.00 }, { 0.10, 0.70 }, { 0.10, 0.20 }, { 0.50, 0.50 }, { 0.60, 0.20 }, { 0.20, 0.80 } };
@@ -65,12 +65,10 @@ void Test1(){
 	auto test_data = std::move(std::get<0>(test));
 	auto test_ans = std::move(std::get<1>(test));
 
-#if IS_BATCH
 	std::vector<Perceptron::InputDataPtr> inputs;
 	for (int i = 0; i < train_ans.size(); ++i){
-		inputs.push_back(Perceptron::InputData(train_data[i].begin(), train_data[i].end(), train_ans[i]));
+		inputs.push_back(nn.MakeInputData(train_data[i].begin(), train_data[i].end(), train_ans[i]));
 	}
-#endif
 
 	double p_mse = -1, mse = -1;
 	std::tuple<uint, double> mse_min{0, 1000000};
@@ -80,8 +78,8 @@ void Test1(){
 	for (uint loop = 0; loop < MAX_LOOP; ++loop){
 		std::vector<double> moe;
 #if !IS_BATCH
-		for (int i = 0; i <train_ans.size(); ++i){
-			moe.push_back(nn.Learn(nn.MakeInputData(train_data[i].begin(), train_data[i].end(), train_ans[i]), true));
+		for (uint i = 0; i <train_ans.size(); ++i){
+			moe.push_back(nn.Learn(inputs[i], true));
 		}
 #else
 		moe.push_back(nn.Learn(inputs));
@@ -215,19 +213,18 @@ void Test3(){
 	train_data.resize(tds + 1);
 	train_ans.resize(tds + 1);
 
-#if IS_BATCH
-	std::vector<Perceptron::InputData> inputs;
+	std::vector<Perceptron::InputDataPtr> inputs;
 	for (uint i = 0; i < train_ans.size(); ++i){
-		inputs.push_back(Perceptron::InputData(train_data[i].begin(), train_data[i].end(), train_ans[i]));
+		inputs.push_back(nn.MakeInputData(train_data[i].begin(), train_data[i].end(), train_ans[i]));
 	}
-#endif
 
 	double p_esum = 0, esum = 0;
 	for (int loop = 0; true; ++loop){
+		sig::TimeWatch tw;
 		std::vector<double> moe;
 #if !IS_BATCH
 		for (int i = 0; i < train_data.size(); ++i){
-			moe.push_back(nn.Learn(nn.MakeInputData(train_data[i].begin(), train_data[i].end(), train_ans[i]), true));
+			moe.push_back(nn.Learn(inputs[i], true));
 		}
 #else
 		moe.push_back(nn.Learn(inputs));
@@ -243,6 +240,8 @@ void Test3(){
 			}
 			std::cout << " ans:" << test_ans[i] << std::endl;
 		}
+		tw.Stop();
+		std::cout << "time: " << tw.GetTime<std::chrono::seconds>() << std::endl;
 
 		if (loop % 1 == 0) std::cout << esum << std::endl;
 		if (std::abs(p_esum - esum) < 0.0000000001) break;
@@ -252,6 +251,6 @@ void Test3(){
 
 
 int main(){
-	Test1();
+	Test3();
 }
 

@@ -52,11 +52,11 @@ public:
 
 	class OutputData
 	{
-		const std::shared_ptr<InputData> input_;
+		const std::shared_ptr<InputData const> input_;
 		std::array<typename OutputInfo_::type, OutputInfo_::dim> estimate_;
 
 	public:
-		OutputData(std::shared_ptr<InputData> input, std::array<typename OutputInfo_::type, OutputInfo_::dim> estimate) : input_(input), estimate_(estimate){}
+		OutputData(std::shared_ptr<InputData const> input, std::array<typename OutputInfo_::type, OutputInfo_::dim> estimate) : input_(input), estimate_(estimate){}
 
 		template<class Iter, typename = decltype(*std::declval<Iter&>(), void(), ++std::declval<Iter&>(), void())>
 		double SquareError(Iter ans_vector_begin) const{
@@ -79,7 +79,7 @@ public:
 	};
 
 public:
-	typedef std::shared_ptr<typename MLP_Base<InputInfo_, OutputInfo_>::InputData> InputDataPtr;
+	typedef std::shared_ptr<typename MLP_Base<InputInfo_, OutputInfo_>::InputData const> InputDataPtr;
 
 	typedef std::shared_ptr<typename MLP_Base<InputInfo_, OutputInfo_>::OutputData> OutputDataPtr;
 

@@ -115,7 +115,7 @@ void Perceptron_Batch<InputInfo_, OutputInfo_>::MLP_Impl::MakeLink()
 template <class InputInfo_, class OutputInfo_>
 void Perceptron_Batch<InputInfo_, OutputInfo_>::MLP_Impl::ForwardPropagation(InputData const& input) const
 {
-	auto* tp = const_cast<Perceptron_Online<InputInfo_, OutputInfo_>*>(this);
+	auto* tp = const_cast<typename Perceptron_Batch<InputInfo_, OutputInfo_>::MLP_Impl*>(this);
 	tp->in_layer_->SetData(input.Input());
 	for (auto& l : layers_){
 		l->UpdateNodeScore();
@@ -155,7 +155,7 @@ double Perceptron_Batch<InputInfo_, OutputInfo_>::Learn(std::vector<InputDataPtr
 	std::vector< std::future< std::tuple< double, std::vector< std::vector<double >>> >> task;
 	double mse = 0;
 
-	auto LearnImpl = [](MLP_Impl& mlp, std::vector<InputDataPtr> ::const_iterator begin, std::vector< InputDataPtr< InputInfo_, OutputInfo_ >> ::const_iterator end)
+	auto LearnImpl = [](MLP_Impl& mlp, std::vector<InputDataPtr>::const_iterator begin, std::vector<InputDataPtr>::const_iterator end)
 	{
 		std::vector< std::vector<double>> result;
 		double l_mse;
