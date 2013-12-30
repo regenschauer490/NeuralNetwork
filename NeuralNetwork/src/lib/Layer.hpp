@@ -23,7 +23,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #pragma once
 
-#include "Node.h"
+#include "Node.hpp"
 //#include "Edge.h"
 #include "info.hpp"
 

@@ -101,6 +101,14 @@ namespace signn{
 		return std::move(result);
 	}
 
+	//浮動小数点型にも使える等値比較関数
+	template <class T1, class T2>
+	bool Equal(T1 v1, T2 v2)
+	{
+		const auto dmin = std::numeric_limits<std::common_type<T1, T2>::type>::min();
+
+		return std::abs(v1 - v2) < dmin;
+	}
 
 /* 入出力 */
 namespace File{

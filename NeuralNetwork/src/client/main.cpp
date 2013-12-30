@@ -213,10 +213,24 @@ void Test3(){
 	train_data.resize(tds + 1);
 	train_ans.resize(tds + 1);
 
+#if IS_BATCH
+	const uint DATA_DIV = 500;
+	const uint DATA_DIV_DELTA = train_data.size() / DATA_DIV;
+	std::vector<std::vector<Perceptron::InputDataPtr>> inputs(DATA_DIV);
+	for (uint div = 0; div < DATA_DIV; ++div){
+		for (uint i = DATA_DIV_DELTA*div; i < DATA_DIV_DELTA*(div+1); ++i){
+			inputs[div].push_back(nn.MakeInputData(train_data[i].begin(), train_data[i].end(), train_ans[i]));
+		}
+	}
+#else
 	std::vector<Perceptron::InputDataPtr> inputs;
 	for (uint i = 0; i < train_ans.size(); ++i){
 		inputs.push_back(nn.MakeInputData(train_data[i].begin(), train_data[i].end(), train_ans[i]));
 	}
+#endif
+
+	std::vector<Perceptron::InputDataPtr> test_inputs;
+	for (auto const& td : test_data) test_inputs.push_back(nn.MakeInputData(td.begin(), td.end()));
 
 	double p_esum = 0, esum = 0;
 	for (int loop = 0; true; ++loop){
@@ -226,15 +240,17 @@ void Test3(){
 		for (int i = 0; i < train_data.size(); ++i){
 			moe.push_back(nn.Learn(inputs[i], true));
 		}
-#else
-		moe.push_back(nn.Learn(inputs));
-#endif
 		p_esum = esum;
 		esum = std::accumulate(moe.begin(), moe.end(), 0.0) / train_data.size();
+#else
+		for (uint div = 0; div < DATA_DIV; ++div){
+			p_esum = esum;
+			esum = nn.Learn(inputs[div]);
+#endif
 		//nn.SaveParameter(L"test data/");
 
 		for (int i=0; i<test_data.size(); ++i){
-			auto est = nn.Test(nn.MakeInputData(test_data[i].begin(), test_data[i].end()));
+			auto est = nn.Test(test_inputs[i]);
 			for (uint j = 0; j < est->size(); ++j){
 				if ((*est)[j]) std::cout << j << ", ";
 			}
@@ -243,9 +259,13 @@ void Test3(){
 		tw.Stop();
 		std::cout << "time: " << tw.GetTime<std::chrono::seconds>() << std::endl;
 
-		if (loop % 1 == 0) std::cout << esum << std::endl;
-		if (std::abs(p_esum - esum) < 0.0000000001) break;
+		if (loop % 1 == 0) std::cout << "train_mse: " << esum << std::endl << std::endl;
+#if IS_BATCH
+			tw.ReStart();
+		}
+#endif
 		//if (esum < 1000) break;
+		if (std::abs(p_esum - esum) < 0.0000000001) break;
 	}
 }
 
