@@ -172,8 +172,9 @@ void Test2(){
 
 void Test3(){
 	using namespace signn;
-		
-	typedef InputInfo<int, 784> InInfo;
+	
+	typedef bool input_type;
+	typedef InputInfo<input_type, 784> InInfo;
 	typedef OutputInfo<OutputLayerType::MultiClassClassification, 10> OutInfo;
 #if IS_BATCH
 	typedef Perceptron_Batch<InInfo, OutInfo> Perceptron;
@@ -187,15 +188,15 @@ void Test3(){
 
 	//nn.LoadParameter(L"test data/");
 
-	std::vector<std::vector<int>> train_data;
+	std::vector<std::vector<input_type>> train_data;
 	std::vector<int> train_ans;
 
 	for (int doc = 0; doc <10; ++doc){
 		auto rows = *sig::File::ReadLine<std::string>(L"test data/train" + std::to_wstring(doc) + L".txt");
 		
-		for (auto const& row : rows){
-			train_data.push_back(std::vector<int>());
-			auto split = sig::String::Split(row, ",");
+		for (uint r=0; r<rows.size(); ++r){
+			train_data.push_back(std::vector<input_type>());
+			auto split = sig::String::Split(rows[r], ",");
 			train_ans.push_back(std::stoi(split[0]));
 			std::transform(++split.begin(), split.end(), std::back_inserter(train_data.back()), [](std::string s){ return std::stoi(s); });
 		}
@@ -203,7 +204,7 @@ void Test3(){
 
 	sig::Shuffle(train_data, train_ans);
 	
-	std::vector<std::vector<int>> test_data;
+	std::vector<std::vector<input_type>> test_data;
 	std::vector<int> test_ans;
 	uint tds;
 	for (tds = train_data.size() - 1; tds > train_data.size() - 15; --tds){
@@ -214,7 +215,7 @@ void Test3(){
 	train_ans.resize(tds + 1);
 
 #if IS_BATCH
-	const uint DATA_DIV = 500;
+	const uint DATA_DIV = 10;
 	const uint DATA_DIV_DELTA = train_data.size() / DATA_DIV;
 	std::vector<std::vector<Perceptron::InputDataPtr>> inputs(DATA_DIV);
 	for (uint div = 0; div < DATA_DIV; ++div){

@@ -1,7 +1,7 @@
 /*
 The MIT License(MIT)
 
-Copyright(c) 2013 Akihiro Nishimura
+Copyright(c) 2014 Akihiro Nishimura
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files(the "Software"), to deal in
@@ -70,13 +70,13 @@ struct LayerTypeMap<OutputLayerType::Regression>{
 template <>
 struct LayerTypeMap<OutputLayerType::BinaryClassification>{
 	template<class OInfo> using layertype = BinaryClassificationLayer<OInfo>;
-	typedef int type;	//todo: test bool
+	typedef bool type;
 };
 
 template <>
 struct LayerTypeMap<OutputLayerType::MultiClassClassification>{
 	template<class OInfo> using layertype = MultiClassClassificationLayer<OInfo>;
-	typedef int type;
+	typedef bool type;
 };
 
 
@@ -137,19 +137,18 @@ struct Identity
 	static T df(T x) { return 1; }
 };
 
-template <class T>
 struct Sigmoid
 {
-	static T f(T x) { return 1.0 / (1.0 + std::exp(-x)); }
-	static T df(T x) { auto f_x = f(x); return f_x * (1.0 - f_x); }
+	static double f(double x) { return 1.0 / (1.0 + std::exp(-x)); }
+	static double df(double x) { auto f_x = f(x); return f_x * (1.0 - f_x); }
 };
 
-template <class T>
+
 struct Softmax
 {
-	static T f(T exp_x, T exp_sum){ return exp_x / exp_sum; }
-	//static T df(T exp_x, T exp_sum) { return (exp_x * (sum - exp_x)) / std::pow(exp_sum, 2); }
-	static T df(T x) { return 1; }
+	static double f(double exp_x, double exp_sum){ return exp_x / exp_sum; }
+	//static double df(double exp_x, double exp_sum) { return (exp_x * (sum - exp_x)) / std::pow(exp_sum, 2); }
+	static double df(double x) { return 1; }
 };
 
 

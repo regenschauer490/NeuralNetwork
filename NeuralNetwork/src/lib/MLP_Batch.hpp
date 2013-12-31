@@ -1,7 +1,7 @@
 /*
 The MIT License(MIT)
 
-Copyright(c) 2013 Akihiro Nishimura
+Copyright(c) 2014 Akihiro Nishimura
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files(the "Software"), to deal in
@@ -25,8 +25,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "InputLayer.hpp"
 #include "OutputLayer.hpp"
-#include "Node.h"
-#include "Edge.h"
 
 namespace signn{
 	
@@ -154,6 +152,7 @@ double Perceptron_Batch<InputInfo_, OutputInfo_>::Learn(std::vector<InputDataPtr
 	const uint div_size = inputs.size() / THREAD_NUM;
 	std::vector< std::future< std::tuple< double, std::vector< std::vector<double >>> >> task;
 	double mse = 0;
+	std::vector<std::vector<double>> delta_weight;
 
 	auto LearnImpl = [](MLP_Impl& mlp, std::vector<InputDataPtr>::const_iterator begin, std::vector<InputDataPtr>::const_iterator end)
 	{
@@ -172,7 +171,6 @@ double Perceptron_Batch<InputInfo_, OutputInfo_>::Learn(std::vector<InputDataPtr
 			}
 			else{
 				l_mse += mlp.out_layer_->SquareError_((*begin)->Teacher());
-				l_mse *= 0.5;
 
 				for (uint l = 0; l < d_weight.size(); ++l){
 					for (uint n = 0; n < d_weight[l].size(); ++n) result[l][n] += d_weight[l][n];
@@ -198,21 +196,29 @@ double Perceptron_Batch<InputInfo_, OutputInfo_>::Learn(std::vector<InputDataPtr
 	}
 
 	for (auto& r : result){
-		auto& edge = mlp_.all_edges_;
-		auto& d_weight = std::get<1>(r);
-
 		mse += std::get<0>(r);
 
-		for (uint l = 0; l < d_weight.size(); ++l){
-			for (uint n = 0; n < d_weight[l].size(); ++n){
-				edge[l][n]->Weight(edge[l][n]->Weight() + d_weight[l][n]);
+		auto& d_weight = std::get<1>(r);
+		if (delta_weight.empty()) delta_weight = std::move(d_weight);
+		else{
+			for (uint l = 0; l < d_weight.size(); ++l){
+				for (uint n = 0; n < d_weight[l].size(); ++n){
+					delta_weight[l][n] += d_weight[l][n];
+				}
 			}
+		}
+	}
+	
+	auto& edge = mlp_.all_edges_;
+	for (uint l = 0; l < delta_weight.size(); ++l){
+		for (uint n = 0; n < delta_weight[l].size(); ++n){
+			edge[l][n]->Weight(edge[l][n]->Weight() + delta_weight[l][n] / inputs.size());
 		}
 	}
 
 	for (auto& cpy : copy_mlp_) cpy.CopyWeight(mlp_);
 
-	return mse / THREAD_NUM;
+	return mse / inputs.size();
 }
 
 template <class InputInfo_, class OutputInfo_>

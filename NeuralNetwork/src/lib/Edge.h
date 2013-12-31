@@ -1,7 +1,7 @@
 /*
 The MIT License(MIT)
 
-Copyright(c) 2013 Akihiro Nishimura
+Copyright(c) 2014 Akihiro Nishimura
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files(the "Software"), to deal in
@@ -72,7 +72,7 @@ template <class ActivationFunc>
 double DirectedEdge::CalcDeltaWeight(double alpha, double error)
 {
 	pre_weight_ = weight_;
-	delta_ = error * ActivationFunc::df(head_.lock()->RawScore());
+	delta_ = error * ActivationFunc::df(head_.lock()->PreActivateScore());
 	return alpha * tail_.lock()->Score() * delta_;
 }
 
@@ -81,7 +81,7 @@ template <class ActivationFunc>
 void DirectedEdge::UpdateWeight(double alpha, double error)
 {
 	pre_weight_ = weight_;
-	delta_ = error * ActivationFunc::df(head_.lock()->RawScore());
+	delta_ = error * ActivationFunc::df(head_.lock()->PreActivateScore());
 	weight_ += alpha * tail_.lock()->Score() * delta_;
 }
 

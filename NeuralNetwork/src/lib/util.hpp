@@ -1,7 +1,7 @@
 /*
 The MIT License(MIT)
 
-Copyright(c) 2013 Akihiro Nishimura
+Copyright(c) 2014 Akihiro Nishimura
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files(the "Software"), to deal in
@@ -40,7 +40,7 @@ typedef unsigned long int uint;
 
 namespace signn{
 #undef min
-
+	
 	//初期化時に指定した範囲の一様分布乱数を発生させるクラス
 	//デフォルト: 乱数生成器 -> メルセンヌツイスター
 	template <class NumType, class Engine = std::mt19937>

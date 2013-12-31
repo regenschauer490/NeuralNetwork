@@ -79,6 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\client\utility.hpp" />
+    <ClInclude Include="src\lib\AutoEncoder.hpp" />
     <ClInclude Include="src\lib\Edge.h" />
     <ClInclude Include="src\lib\info.hpp" />
     <ClInclude Include="src\lib\InputLayer.hpp" />

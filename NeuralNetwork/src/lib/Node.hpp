@@ -1,7 +1,7 @@
 /*
 The MIT License(MIT)
 
-Copyright(c) 2013 Akihiro Nishimura
+Copyright(c) 2014 Akihiro Nishimura
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files(the "Software"), to deal in
@@ -38,10 +38,10 @@ class Node
 	double score_;
 	
 	//cache
-	double raw_score_;
+	double pre_activate_score_;
 
 public:
-	Node() : threshold_(threshold_theta), score_(0), raw_score_(0){};
+	Node() : threshold_(threshold_theta), score_(0), pre_activate_score_(0){};
 	~Node(){};
 
 	void AddInEdge(DEdgePtr edge){ in_.push_back(edge); }
@@ -59,7 +59,7 @@ public:
 	double Score() const{ return score_; }
 	void Score(double v){ score_ = v; }
 
-	double RawScore() const{ return raw_score_; }
+	double PreActivateScore() const{ return pre_activate_score_; }
 
 	auto in_begin() ->decltype(in_.begin()){ return in_.begin(); }
 	auto in_begin() const ->decltype(in_.cbegin()){ return in_.cbegin(); }

@@ -1,7 +1,7 @@
 /*
 The MIT License(MIT)
 
-Copyright(c) 2013 Akihiro Nishimura
+Copyright(c) 2014 Akihiro Nishimura
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files(the "Software"), to deal in
@@ -44,8 +44,10 @@ protected:
 	virtual std::vector<double> CalcEdgeWeight(double alpha, std::array<typename OutputInfo_::type, OutputInfo_::dim> teacher_signals) = 0;
 
 	double SquareError_(std::array<typename OutputInfo_::type, OutputInfo_::dim> const& teacher) const{
-		return std::inner_product(begin(), end(), teacher.begin(), 0.0, std::plus<double>(), [](NodePtr const& v1, typename OutputInfo_::type v2){ return pow(v1->Score() - v2, 2); });
+		return std::inner_product(begin(), end(), teacher.begin(), 0.0, std::plus<double>(), [](NodePtr const& v1, double v2){ return pow(v1->Score() - v2, 2); });
 	}
+
+	virtual typename OutputInfo_::type OutputScore(double raw_score) const = 0;
 
 public:
 	virtual ~OutputLayer(){};
@@ -54,7 +56,7 @@ public:
 
 	std::array<typename OutputInfo_::type, OutputInfo_::dim> GetScore() const{
 		std::array<typename OutputInfo_::type, OutputInfo_::dim> score;
-		for (uint i = 0; i < NodeNum(); ++i) score[i] = this->operator[](i)->Score();
+		for (uint i = 0; i < NodeNum(); ++i) score[i] = OutputScore(this->operator[](i)->Score());
 		return score;
 	}
 /*
@@ -124,6 +126,8 @@ private:
 	PP_CalcEdgeWeight(Identity<typename OutputInfo_::type>);
 	PP_UpdateEdgeWeight(Identity<typename OutputInfo_::type>);
 
+	typename OutputInfo_::type OutputScore(double raw_score) const override{ return raw_score; }
+
 public:
 	virtual ~RegressionLayer(){};
 
@@ -139,10 +143,12 @@ class BinaryClassificationLayer : public OutputLayer<OutputInfo_>
 private:
 	virtual LayerPtr CloneImpl() const override{ return std::shared_ptr<Layer>(new BinaryClassificationLayer<OutputInfo_>()); }
 
-	PP_UpdateNodeScore(Sigmoid<typename OutputInfo_::type>);
+	PP_UpdateNodeScore(Sigmoid);
 
-	PP_CalcEdgeWeight(Sigmoid<typename OutputInfo_::type>);
-	PP_UpdateEdgeWeight(Sigmoid<typename OutputInfo_::type>);
+	PP_CalcEdgeWeight(Sigmoid);
+	PP_UpdateEdgeWeight(Sigmoid);
+
+	bool OutputScore(double raw_score) const override{ return raw_score < 0.5 ? false : true; }
 
 public:
 	virtual ~BinaryClassificationLayer(){};
@@ -167,7 +173,7 @@ private:
 		auto exp_sum = std::accumulate(exp_raw_score.begin(), exp_raw_score.end(), 0.0);
 
 		for (uint n = 0, num = NodeNum(); n < num; ++n){
-			(*this)[n]->UpdateScore(Softmax<typename OutputInfo_::type>::f(exp_raw_score[n], exp_sum));
+			(*this)[n]->UpdateScore(Softmax::f(exp_raw_score[n], exp_sum));
 		}
 	}
 
@@ -179,7 +185,7 @@ private:
 			auto const error = teacher_signals[n] - node->Score(); 
 
 			for (auto edge = node->in_begin(), end = node->in_end(); edge != end; ++edge){
-				new_weight.push_back((*edge)->CalcDeltaWeight< Softmax<typename OutputInfo_::type>> (alpha, error));
+				new_weight.push_back((*edge)->CalcDeltaWeight<Softmax> (alpha, error));
 			}
 		}
 		return std::move(new_weight);
@@ -191,10 +197,12 @@ private:
 			auto const error = teacher_signals[n] - node->Score(); 
 
 			for (auto edge = node->in_begin(), end = node->in_end(); edge != end; ++edge){
-				(*edge)->UpdateWeight<Softmax<typename OutputInfo_::type>>(alpha, error);
+				(*edge)->UpdateWeight<Softmax>(alpha, error);
 			}
 		}
 	}
+
+	typename OutputInfo_::type OutputScore(double raw_score) const override{ return raw_score < 1.0 / OutputInfo_::dim ? false : true; }
 
 public:
 	virtual ~MultiClassClassificationLayer(){};

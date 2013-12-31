@@ -1,7 +1,7 @@
 /*
 The MIT License(MIT)
 
-Copyright(c) 2013 Akihiro Nishimura
+Copyright(c) 2014 Akihiro Nishimura
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files(the "Software"), to deal in
@@ -42,7 +42,7 @@ private:
 protected:
 	Layer(uint node_num) : node_num_(node_num){ for (uint i = 0; i < node_num_; ++i) nodes_.push_back(std::make_shared<Node>()); }
 
-	virtual void UpdateNodeScore(){ for (auto& n : nodes_) n->UpdateScore<Sigmoid<double>>(); }
+	virtual void UpdateNodeScore(){ for (auto& n : nodes_) n->UpdateScore<Sigmoid>(); }
 	
 	void UpdateEdgeWeight(double alpha){
 		for (auto& node : nodes_){
@@ -51,7 +51,7 @@ protected:
 			});
 
 			for (auto edge = node->in_begin(), end = node->in_end(); edge != end; ++edge){
-				(*edge)->UpdateWeight<Sigmoid<double>>(alpha, error);
+				(*edge)->UpdateWeight<Sigmoid>(alpha, error);
 			}
 		}
 	}
@@ -65,7 +65,7 @@ protected:
 			});
 
 			for (auto edge = node->in_begin(), end = node->in_end(); edge != end; ++edge){
-				new_weight.push_back( (*edge)->CalcDeltaWeight<Sigmoid<double>>(alpha, error) );
+				new_weight.push_back( (*edge)->CalcDeltaWeight<Sigmoid>(alpha, error) );
 			}
 		}
 		return std::move(new_weight);
