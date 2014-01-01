@@ -43,10 +43,6 @@ protected:
 
 	virtual std::vector<double> CalcEdgeWeight(double alpha, std::array<typename OutputInfo_::type, OutputInfo_::dim> teacher_signals) = 0;
 
-	double SquareError_(std::array<typename OutputInfo_::type, OutputInfo_::dim> const& teacher) const{
-		return std::inner_product(begin(), end(), teacher.begin(), 0.0, std::plus<double>(), [](NodePtr const& v1, double v2){ return pow(v1->Score() - v2, 2); });
-	}
-
 	virtual typename OutputInfo_::type OutputScore(double raw_score) const = 0;
 
 public:
@@ -59,6 +55,10 @@ public:
 		for (uint i = 0; i < NodeNum(); ++i) score[i] = OutputScore(this->operator[](i)->Score());
 		return score;
 	}
+
+	template<class Container>
+	double SquareError(Container const& teacher) const;
+
 /*
 	template<class Iter, typename = decltype(*std::declval<Iter&>(), void(), ++std::declval<Iter&>(), void())>
 	double SquareError(Iter ans_vector_begin) const;
@@ -70,14 +70,12 @@ public:
 */
 };
 
-/*
+
 template <class OutputInfo_>
-template<class Iter, typename = decltype(*std::declval<Iter&>(), void(), ++std::declval<Iter&>(), void())>
-double OutputLayer<OutputInfo_>::SquareError(Iter ans_vector_begin) const{
-	static_assert(OutputInfo_::dim > 1, "error in OutputLayer::SquareError() : need OutputLayer_::dim > 1");
-	return std::inner_product(begin(), end(), ans_vector_begin, 0.0, std::plus<double>(), [](NodePtr const& v1, typename std::iterator_traits<Iter>::value_type v2){ return pow(v1->Score() - v2, 2); });
+template<class Container>
+double OutputLayer<OutputInfo_>::SquareError(Container const& teacher) const{
+	return std::inner_product(begin(), end(), teacher.begin(), 0.0, std::plus<double>(), [](NodePtr const& v1, double v2){ return pow(v1->Score() - v2, 2); });
 }
-*/
 
 #define PP_UpdateNodeScore(ACTIVATE_FUNC)\
 	void UpdateNodeScore() override{\

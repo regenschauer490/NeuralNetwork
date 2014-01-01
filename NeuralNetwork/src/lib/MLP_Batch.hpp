@@ -29,7 +29,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace signn{
 	
 template <class InputInfo_, class OutputInfo_>
-class Perceptron_Batch : public MLP_Base<InputInfo_, OutputInfo_>
+class Perceptron_Batch : public DataFormat<InputInfo_, OutputInfo_>
 {
 	struct MLP_Impl{
 		InputLayerPtr<InputInfo_> in_layer_;
@@ -44,7 +44,7 @@ class Perceptron_Batch : public MLP_Base<InputInfo_, OutputInfo_>
 	
 	public:
 		MLP_Impl(){}
-		MLP_Impl(std::vector<LayerPtr> hidden_layers) :
+		explicit MLP_Impl(std::vector<LayerPtr> hidden_layers) :
 			in_layer_(InputLayerPtr<InputInfo_>(new InputLayer<InputInfo_>())),
 			out_layer_(OutputLayerPtr<OutputInfo_>(new typename LayerTypeMap<OutputInfo_::e_layertype>::layertype<OutputInfo_>())),
 			alpha_(learning_rate)
@@ -73,7 +73,7 @@ private:
 	std::array<MLP_Impl, THREAD_NUM> copy_mlp_;
 
 public:
-	Perceptron_Batch(std::vector<LayerPtr> hidden_layers) : mlp_(hidden_layers){
+	explicit Perceptron_Batch(std::vector<LayerPtr> hidden_layers) : mlp_(hidden_layers){
 		for (uint i = 0; i < THREAD_NUM; ++i){
 			copy_mlp_[i] = MLP_Impl(hidden_layers);
 			copy_mlp_[i].CopyWeight(mlp_);
@@ -165,12 +165,12 @@ double Perceptron_Batch<InputInfo_, OutputInfo_>::Learn(std::vector<InputDataPtr
 			auto d_weight = mlp.BackPropagation(**begin);
 
 			if (first){
-				l_mse = mlp.out_layer_->SquareError_((*begin)->Teacher());
+				l_mse = mlp.out_layer_->SquareError((*begin)->Teacher());
 				result = std::move(d_weight);
 				first = false;
 			}
 			else{
-				l_mse += mlp.out_layer_->SquareError_((*begin)->Teacher());
+				l_mse += mlp.out_layer_->SquareError((*begin)->Teacher());
 
 				for (uint l = 0; l < d_weight.size(); ++l){
 					for (uint n = 0; n < d_weight[l].size(); ++n) result[l][n] += d_weight[l][n];

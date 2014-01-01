@@ -110,6 +110,25 @@ namespace signn{
 		return std::abs(v1 - v2) < dmin;
 	}
 
+	template<class Iter1, class Iter2>
+	double CrossCorrelation(Iter1 xs_begin, Iter1 xs_end, Iter2 hs_begin, Iter2 hs_end, uint dilation)
+	{
+		uint size = 0;
+		double result = 0;
+		auto xs = xs_begin + dilation;
+		auto hs = hs_begin;
+
+		for (; xs != xs_end && hs != hs_end ; ++xs, ++hs, ++size){
+			result += (*xs) * (*hs);
+		}
+		for (xs = xs_begin; xs != xs_end && hs != hs_end; ++xs, ++hs, ++size){
+			result += (*xs) * (*hs);
+		}
+
+		return result / size;
+	}
+
+
 /* “üo—Í */
 namespace File{
 

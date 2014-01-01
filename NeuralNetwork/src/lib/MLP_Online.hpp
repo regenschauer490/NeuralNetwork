@@ -25,12 +25,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "InputLayer.hpp"
 #include "OutputLayer.hpp"
-#include "MLP_Base.hpp"
+#include "DataFormat.hpp"
 
 namespace signn{
 	
 template <class InputInfo_, class OutputInfo_>
-class Perceptron_Online : public MLP_Base<InputInfo_, OutputInfo_>
+class Perceptron_Online : public DataFormat<InputInfo_, OutputInfo_>
 {
 	InputLayerPtr<InputInfo_> in_layer_;
 	OutputLayerPtr<OutputInfo_> out_layer_;
@@ -51,7 +51,7 @@ private:
 	void BackPropagation(InputData const& input);
 
 public:
-	Perceptron_Online(std::vector<LayerPtr> hidden_layers) :
+	explicit Perceptron_Online(std::vector<LayerPtr> hidden_layers) :
 		in_layer_(InputLayerPtr<InputInfo_>(new InputLayer<InputInfo_>())), 
 		out_layer_(OutputLayerPtr<OutputInfo_>(new typename LayerTypeMap<OutputInfo_::e_layertype>::layertype<OutputInfo_>())), alpha_(learning_rate)
 	{
@@ -133,7 +133,7 @@ double Perceptron_Online<InputInfo_, OutputInfo_>::Learn(InputDataPtr train_data
 	BackPropagation(*train_data);
 
 	if (return_sqerror){
-		return out_layer_->SquareError_(train_data->Teacher());
+		return out_layer_->SquareError(train_data->Teacher());
 	}
 	else return -1;
 }

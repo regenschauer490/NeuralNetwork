@@ -27,9 +27,37 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace signn{
 
-class AutoEncoder
+template <class InputInfo_, uint HiddenDim, class OutputInfo_ = OutputInfo<OutputLayerType::Regression, InputInfo_::dim>>
+class AutoEncoder : public DataFormat<InputInfo_, OutputInfo_>
 {
+	typedef Perceptron_Online<InputInfo_, OutputInfo_> Perceptron;
 
+	LayerPtr hidden_;
+	Perceptron ac_;
+
+private:
+
+
+public:
+	AutoEncoder() : hidden_(Layer::MakeInstance(HiddenDim)), ac_(std::vector<LayerPtr>{hidden_}){ static_assert(InputInfo_::dim == OutputInfo_::dim, "invalid dimension: different dim between input and output"); }
+
+	double Learn(InputDataPtr train_data, bool return_sqerror = false);
+
+	OutputDataPtr Test(InputDataPtr test_data) const{ return ac_.Test(test_data); }
 };
+
+
+template <class InputInfo_, uint HiddenDim, class OutputInfo_>
+double AutoEncoder<InputInfo_, HiddenDim, OutputInfo_>::Learn(InputDataPtr train_data, bool return_sqerror)
+{
+	if (!train_data->IsTestData()){
+		auto& input = train_data->Input();
+		auto& teacher = const_cast<InputData::TeacherDataArray&>(train_data->Teacher());
+
+		for (uint i = 0; i < InputInfo_::dim; ++i) teacher[i] = input[i];
+	}
+
+	return ac_.Learn(train_data, return_sqerror);
+}
 
 }

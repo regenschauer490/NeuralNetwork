@@ -1,9 +1,10 @@
 #include "../lib/MLP_Online.hpp"
 #include "../lib/MLP_Batch.hpp"
+#include "../lib/AutoEncoder.hpp"
 
 #include "utility.hpp"
 
-#define IS_BATCH 1
+#define IS_BATCH 0
 
 //回帰
 void Test1(){
@@ -78,7 +79,7 @@ void Test1(){
 	for (uint loop = 0; loop < MAX_LOOP; ++loop){
 		std::vector<double> moe;
 #if !IS_BATCH
-		for (uint i = 0; i <train_ans.size(); ++i){
+		for (uint i = 0; i < inputs.size(); ++i){
 			moe.push_back(nn.Learn(inputs[i], true));
 		}
 #else
@@ -169,7 +170,7 @@ void Test2(){
 }
 */
 
-
+//多値分類(手書き文字識別)
 void Test3(){
 	using namespace signn;
 	
@@ -238,7 +239,7 @@ void Test3(){
 		sig::TimeWatch tw;
 		std::vector<double> moe;
 #if !IS_BATCH
-		for (int i = 0; i < train_data.size(); ++i){
+		for (int i = 0; i < inputs.size(); ++i){
 			moe.push_back(nn.Learn(inputs[i], true));
 		}
 		p_esum = esum;
@@ -250,17 +251,17 @@ void Test3(){
 #endif
 		//nn.SaveParameter(L"test data/");
 
-		for (int i=0; i<test_data.size(); ++i){
+		tw.Stop();
+		std::cout << "time: " << tw.GetTime<std::chrono::seconds>() << std::endl;
+		if (loop % 1 == 0) std::cout << "train_mse: " << esum << std::endl << std::endl;
+
+		for (int i=0; i<inputs.size(); ++i){
 			auto est = nn.Test(test_inputs[i]);
 			for (uint j = 0; j < est->size(); ++j){
 				if ((*est)[j]) std::cout << j << ", ";
 			}
 			std::cout << " ans:" << test_ans[i] << std::endl;
 		}
-		tw.Stop();
-		std::cout << "time: " << tw.GetTime<std::chrono::seconds>() << std::endl;
-
-		if (loop % 1 == 0) std::cout << "train_mse: " << esum << std::endl << std::endl;
 #if IS_BATCH
 			tw.ReStart();
 		}
@@ -270,8 +271,78 @@ void Test3(){
 	}
 }
 
+//オートエンコーダ
+void Test4()
+{
+	using namespace signn;
+
+	typedef bool input_type;
+	typedef InputInfo<input_type, 784> InInfo;
+	typedef AutoEncoder<InInfo, 10> AutoEncoder;
+
+	AutoEncoder ae;
+
+	std::vector < std::vector<input_type>> train_data;
+
+	auto rows = *sig::File::ReadLine<std::string>(L"test data/train0.txt");
+
+	for (uint r = 0; r < rows.size(); ++r){
+		train_data.push_back(std::vector<input_type>());
+		auto split = sig::String::Split(rows[r], ",");
+		std::transform(++split.begin(), split.end(), std::back_inserter(train_data.back()), [](std::string s){ return std::stoi(s); });
+	}
+	
+	sig::Shuffle(train_data);
+
+	std::vector<std::vector<input_type>> test_data;
+	uint tds;
+	for (tds = train_data.size() - 1; tds > train_data.size() - 15; --tds){
+		test_data.push_back(train_data[tds]);
+	}
+	train_data.resize(tds + 1);
+	
+	std::vector<AutoEncoder::InputDataPtr> inputs;
+	for (auto const& td : train_data){
+		inputs.push_back(ae.MakeInputData(td.begin(), td.end()));
+	}
+
+	std::vector<AutoEncoder::InputDataPtr> test_inputs;
+	for (auto const& td : test_data) test_inputs.push_back(ae.MakeInputData(td.begin(), td.end()));
+
+
+	double p_esum = 0, esum = 0;
+	for (int loop = 0; true; ++loop){
+		sig::TimeWatch tw;
+		std::vector<double> moe;
+
+		for (int i = 0; i < inputs.size(); ++i){
+			moe.push_back(ae.Learn(inputs[i], true));
+		}
+		p_esum = esum;
+		esum = std::accumulate(moe.begin(), moe.end(), 0.0) / train_data.size();
+		//nn.SaveParameter(L"test data/");
+
+		tw.Stop();
+		std::cout << "time: " << tw.GetTime<std::chrono::seconds>() << std::endl;
+		if (loop % 1 == 0) std::cout << "train_mse: " << esum << std::endl << std::endl;
+
+		for (int i = 0; i < inputs.size(); ++i){
+			auto est = *ae.Test(test_inputs[i]);
+			sig::Histgram<double, 10> hist(-1, 1);
+
+			for (uint j = 0; j < est.size(); ++j){
+				hist.Count( CrossCorrelation(test_data[i].begin(), test_data[i].end(), est.begin(), est.end(), 0) );
+			}
+			hist.Print();
+		}
+
+		//if (esum < 1000) break;
+		if (std::abs(p_esum - esum) < 0.0000000001) break;
+	}
+}
+
 
 int main(){
-	Test3();
+	Test4();
 }
 
