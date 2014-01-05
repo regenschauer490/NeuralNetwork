@@ -1,6 +1,6 @@
 NeuralNetwork
 =============
-現在作成中 - Now Implementing -
+現在まったり作成中 - Now Implementing -
 
 [実装済み]
 
