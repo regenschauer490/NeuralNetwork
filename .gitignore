@@ -21,3 +21,7 @@
 *.lai
 *.la
 *.a
+
+#others
+*.vcxproj
+*.vcxproj.filters

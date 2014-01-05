@@ -1,0 +1,88 @@
+﻿2014/01/03 14:15:31 にビルドを開始しました。
+     1>ノード 2 上のプロジェクト "C:\Users\.sigure\Documents\GitHub\NeuralNetwork\NeuralNetwork\NeuralNetwork.vcxproj" (Build ターゲット)。
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /IC:\boost\boost_1_54_0 /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt src\client\main.cpp src\lib\Edge.cpp
+         main.cpp
+     1>c:\users\.sigure\documents\github\neuralnetwork\neuralnetwork\src\lib\dataformat.hpp(30): warning C4002: マクロ 'assert' に指定された実引数の数が多すぎます。
+     1>c:\users\.sigure\documents\github\neuralnetwork\neuralnetwork\src\client\utility.hpp(666): warning C4544: 'Container' : このテンプレート宣言の既定のテンプレート引数が無視されました
+     1>c:\users\.sigure\documents\github\neuralnetwork\neuralnetwork\src\client\utility.hpp(677): warning C4544: 'Container' : このテンプレート宣言の既定のテンプレート引数が無視されました
+     1>c:\users\.sigure\documents\github\neuralnetwork\neuralnetwork\src\client\utility.hpp(1030): warning C4290: C++ の例外の指定は無視されます。関数が __declspec(nothrow) でないことのみ表示されます。
+     1>c:\users\.sigure\documents\github\neuralnetwork\neuralnetwork\src\client\utility.hpp(1074): warning C4290: C++ の例外の指定は無視されます。関数が __declspec(nothrow) でないことのみ表示されます。
+     1>c:\users\.sigure\documents\github\neuralnetwork\neuralnetwork\src\client\main.cpp(70): warning C4018: '<' : signed と unsigned の数値を比較しようとしました。
+     1>c:\users\.sigure\documents\github\neuralnetwork\neuralnetwork\src\client\main.cpp(242): warning C4018: '<' : signed と unsigned の数値を比較しようとしました。
+     1>c:\users\.sigure\documents\github\neuralnetwork\neuralnetwork\src\client\main.cpp(258): warning C4018: '<' : signed と unsigned の数値を比較しようとしました。
+     1>c:\users\.sigure\documents\github\neuralnetwork\neuralnetwork\src\client\main.cpp(318): warning C4018: '<' : signed と unsigned の数値を比較しようとしました。
+     1>c:\users\.sigure\documents\github\neuralnetwork\neuralnetwork\src\client\main.cpp(334): warning C4018: '<' : signed と unsigned の数値を比較しようとしました。
+     1>c:\users\.sigure\documents\github\neuralnetwork\neuralnetwork\src\client\utility.hpp(491): warning C4244: '初期化中' : 'double' から 'const int' への変換です。データが失われる可能性があります。
+                 c:\users\.sigure\documents\github\neuralnetwork\neuralnetwork\src\client\utility.hpp(490): クラス テンプレート のメンバー関数 'void sig::Histgram<double,10>::Print(void) const' のコンパイル中
+                 c:\users\.sigure\documents\github\neuralnetwork\neuralnetwork\src\client\main.cpp(343) : コンパイルされたクラスの テンプレート のインスタンス化 'void sig::Histgram<double,10>::Print(void) const' の参照を確認してください
+                 c:\users\.sigure\documents\github\neuralnetwork\neuralnetwork\src\client\main.cpp(336) : コンパイルされたクラスの テンプレート のインスタンス化 'sig::Histgram<double,10>' の参照を確認してください
+     1>c:\users\.sigure\documents\github\neuralnetwork\neuralnetwork\src\client\utility.hpp(492): warning C4244: '初期化中' : 'double' から 'const int' への変換です。データが失われる可能性があります。
+     1>c:\users\.sigure\documents\github\neuralnetwork\neuralnetwork\src\lib\dataformat.hpp(105): warning C4800: 'uint' : ブール値を 'true' または 'false' に強制的に設定します (警告の処理)
+                 c:\users\.sigure\documents\github\neuralnetwork\neuralnetwork\src\client\main.cpp(230) : コンパイルされたクラスの テンプレート のインスタンス化 'std::shared_ptr<const signn::DataFormat<InputInfo_,OutputInfo_>::InputData> signn::DataFormat<InputInfo_,OutputInfo_>::MakeInputData<std::_Vb_iterator<std::_Wrap_alloc<std::allocator<char32_t>>>,void,void>(Iter1,Iter1,uint)' の参照を確認してください
+                 with
+                 [
+                     InputInfo_=InInfo
+         ,            OutputInfo_=OutInfo
+         ,            Iter1=std::_Vb_iterator<std::_Wrap_alloc<std::allocator<char32_t>>>
+                 ]
+                 c:\users\.sigure\documents\github\neuralnetwork\neuralnetwork\src\client\main.cpp(230) : コンパイルされたクラスの テンプレート のインスタンス化 'std::shared_ptr<const signn::DataFormat<InputInfo_,OutputInfo_>::InputData> signn::DataFormat<InputInfo_,OutputInfo_>::MakeInputData<std::_Vb_iterator<std::_Wrap_alloc<std::allocator<char32_t>>>,void,void>(Iter1,Iter1,uint)' の参照を確認してください
+                 with
+                 [
+                     InputInfo_=InInfo
+         ,            OutputInfo_=OutInfo
+         ,            Iter1=std::_Vb_iterator<std::_Wrap_alloc<std::allocator<char32_t>>>
+                 ]
+     1>c:\users\.sigure\documents\github\neuralnetwork\neuralnetwork\src\client\utility.hpp(242): warning C4018: '<' : signed と unsigned の数値を比較しようとしました。
+                 c:\users\.sigure\documents\github\neuralnetwork\neuralnetwork\src\client\utility.hpp(295) : コンパイルされたクラスの テンプレート のインスタンス化 'std::vector<int,std::allocator<_Ty>> sig::RandomUniqueNumbers<std::vector>(uint,int,int,bool)' の参照を確認してください
+                 with
+                 [
+                     _Ty=int
+                 ]
+                 c:\users\.sigure\documents\github\neuralnetwork\neuralnetwork\src\client\main.cpp(206) : コンパイルされたクラスの テンプレート のインスタンス化 'void sig::Shuffle<std::vector<bool,std::allocator<_Ty>>,int,std::vector,std::vector>(std::vector<std::vector<_Ty,std::allocator<_Ty>>,std::allocator<std::vector<_Ty,std::allocator<_Ty>>>> &,std::vector<int,std::allocator<int>> &)' の参照を確認してください
+                 with
+                 [
+                     _Ty=bool
+                 ]
+     1>c:\program files (x86)\microsoft visual studio 12.0\vc\include\algorithm(950): warning C4800: 'int' : ブール値を 'true' または 'false' に強制的に設定します (警告の処理)
+                 c:\program files (x86)\microsoft visual studio 12.0\vc\include\algorithm(976) : コンパイルされたクラスの テンプレート のインスタンス化 '_OutIt std::_Transform<_InIt,_OutIt,_Fn1>(_InIt,_InIt,_OutIt,_Fn1)' の参照を確認してください
+                 with
+                 [
+                     _OutIt=std::back_insert_iterator<std::vector<bool,std::allocator<bool>>>
+         ,            _InIt=std::basic_string<char,std::char_traits<char>,std::allocator<char>> *
+         ,            _Fn1=Test3::<lambda_830748e33a80497f72163b142ab0cd66>
+                 ]
+                 c:\program files (x86)\microsoft visual studio 12.0\vc\include\algorithm(1000) : コンパイルされたクラスの テンプレート のインスタンス化 '_OutIt std::_Transform1<_InIt,_OutIt,_Fn1>(_InIt,_InIt,_OutIt,_Fn1,std::input_iterator_tag,std::_Mutable_iterator_tag)' の参照を確認してください
+                 with
+                 [
+                     _OutIt=std::back_insert_iterator<std::vector<bool,std::allocator<bool>>>
+         ,            _InIt=std::basic_string<char,std::char_traits<char>,std::allocator<char>> *
+         ,            _Fn1=Test3::<lambda_830748e33a80497f72163b142ab0cd66>
+                 ]
+                 c:\program files (x86)\microsoft visual studio 12.0\vc\include\algorithm(1026) : コンパイルされたクラスの テンプレート のインスタンス化 '_OutIt std::_Transform1<std::basic_string<char,std::char_traits<char>,std::allocator<char>>*,_OutIt,_Fn1>(_InIt,_InIt,_OutIt,_Fn1,std::true_type)' の参照を確認してください
+                 with
+                 [
+                     _OutIt=std::back_insert_iterator<std::vector<bool,std::allocator<bool>>>
+         ,            _Fn1=Test3::<lambda_830748e33a80497f72163b142ab0cd66>
+         ,            _InIt=std::basic_string<char,std::char_traits<char>,std::allocator<char>> *
+                 ]
+                 c:\users\.sigure\documents\github\neuralnetwork\neuralnetwork\src\client\main.cpp(202) : コンパイルされたクラスの テンプレート のインスタンス化 '_OutIt std::transform<std::_Vector_iterator<std::_Vector_val<std::_Simple_types<std::basic_string<char,std::char_traits<char>,std::allocator<char>>>>>,std::back_insert_iterator<std::vector<bool,std::allocator<_Ty>>>,Test3::<lambda_830748e33a80497f72163b142ab0cd66>>(_InIt,_InIt,_OutIt,_Fn1)' の参照を確認してください
+                 with
+                 [
+                     _OutIt=std::back_insert_iterator<std::vector<bool,std::allocator<bool>>>
+         ,            _Ty=bool
+         ,            _InIt=std::_Vector_iterator<std::_Vector_val<std::_Simple_types<std::basic_string<char,std::char_traits<char>,std::allocator<char>>>>>
+         ,            _Fn1=Test3::<lambda_830748e33a80497f72163b142ab0cd66>
+                 ]
+         コードを生成中...
+         スキップ中... (関連する変更は検出されませんでした)
+         Edge.cpp
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\.sigure\Documents\GitHub\NeuralNetwork\Debug\NeuralNetwork.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\.sigure\Documents\GitHub\NeuralNetwork\Debug\NeuralNetwork.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\.sigure\Documents\GitHub\NeuralNetwork\Debug\NeuralNetwork.lib" /MACHINE:X86 Debug\main.obj
+         Debug\Edge.obj
+         NeuralNetwork.vcxproj -> C:\Users\.sigure\Documents\GitHub\NeuralNetwork\Debug\NeuralNetwork.exe
+     1>プロジェクト "C:\Users\.sigure\Documents\GitHub\NeuralNetwork\NeuralNetwork\NeuralNetwork.vcxproj" (Build ターゲット) のビルドが完了しました。
+
+ビルドに成功しました。
+
+経過時間 00:00:15.02

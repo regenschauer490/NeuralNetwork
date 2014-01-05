@@ -38,7 +38,6 @@ class Perceptron_Batch : public DataFormat<InputInfo_, OutputInfo_>
 	
 		//ParameterPack parameters_;
 		double alpha_;	//learning rate
-		double beta_;	//L2 regularization
 
 		//cache
 		std::vector< std::vector<DEdgePtr>> all_edges_;
@@ -48,7 +47,7 @@ class Perceptron_Batch : public DataFormat<InputInfo_, OutputInfo_>
 		explicit MLP_Impl(std::vector<LayerPtr> hidden_layers) :
 			in_layer_(InputLayerPtr<InputInfo_>(new InputLayer<InputInfo_>())),
 			out_layer_(OutputLayerPtr<OutputInfo_>(new typename LayerTypeMap<OutputInfo_::e_layertype>::layertype<OutputInfo_>())),
-			alpha_(learning_rate), beta_(L2_regularization)
+			alpha_(learning_rate)
 		{
 			layers_.push_back(in_layer_);
 			for (auto& l : hidden_layers) layers_.push_back(l->CloneInitInstance());
@@ -73,8 +72,10 @@ private:
 	MLP_Impl mlp_;
 	std::array<MLP_Impl, THREAD_NUM> copy_mlp_;
 
+	double beta_;	//L2 regularization
+
 public:
-	explicit Perceptron_Batch(std::vector<LayerPtr> hidden_layers) : mlp_(hidden_layers){
+	explicit Perceptron_Batch(std::vector<LayerPtr> hidden_layers) : mlp_(hidden_layers), beta_(L2_regularization){
 		for (uint i = 0; i < THREAD_NUM; ++i){
 			copy_mlp_[i] = MLP_Impl(hidden_layers);
 			copy_mlp_[i].CopyWeight(mlp_);

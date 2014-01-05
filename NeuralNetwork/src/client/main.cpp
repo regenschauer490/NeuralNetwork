@@ -4,7 +4,7 @@
 
 #include "utility.hpp"
 
-#define IS_BATCH 0
+#define IS_BATCH 1
 
 //回帰
 void Test1(){
@@ -230,7 +230,7 @@ void Test3(){
 		inputs.push_back(nn.MakeInputData(train_data[i].begin(), train_data[i].end(), train_ans[i]));
 	}
 #endif
-
+	
 	std::vector<Perceptron::InputDataPtr> test_inputs;
 	for (auto const& td : test_data) test_inputs.push_back(nn.MakeInputData(td.begin(), td.end()));
 
@@ -271,7 +271,7 @@ void Test3(){
 	}
 }
 
-//オートエンコーダ
+//オートエンコーダ（手書き文字復元）
 void Test4()
 {
 	using namespace signn;
