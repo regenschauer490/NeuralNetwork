@@ -4,13 +4,13 @@ NeuralNetwork (Implemented in C++11)
 確認済み動作環境：Visual Studio 2013 RC
 
 【実装済み (ちゃんと動くもの)】  
-・*Multi-Layer Perceptron (online training)*  
-・*Multi-Layer Perceptron (batch training)*　※性能微妙  
-・*Auto-Encoder (online training)*  
+* Multi-Layer Perceptron (online training)  
+* Multi-Layer Perceptron (batch training)　※性能微妙  
+* Auto-Encoder (online training)  
 
 【実装・テスト中】  
-・Auto-Encoder (batch training)  
-・Deep Auto-Encoder  
+* Auto-Encoder (batch training)  
+* Deep Auto-Encoder  
 
 【変更・修正メモ】  
 todo:バッチ学習の性能向上方法のサーベイ, 検証結果のまとめ  
