@@ -439,13 +439,13 @@ namespace sig{
 	class Histgram{
 		T const _min;
 		T const _max;
-		T const _delta;
+		double const _delta;
 		std::array<uint, BIN_NUM+2> _count;	//[0]: x < min, [BIN_NUM-1]: max <= x
 		uint _num;
 
 	public:
 		//—v‘f‚Ì”ÍˆÍ‚ðŽw’è
-		Histgram(T min, T max) : _min(min), _max(max), _delta(static_cast<int>((max-min+1)/BIN_NUM)), _num(0){
+		Histgram(T min, T max) : _min(min), _max(max), _delta(((double)max-min)/BIN_NUM), _num(0){
 			assert(_delta > 0); 
 			for(auto& ct : _count) ct = 0;
 		}

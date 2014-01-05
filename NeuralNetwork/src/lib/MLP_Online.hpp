@@ -37,8 +37,8 @@ class Perceptron_Online : public DataFormat<InputInfo_, OutputInfo_>
 	std::vector<LayerPtr> layers_;	//all layers
 	
 	//ParameterPack parameters_;
-	double alpha_;
-	double k_;
+	double alpha_;	//learning rate
+	double beta_;	//L2 regularization
 
 	//cache
 	std::vector< std::vector<DEdgePtr>> all_edges_;
@@ -53,7 +53,8 @@ private:
 public:
 	explicit Perceptron_Online(std::vector<LayerPtr> hidden_layers) :
 		in_layer_(InputLayerPtr<InputInfo_>(new InputLayer<InputInfo_>())), 
-		out_layer_(OutputLayerPtr<OutputInfo_>(new typename LayerTypeMap<OutputInfo_::e_layertype>::layertype<OutputInfo_>())), alpha_(learning_rate)
+		out_layer_(OutputLayerPtr<OutputInfo_>(new typename LayerTypeMap<OutputInfo_::e_layertype>::layertype<OutputInfo_>())),
+		alpha_(learning_rate), beta_(L2_regularization)
 	{
 		layers_.push_back(in_layer_);
 		for (auto& l : hidden_layers) layers_.push_back(l);
@@ -117,11 +118,12 @@ void Perceptron_Online<InputInfo_, OutputInfo_>::ForwardPropagation(InputData co
 template <class InputInfo_, class OutputInfo_>
 void Perceptron_Online<InputInfo_, OutputInfo_>::BackPropagation(InputData const& input)
 {
+	assert(!input.IsTestData());
 	auto& teacher = input.Teacher();
 
-	out_layer_->UpdateEdgeWeight(alpha_, teacher);
+	out_layer_->UpdateEdgeWeight(alpha_, beta_, teacher);
 	for (int i = layers_.size() - 2; i >= 0; --i){
-		layers_[i]->UpdateEdgeWeight(alpha_);
+		layers_[i]->UpdateEdgeWeight(alpha_, beta_);
 	}
 }
 
@@ -133,7 +135,7 @@ double Perceptron_Online<InputInfo_, OutputInfo_>::Learn(InputDataPtr train_data
 	BackPropagation(*train_data);
 
 	if (return_sqerror){
-		return out_layer_->SquareError(train_data->Teacher());
+		return out_layer_->MeanSquareError(train_data->Teacher());
 	}
 	else return -1;
 }
@@ -177,7 +179,6 @@ void Perceptron_Online<InputInfo_, OutputInfo_>::SaveParameter(std::wstring pass
 			}
 			File::SaveLineNum(weight, pass + L"weight" + std::to_wstring(l) + L".txt", File::WriteMode::append, ",");
 		}
-		++l;
 	}
 }
 
@@ -199,7 +200,6 @@ void Perceptron_Online<InputInfo_, OutputInfo_>::LoadParameter(std::wstring pass
 			}
 			++n;
 		}
-		++l;
 	}
 }
 

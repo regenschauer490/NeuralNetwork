@@ -49,7 +49,7 @@ public:
 	double CalcDeltaWeight(double alpha, double error);
 
 	template <class ActivationFunc>
-	void UpdateWeight(double alpha, double error);
+	void UpdateWeight(double alpha, double beta, double error);
 
 
 	void Weight(double v){ weight_ = v; }
@@ -78,11 +78,11 @@ double DirectedEdge::CalcDeltaWeight(double alpha, double error)
 
 
 template <class ActivationFunc>
-void DirectedEdge::UpdateWeight(double alpha, double error)
+void DirectedEdge::UpdateWeight(double alpha, double beta, double error)
 {
 	pre_weight_ = weight_;
 	delta_ = error * ActivationFunc::df(head_.lock()->PreActivateScore());
-	weight_ += alpha * tail_.lock()->Score() * delta_;
+	weight_ = weight_ * beta + alpha * tail_.lock()->Score() * delta_;
 }
 
 }

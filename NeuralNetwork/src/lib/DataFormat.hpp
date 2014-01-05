@@ -107,7 +107,7 @@ public:
 		return std::make_shared<InputData>(input_begin, input_end, teacher.begin(), teacher.end(), false);
 	}
 
-	//教師信号なし  (テストデータ, オートエンコーダ用)
+	//教師信号なし  (テストデータ)
 	template<class Iter1, typename = decltype(*std::declval<Iter1&>(), void(), ++std::declval<Iter1&>(), void())>
 	std::shared_ptr<InputData> MakeInputData(Iter1 input_begin, Iter1 input_end) const{
 		std::array<typename OutputInfo_::type, OutputInfo_::dim> teacher;

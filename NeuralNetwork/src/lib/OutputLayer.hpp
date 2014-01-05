@@ -39,7 +39,7 @@ protected:
 
 	virtual void UpdateNodeScore() override = 0;
 
-	virtual void UpdateEdgeWeight(double alpha, std::array<typename OutputInfo_::type, OutputInfo_::dim> teacher_signals) = 0;
+	virtual void UpdateEdgeWeight(double alpha, double beta, std::array<typename OutputInfo_::type, OutputInfo_::dim> teacher_signals) = 0;
 
 	virtual std::vector<double> CalcEdgeWeight(double alpha, std::array<typename OutputInfo_::type, OutputInfo_::dim> teacher_signals) = 0;
 
@@ -57,7 +57,7 @@ public:
 	}
 
 	template<class Container>
-	double SquareError(Container const& teacher) const;
+	double MeanSquareError(Container const& teacher) const;
 
 /*
 	template<class Iter, typename = decltype(*std::declval<Iter&>(), void(), ++std::declval<Iter&>(), void())>
@@ -73,8 +73,8 @@ public:
 
 template <class OutputInfo_>
 template<class Container>
-double OutputLayer<OutputInfo_>::SquareError(Container const& teacher) const{
-	return std::inner_product(begin(), end(), teacher.begin(), 0.0, std::plus<double>(), [](NodePtr const& v1, double v2){ return pow(v1->Score() - v2, 2); });
+double OutputLayer<OutputInfo_>::MeanSquareError(Container const& teacher) const{
+	return std::inner_product(begin(), end(), teacher.begin(), 0.0, std::plus<double>(), [](NodePtr const& v1, double v2){ return pow(v1->Score() - v2, 2); }) / NodeNum();
 }
 
 #define PP_UpdateNodeScore(ACTIVATE_FUNC)\
@@ -99,13 +99,13 @@ double OutputLayer<OutputInfo_>::SquareError(Container const& teacher) const{
 	}
 
 #define PP_UpdateEdgeWeight(ACTIVATE_FUNC)\
-	void UpdateEdgeWeight(double alpha, std::array<typename OutputInfo_::type, OutputInfo_::dim> teacher_signals) override{\
+	void UpdateEdgeWeight(double alpha, double beta, std::array<typename OutputInfo_::type, OutputInfo_::dim> teacher_signals) override{\
 		for (uint n = 0, node_num = NodeNum(); n < node_num; ++n){\
 			auto& node = (*this)[n]; \
 			auto const error = teacher_signals[n] - node->Score(); \
 			\
 			for (auto edge = node->in_begin(), end = node->in_end(); edge != end; ++edge){\
-				(*edge)->UpdateWeight<ACTIVATE_FUNC>(alpha, error); \
+				(*edge)->UpdateWeight<ACTIVATE_FUNC>(alpha, beta, error); \
 			}\
 		}\
 	}
@@ -189,13 +189,13 @@ private:
 		return std::move(new_weight);
 	}
 
-	void UpdateEdgeWeight(double alpha, std::array<typename OutputInfo_::type, OutputInfo_::dim> teacher_signals) override{
+	void UpdateEdgeWeight(double alpha, double beta, std::array<typename OutputInfo_::type, OutputInfo_::dim> teacher_signals) override{
 		for (uint n = 0, node_num = NodeNum(); n < node_num; ++n){
 			auto& node = (*this)[n]; 
 			auto const error = teacher_signals[n] - node->Score(); 
 
 			for (auto edge = node->in_begin(), end = node->in_end(); edge != end; ++edge){
-				(*edge)->UpdateWeight<Softmax>(alpha, error);
+				(*edge)->UpdateWeight<Softmax>(alpha, beta, error);
 			}
 		}
 	}

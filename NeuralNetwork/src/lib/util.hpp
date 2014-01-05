@@ -111,18 +111,28 @@ namespace signn{
 	}
 
 	template<class Iter1, class Iter2>
-	double CrossCorrelation(Iter1 xs_begin, Iter1 xs_end, Iter2 hs_begin, Iter2 hs_end, uint dilation)
+	double Simirarlity(Iter1 xs_begin, Iter1 xs_end, Iter2 hs_begin, Iter2 hs_end, uint dilation)
 	{
 		uint size = 0;
 		double result = 0;
 		auto xs = xs_begin + dilation;
 		auto hs = hs_begin;
 
-		for (; xs != xs_end && hs != hs_end ; ++xs, ++hs, ++size){
-			result += (*xs) * (*hs);
+		if (std::is_same<typename Iter1::value_type, bool>::value){
+			for (; xs != xs_end && hs != hs_end; ++xs, ++hs, ++size){
+				result += (*xs) == (*hs) ? 0 : 1;
+			}
+			for (xs = xs_begin; xs != xs_end && hs != hs_end; ++xs, ++hs, ++size){
+				result += (*xs) == (*hs) ? 0 : 1;
+			}
 		}
-		for (xs = xs_begin; xs != xs_end && hs != hs_end; ++xs, ++hs, ++size){
-			result += (*xs) * (*hs);
+		else{
+			for (; xs != xs_end && hs != hs_end ; ++xs, ++hs, ++size){
+				result += std::abs((*xs) - (*hs));
+			}
+			for (xs = xs_begin; xs != xs_end && hs != hs_end; ++xs, ++hs, ++size){
+				result += std::abs((*xs) - (*hs));
+			}
 		}
 
 		return result / size;

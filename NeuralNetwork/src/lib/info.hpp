@@ -42,6 +42,7 @@ const bool DEBUG_MODE = true;
 const uint THREAD_NUM = 3;
 const double threshold_theta = 0.5;
 const double learning_rate = 0.01;
+const double L2_regularization = 0.9995;
 
 //parameter selection
 enum class OutputLayerType { Regression, BinaryClassification, MultiClassClassification, MultiLabelClassification };
@@ -63,7 +64,7 @@ struct LayerTypeMap{};
 
 template <>
 struct LayerTypeMap<OutputLayerType::Regression>{
-	template<class OInfo> using layertype = RegressionLayer<OInfo>;
+	template<class OutInfo> using layertype = RegressionLayer<OutInfo>;
 	typedef double type;
 };
 

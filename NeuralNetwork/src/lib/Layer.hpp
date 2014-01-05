@@ -44,14 +44,14 @@ protected:
 
 	virtual void UpdateNodeScore(){ for (auto& n : nodes_) n->UpdateScore<Sigmoid>(); }
 	
-	void UpdateEdgeWeight(double alpha){
+	void UpdateEdgeWeight(double alpha, double beta){
 		for (auto& node : nodes_){
 			auto const error = std::accumulate(node->out_begin(), node->out_end(), 0.0, [](double sum, DEdgePtr& e){
 				return sum + e->PreWeight() * e->Delta();
 			});
 
 			for (auto edge = node->in_begin(), end = node->in_end(); edge != end; ++edge){
-				(*edge)->UpdateWeight<Sigmoid>(alpha, error);
+				(*edge)->UpdateWeight<Sigmoid>(alpha, beta, error);
 			}
 		}
 	}

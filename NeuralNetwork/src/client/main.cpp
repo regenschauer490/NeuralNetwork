@@ -255,7 +255,7 @@ void Test3(){
 		std::cout << "time: " << tw.GetTime<std::chrono::seconds>() << std::endl;
 		if (loop % 1 == 0) std::cout << "train_mse: " << esum << std::endl << std::endl;
 
-		for (int i=0; i<inputs.size(); ++i){
+		for (int i=0; i< test_inputs.size(); ++i){
 			auto est = nn.Test(test_inputs[i]);
 			for (uint j = 0; j < est->size(); ++j){
 				if ((*est)[j]) std::cout << j << ", ";
@@ -278,13 +278,14 @@ void Test4()
 
 	typedef bool input_type;
 	typedef InputInfo<input_type, 784> InInfo;
-	typedef AutoEncoder<InInfo, 10> AutoEncoder;
+	typedef AutoEncoder<InInfo, 5> AutoEncoder;
 
 	AutoEncoder ae;
+	ae.SaveParameter(L"test data/pw/");
 
 	std::vector < std::vector<input_type>> train_data;
 
-	auto rows = *sig::File::ReadLine<std::string>(L"test data/train0.txt");
+	auto rows = *sig::File::ReadLine<std::string>(L"test data/train2.txt");
 
 	for (uint r = 0; r < rows.size(); ++r){
 		train_data.push_back(std::vector<input_type>());
@@ -292,7 +293,7 @@ void Test4()
 		std::transform(++split.begin(), split.end(), std::back_inserter(train_data.back()), [](std::string s){ return std::stoi(s); });
 	}
 	
-	sig::Shuffle(train_data);
+	//sig::Shuffle(train_data);
 
 	std::vector<std::vector<input_type>> test_data;
 	uint tds;
@@ -309,7 +310,6 @@ void Test4()
 	std::vector<AutoEncoder::InputDataPtr> test_inputs;
 	for (auto const& td : test_data) test_inputs.push_back(ae.MakeInputData(td.begin(), td.end()));
 
-
 	double p_esum = 0, esum = 0;
 	for (int loop = 0; true; ++loop){
 		sig::TimeWatch tw;
@@ -317,23 +317,33 @@ void Test4()
 
 		for (int i = 0; i < inputs.size(); ++i){
 			moe.push_back(ae.Learn(inputs[i], true));
+			if (i>0 && std::abs(moe[i-1] - moe[i]) < 0.0000000001){
+				std::cout << "iteration:" << i+1 << " / " << inputs.size() << std::endl;
+				break;
+			}
 		}
 		p_esum = esum;
 		esum = std::accumulate(moe.begin(), moe.end(), 0.0) / train_data.size();
-		//nn.SaveParameter(L"test data/");
 
 		tw.Stop();
-		std::cout << "time: " << tw.GetTime<std::chrono::seconds>() << std::endl;
-		if (loop % 1 == 0) std::cout << "train_mse: " << esum << std::endl << std::endl;
+		std::cout << "\n\ntime: " << tw.GetTime<std::chrono::seconds>() << std::endl;
+		std::cout << "train_mse: " << esum << std::endl << std::endl;
+		ae.SaveParameter(L"test data/aw/");
 
-		for (int i = 0; i < inputs.size(); ++i){
-			auto est = *ae.Test(test_inputs[i]);
-			sig::Histgram<double, 10> hist(-1, 1);
+		if (loop % 1 == 0){
+			for (int i = 0; i < test_inputs.size(); ++i){
+				auto est = *ae.Test(test_inputs[i]);
+				sig::Histgram<double, 10> hist(0, 0.5);
+				std::vector<int> r;
 
-			for (uint j = 0; j < est.size(); ++j){
-				hist.Count( CrossCorrelation(test_data[i].begin(), test_data[i].end(), est.begin(), est.end(), 0) );
+				for (uint j = 0; j < est.size(); ++j){
+					hist.Count( Simirarlity(test_data[i].begin(), test_data[i].end(), est.begin(), est.end(), j) );
+					r.push_back(est[j]);
+				}
+				hist.Print();
+				sig::File::SaveLineNum(test_data[i], L"test data/test0_ans.txt", sig::File::WriteMode::overwrite);
+				sig::File::SaveLineNum(r, L"test data/test0.txt", sig::File::WriteMode::overwrite);
 			}
-			hist.Print();
 		}
 
 		//if (esum < 1000) break;
@@ -343,6 +353,6 @@ void Test4()
 
 
 int main(){
-	Test4();
+	Test3();
 }
 

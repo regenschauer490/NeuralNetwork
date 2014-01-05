@@ -27,7 +27,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace signn{
 
-template <class InputInfo_, uint HiddenDim, class OutputInfo_ = OutputInfo<OutputLayerType::Regression, InputInfo_::dim>>
+template <class InputInfo_, uint HiddenDim, class OutputInfo_ = OutputInfo<OutputLayerType::BinaryClassification, InputInfo_::dim>>
 class AutoEncoder : public DataFormat<InputInfo_, OutputInfo_>
 {
 	typedef Perceptron_Online<InputInfo_, OutputInfo_> Perceptron;
@@ -44,13 +44,27 @@ public:
 	double Learn(InputDataPtr train_data, bool return_sqerror = false);
 
 	OutputDataPtr Test(InputDataPtr test_data) const{ return ac_.Test(test_data); }
+
+	void SaveParameter(std::wstring pass) const{ ac_.SaveParameter(pass); }
+
+	void LoadParameter(std::wstring pass) const{ ac_.LoadParameter(pass); }
+
+	//教師信号なし  (オートエンコーダ用)
+	template<class Iter1, typename = decltype(*std::declval<Iter1&>(), void(), ++std::declval<Iter1&>(), void())>
+	std::shared_ptr<InputData> MakeInputData(Iter1 input_begin, Iter1 input_end) const{
+		uint i = 0;
+		std::array<typename OutputInfo_::type, OutputInfo_::dim> teacher;
+		for (auto in = input_begin; in != input_end; ++in, ++i) teacher[i] = *in;
+		return std::make_shared<InputData>(input_begin, input_end, teacher.begin(), teacher.end(), false);
+	}
 };
 
 
 template <class InputInfo_, uint HiddenDim, class OutputInfo_>
 double AutoEncoder<InputInfo_, HiddenDim, OutputInfo_>::Learn(InputDataPtr train_data, bool return_sqerror)
 {
-	if (!train_data->IsTestData()){
+	if (train_data->IsTestData()){
+		assert(false);
 		auto& input = train_data->Input();
 		auto& teacher = const_cast<InputData::TeacherDataArray&>(train_data->Teacher());
 

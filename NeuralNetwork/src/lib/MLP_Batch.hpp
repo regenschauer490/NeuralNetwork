@@ -37,7 +37,8 @@ class Perceptron_Batch : public DataFormat<InputInfo_, OutputInfo_>
 		std::vector<LayerPtr> layers_;	//all layers
 	
 		//ParameterPack parameters_;
-		double alpha_;
+		double alpha_;	//learning rate
+		double beta_;	//L2 regularization
 
 		//cache
 		std::vector< std::vector<DEdgePtr>> all_edges_;
@@ -47,7 +48,7 @@ class Perceptron_Batch : public DataFormat<InputInfo_, OutputInfo_>
 		explicit MLP_Impl(std::vector<LayerPtr> hidden_layers) :
 			in_layer_(InputLayerPtr<InputInfo_>(new InputLayer<InputInfo_>())),
 			out_layer_(OutputLayerPtr<OutputInfo_>(new typename LayerTypeMap<OutputInfo_::e_layertype>::layertype<OutputInfo_>())),
-			alpha_(learning_rate)
+			alpha_(learning_rate), beta_(L2_regularization)
 		{
 			layers_.push_back(in_layer_);
 			for (auto& l : hidden_layers) layers_.push_back(l->CloneInitInstance());
@@ -124,6 +125,7 @@ void Perceptron_Batch<InputInfo_, OutputInfo_>::MLP_Impl::ForwardPropagation(Inp
 template <class InputInfo_, class OutputInfo_>
 std::vector< std::vector<double>> Perceptron_Batch<InputInfo_, OutputInfo_>::MLP_Impl::BackPropagation(InputData const& input)
 {
+	assert(!input.IsTestData());
 	const uint lsize = layers_.size()-1;
 	std::vector< std::vector<double> > weight(lsize);
 	auto const& teacher = input.Teacher();
@@ -165,12 +167,12 @@ double Perceptron_Batch<InputInfo_, OutputInfo_>::Learn(std::vector<InputDataPtr
 			auto d_weight = mlp.BackPropagation(**begin);
 
 			if (first){
-				l_mse = mlp.out_layer_->SquareError((*begin)->Teacher());
+				l_mse = mlp.out_layer_->MeanSquareError((*begin)->Teacher());
 				result = std::move(d_weight);
 				first = false;
 			}
 			else{
-				l_mse += mlp.out_layer_->SquareError((*begin)->Teacher());
+				l_mse += mlp.out_layer_->MeanSquareError((*begin)->Teacher());
 
 				for (uint l = 0; l < d_weight.size(); ++l){
 					for (uint n = 0; n < d_weight[l].size(); ++n) result[l][n] += d_weight[l][n];
@@ -212,7 +214,7 @@ double Perceptron_Batch<InputInfo_, OutputInfo_>::Learn(std::vector<InputDataPtr
 	auto& edge = mlp_.all_edges_;
 	for (uint l = 0; l < delta_weight.size(); ++l){
 		for (uint n = 0; n < delta_weight[l].size(); ++n){
-			edge[l][n]->Weight(edge[l][n]->Weight() + delta_weight[l][n] / inputs.size());
+			edge[l][n]->Weight(edge[l][n]->Weight() * beta_ + delta_weight[l][n] / inputs.size());
 		}
 	}
 
