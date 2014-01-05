@@ -4,6 +4,14 @@ NeuralNetwork
 
 [実装済み]
 
-・多層パーセプトロン（オンライン学習）
+・Multi-Layer Perceptron (online training)
 
-・多層パーセプトロン（バッチ学習）
+・Multi-Layer Perceptron (batch training)
+
+・AutoEncoder (online training)
+
+[実装・テスト中]
+
+・AutoEncoder (batch training)
+
+・Deep AutoEncoder
