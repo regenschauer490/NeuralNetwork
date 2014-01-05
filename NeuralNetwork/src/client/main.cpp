@@ -249,7 +249,7 @@ void Test3(){
 			p_esum = esum;
 			esum = nn.Learn(inputs[div]);
 #endif
-		//nn.SaveParameter(L"test data/");
+		nn.SaveParameter(L"test data/aw");
 
 		tw.Stop();
 		std::cout << "time: " << tw.GetTime<std::chrono::seconds>() << std::endl;

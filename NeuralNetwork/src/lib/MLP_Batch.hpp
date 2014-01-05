@@ -86,6 +86,8 @@ public:
 	double Learn(std::vector<InputDataPtr> const& inputs);
 
 	OutputDataPtr Test(InputDataPtr test_data) const;
+
+	void SaveParameter(std::wstring pass) const;
 };
 
 
@@ -229,6 +231,23 @@ typename Perceptron_Batch<InputInfo_, OutputInfo_>::OutputDataPtr Perceptron_Bat
 {
 	mlp_.ForwardPropagation(*test_data);
 	return std::make_shared<OutputData>(test_data, mlp_.out_layer_->GetScore());
+}
+
+template <class InputInfo_, class OutputInfo_>
+void Perceptron_Batch<InputInfo_, OutputInfo_>::SaveParameter(std::wstring pass) const
+{
+	pass = File::DirpassTailModify(pass, true);
+
+	for (uint l = 1; l < mlp_.layers_.size(); ++l){
+		File::RemakeFile(pass + L"weight" + std::to_wstring(l) + L".txt");
+		for (auto const& node : *(mlp_.layers_[l - 1])){
+			std::vector<double> weight;
+			for (auto edge = node->out_begin(), end = node->out_end(); edge != end; ++edge){
+				weight.push_back((*edge)->Weight());
+			}
+			File::SaveLineNum(weight, pass + L"weight" + std::to_wstring(l) + L".txt", File::WriteMode::append, ",");
+		}
+	}
 }
 
 }
