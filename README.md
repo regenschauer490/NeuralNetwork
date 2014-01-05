@@ -6,7 +6,7 @@ NeuralNetwork
 
 ・Multi-Layer Perceptron (online training)
 
-・Multi-Layer Perceptron (batch training) ※性能微妙
+・Multi-Layer Perceptron (batch training)　※性能微妙
 
 ・AutoEncoder (online training)
 
@@ -18,7 +18,8 @@ NeuralNetwork
 
 
 [変更・修正メモ]
-todo:バッチ学習の性能向上方法のサーベイ
+
+todo:バッチ学習の性能向上方法のサーベイ, 検証結果のまとめ
 
 2014/1/4
 ・重み更新時のエッジ重み減衰によるL2正則化の実装・検証
