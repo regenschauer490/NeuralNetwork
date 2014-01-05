@@ -1,6 +1,7 @@
 NeuralNetwork (Implemented in C++11)
 =============
 現在まったり作成中 - Now Implementing -
+確認済み動作環境：Visual Studio 2013 RC
 
 [実装済み (ちゃんと動くもの)]
 
