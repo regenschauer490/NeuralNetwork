@@ -1,4 +1,4 @@
-NeuralNetwork
+NeuralNetwork (Implemented in C++11)
 =============
 現在まったり作成中 - Now Implementing -
 
