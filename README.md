@@ -1,27 +1,19 @@
 NeuralNetwork (Implemented in C++11)
 =============
-現在まったり作成中 - Now Implementing -
-
+現在まったり作成中 - Now Implementing -  
 確認済み動作環境：Visual Studio 2013 RC
 
-[実装済み (ちゃんと動くもの)]
+【実装済み (ちゃんと動くもの)】  
+・Multi-Layer Perceptron (online training)  
+・Multi-Layer Perceptron (batch training)　※性能微妙  
+・AutoEncoder (online training)  
 
-・Multi-Layer Perceptron (online training)
+【実装・テスト中】  
+・AutoEncoder (batch training)  
+・Deep AutoEncoder  
 
-・Multi-Layer Perceptron (batch training)　※性能微妙
-
-・AutoEncoder (online training)
-
-[実装・テスト中]
-
-・AutoEncoder (batch training)
-
-・Deep AutoEncoder
-
-
-[変更・修正メモ]
-
-todo:バッチ学習の性能向上方法のサーベイ, 検証結果のまとめ
+【変更・修正メモ】  
+todo:バッチ学習の性能向上方法のサーベイ, 検証結果のまとめ  
 
 2014/1/4
 ・重み更新時のエッジ重み減衰によるL2正則化の実装・検証
