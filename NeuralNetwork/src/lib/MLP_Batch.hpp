@@ -60,6 +60,7 @@ public:
 };
 
 
+
 template <class InputInfo_, class OutputInfo_>
 double Perceptron_Batch<InputInfo_, OutputInfo_>::Train(std::vector<InputDataPtr> const& inputs)
 {
