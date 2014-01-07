@@ -39,10 +39,10 @@ namespace signn
 
 //parameter constant
 const bool DEBUG_MODE = true;
-const uint THREAD_NUM = 3;
+const uint THREAD_NUM = 1;
 const double threshold_theta = 0.5;
 const double learning_rate = 0.01;
-const double L2_regularization = 0.9995;
+const double L2_regularization = 0.9998;
 
 //parameter selection
 enum class OutputLayerType { Regression, BinaryClassification, MultiClassClassification, MultiLabelClassification };
@@ -79,7 +79,6 @@ struct LayerTypeMap<OutputLayerType::MultiClassClassification>{
 	template<class OInfo> using layertype = MultiClassClassificationLayer<OInfo>;
 	typedef bool type;
 };
-
 
 
 //meta info
@@ -125,8 +124,7 @@ using C_OutputLayerPtr = std::shared_ptr<OutputLayer<OutputInfo_> const>;
 
 
 #define FRIEND_WITH_LAYER\
-	template <class InputInfo, class OutputInfo> friend class Perceptron_Batch;\
-	template <class InputInfo, class OutputInfo> friend class Perceptron_Online;
+	template <class InputInfo, class OutputInfo> friend class MLP_Impl;\
 
 
 

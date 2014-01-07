@@ -23,119 +23,52 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #pragma once
 
-#include "InputLayer.hpp"
-#include "OutputLayer.hpp"
-#include "DataFormat.hpp"
+#include "MLP_Impl.hpp"
 
 namespace signn{
 	
 template <class InputInfo_, class OutputInfo_>
 class Perceptron_Online : public DataFormat<InputInfo_, OutputInfo_>
 {
-	InputLayerPtr<InputInfo_> in_layer_;
-	OutputLayerPtr<OutputInfo_> out_layer_;
-	std::vector<LayerPtr> layers_;	//all layers
-	
-	//ParameterPack parameters_;
-	double alpha_;	//learning rate
-	double beta_;	//L2 regularization
+	typedef MLP_Impl<InputInfo_, OutputInfo_> MLP;
+	//typedef typename MLP::InputDataPtr InputDataPtr;
+	//typedef typename MLP::OutputDataPtr OutputDataPtr;
 
-	//cache
-	std::vector< std::vector<DEdgePtr>> all_edges_;
-	
-private:
-	void MakeLink();
+	MLP mlp_;
 
-	void ForwardPropagation(InputData const& input) const;
-
-	void BackPropagation(InputData const& input);
-
+	double min_mse_;						//minimum mean-square-error during iteration
+	std::shared_ptr<MLP> optimal_state_;	//mlp state when mse is minimum
+		
 public:
-	explicit Perceptron_Online(std::vector<LayerPtr> hidden_layers) :
-		in_layer_(InputLayerPtr<InputInfo_>(new InputLayer<InputInfo_>())), 
-		out_layer_(OutputLayerPtr<OutputInfo_>(new typename LayerTypeMap<OutputInfo_::e_layertype>::layertype<OutputInfo_>())),
-		alpha_(learning_rate), beta_(L2_regularization)
-	{
-		layers_.push_back(in_layer_);
-		for (auto& l : hidden_layers) layers_.push_back(l);
-		layers_.push_back(out_layer_);
-		MakeLink();
-	}
+	explicit Perceptron_Online(std::vector<LayerPtr> hidden_layers, double goal_mse = std::numeric_limits<double>::max()) : mlp_(learning_rate, L2_regularization, hidden_layers),
+		min_mse_(goal_mse), optimal_state_(std::make_shared<MLP>(learning_rate, L2_regularization, hidden_layers)){}
 	virtual ~Perceptron_Online(){};
 
-/*
-	template<class Iter1, class Iter2>
-	double Learn(Iter1 input_begin, Iter1 input_end, Iter2 teacher_begin, Iter2 teacher_end);
-
-	template<class Iter1>
-	double Learn(Iter1 input_begin, Iter1 input_end, typename OutputInfo_::type teacher);
-*/
-	double Learn(InputDataPtr train_data, bool return_sqerror = false);
+	double Train(InputDataPtr train_data, bool check_mse = true);
 
 	OutputDataPtr Test(InputDataPtr test_data) const;
 
-	void SaveParameter(std::wstring pass) const;
+	void SaveParameter(std::wstring pass, bool select_optimal_state) const{ select_optimal_state ? optimal_state_->SaveParameter(pass) : mlp_.SaveParameter(pass); };
 
-	void LoadParameter(std::wstring pass) const;
+	void LoadParameter(std::wstring pass){ mlp_.LoadParameter(pass); }
 
 	void DebugWeight(std::vector<double> weight) const{ for (uint i=0; i<all_edges_.size(); ++i) all_edges_[i]->Weight(weight[i]); }
 };
 
 
 template <class InputInfo_, class OutputInfo_>
-void Perceptron_Online<InputInfo_, OutputInfo_>::MakeLink()
+double Perceptron_Online<InputInfo_, OutputInfo_>::Train(InputDataPtr train_data, bool check_mse)
 {
-	//make links between nodes
-	auto MakeLink = [&](LayerPtr layer_prev, LayerPtr layer_next, std::vector<DEdgePtr>& cache){
-		for (auto& l1 : *layer_prev){
-			for (auto& l2 : *layer_next){
-				auto edge = std::make_shared<DirectedEdge>(l1, l2);
-				l1->AddOutEdge(edge);
-				l2->AddInEdge(edge);
-				cache.push_back(edge);
-			}
+	mlp_.ForwardPropagation(*train_data);
+	mlp_.BackPropagation(*train_data);
+
+	if (check_mse){
+		auto mse = mlp_.MeanSquareError(train_data->Teacher());
+		if (mse < min_mse_){
+			optimal_state_->CopyWeight(mlp_);
+			min_mse_ = mse;
 		}
-	};
-
-	for (uint i = 1; i < layers_.size(); ++i){
-		all_edges_.push_back(std::vector<DEdgePtr>());
-		MakeLink(layers_[i - 1], layers_[i], all_edges_.back());
-	}
-}
-
-
-template <class InputInfo_, class OutputInfo_>
-void Perceptron_Online<InputInfo_, OutputInfo_>::ForwardPropagation(InputData const& input) const
-{
-	auto* tp = const_cast<Perceptron_Online<InputInfo_, OutputInfo_>*>(this);
-	tp->in_layer_->SetData(input.Input());
-	for (auto& l : tp->layers_){
-		l->UpdateNodeScore();
-	}
-}
-
-
-template <class InputInfo_, class OutputInfo_>
-void Perceptron_Online<InputInfo_, OutputInfo_>::BackPropagation(InputData const& input)
-{
-	assert(!input.IsTestData());
-	auto& teacher = input.Teacher();
-
-	out_layer_->UpdateEdgeWeight(alpha_, beta_, teacher);
-	for (int i = layers_.size() - 2; i >= 0; --i){
-		layers_[i]->UpdateEdgeWeight(alpha_, beta_);
-	}
-}
-
-
-template <class InputInfo_, class OutputInfo_>
-double Perceptron_Online<InputInfo_, OutputInfo_>::Learn(InputDataPtr train_data, bool return_sqerror)
-{
-	ForwardPropagation(*train_data);
-	BackPropagation(*train_data);
-
-	if (return_sqerror){
-		return out_layer_->MeanSquareError(train_data->Teacher());
+		return mse;
 	}
 	else return -1;
 }
@@ -143,64 +76,26 @@ double Perceptron_Online<InputInfo_, OutputInfo_>::Learn(InputDataPtr train_data
 /*
 template <class InputInfo_, class OutputInfo_>
 template<class Iter1, class Iter2>
-double Perceptron_Online<InputInfo_, OutputInfo_>::Learn(Iter1 input_begin, Iter1 input_end, Iter2 teacher_begin, Iter2 teacher_end)
+double Perceptron_Online<InputInfo_, OutputInfo_>::Train(Iter1 input_begin, Iter1 input_end, Iter2 teacher_begin, Iter2 teacher_end)
 {
 	InputData input(input_begin, input_end, teacher_begin, teacher_end);
-	return Learn(input);
+	return Train(input);
 }
 
 template <class InputInfo_, class OutputInfo_>
 template<class Iter1>
-double Perceptron_Online<InputInfo_, OutputInfo_>::Learn(Iter1 input_begin, Iter1 input_end, typename OutputInfo_::type teacher)
+double Perceptron_Online<InputInfo_, OutputInfo_>::Train(Iter1 input_begin, Iter1 input_end, typename OutputInfo_::type teacher)
 {
 	InputData input(input_begin, input_end, teacher);
-	return Learn(input);
+	return Train(input);
 }
 */
 
 template <class InputInfo_, class OutputInfo_>
 typename Perceptron_Online<InputInfo_, OutputInfo_>::OutputDataPtr Perceptron_Online<InputInfo_, OutputInfo_>::Test(InputDataPtr test_data) const
 {
-	ForwardPropagation(*test_data);
-	return std::make_shared<OutputData>(test_data, out_layer_->GetScore());
-}
-
-template <class InputInfo_, class OutputInfo_>
-void Perceptron_Online<InputInfo_, OutputInfo_>::SaveParameter(std::wstring pass) const
-{
-	pass = File::DirpassTailModify(pass, true);
-
-	for (uint l = 1; l < layers_.size(); ++l){
-		File::RemakeFile(pass + L"weight" + std::to_wstring(l) + L".txt");
-		for (auto const& node : *(layers_[l-1])){
-			std::vector<double> weight;
-			for (auto edge = node->out_begin(), end = node->out_end(); edge != end; ++edge){
-				weight.push_back((*edge)->Weight());
-			}
-			File::SaveLineNum(weight, pass + L"weight" + std::to_wstring(l) + L".txt", File::WriteMode::append, ",");
-		}
-	}
-}
-
-template <class InputInfo_, class OutputInfo_>
-void Perceptron_Online<InputInfo_, OutputInfo_>::LoadParameter(std::wstring pass) const
-{
-	pass = File::DirpassTailModify(pass, true);
-	for (uint l = 1; l < layers_.size(); ++l){
-		std::vector<std::string> data;
-		uint n = 0;
-		File::ReadLine(data, pass + L"weight" + std::to_wstring(l) + L".txt");
-
-		for (auto const& node : *(layers_[l-1])){
-			uint e = 0;
-			auto split = Split(data[n], ",");
-			for (auto edge = node->out_begin(), end = node->out_end(); edge != end; ++edge){
-				(*edge)->Weight(std::stod(split[e]));
-				++e;
-			}
-			++n;
-		}
-	}
+	mlp_.ForwardPropagation(*test_data);
+	return std::make_shared<OutputData>(test_data, mlp_.OutputScore());
 }
 
 }

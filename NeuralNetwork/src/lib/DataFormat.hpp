@@ -62,11 +62,15 @@ public:
 
 	class OutputData
 	{
+	public:
+		typedef std::array<typename OutputInfo_::type, OutputInfo_::dim> OutputDataArray;
+
+	private:
 		const std::shared_ptr<InputData const> input_;
-		std::array<typename OutputInfo_::type, OutputInfo_::dim> estimate_;
+		OutputDataArray estimate_;
 
 	public:
-		OutputData(std::shared_ptr<InputData const> input, std::array<typename OutputInfo_::type, OutputInfo_::dim> estimate) : input_(input), estimate_(estimate){}
+		OutputData(std::shared_ptr<InputData const> input, OutputDataArray& estimate) : input_(input), estimate_(estimate){}
 
 		template<class Iter, typename = decltype(*std::declval<Iter&>(), void(), ++std::declval<Iter&>(), void())>
 		double SquareError(Iter ans_vector_begin) const{
@@ -105,7 +109,7 @@ public:
 
 	//teacher:‰ñ‹A‚Ì³‰ğ’l
 	template<class Iter1, typename = decltype(*std::declval<Iter1&>(), void(), ++std::declval<Iter1&>(), void()), class = typename std::enable_if<!std::is_same<typename OutputInfo_::type, bool>::value>::type>
-	InputDataPtr MakeInputData(Iter1 input_begin, Iter1 input_end, typename OutputInfo_::type teacher_value){
+	InputDataPtr MakeInputData(Iter1 input_begin, Iter1 input_end, typename OutputInfo_::type teacher_value) const{
 		static_assert(1 == OutputInfo_::dim, "invalid input data");
 
 		std::array<typename OutputInfo_::type, 1> teacher{ {teacher_value} };
@@ -115,7 +119,7 @@ public:
 
 	//teacher:•ª—Ş‚Ìƒ‰ƒxƒ‹
 	template<class Iter1, typename = decltype(*std::declval<Iter1&>(), void(), ++std::declval<Iter1&>(), void()), class = typename std::enable_if<std::is_same<typename OutputInfo_::type, bool>::value>::type>
-	InputDataPtr MakeInputData(Iter1 input_begin, Iter1 input_end, uint teacher_label){
+	InputDataPtr MakeInputData(Iter1 input_begin, Iter1 input_end, uint teacher_label) const{
 		std::array<typename OutputInfo_::type, OutputInfo_::dim> teacher;
 
 		if (OutputInfo_::e_layertype == OutputLayerType::MultiClassClassification){

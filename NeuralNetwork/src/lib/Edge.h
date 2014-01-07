@@ -32,6 +32,7 @@ class DirectedEdge
 	NodeWPtr tail_;
 	NodeWPtr head_;
 
+	//parameter
 	double weight_;
 
 	//cache

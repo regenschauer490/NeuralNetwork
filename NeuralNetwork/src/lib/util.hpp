@@ -39,7 +39,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 typedef unsigned long int uint;
 
 namespace signn{
+#undef max
 #undef min
+
+	extern void* enabler;
 	
 	//初期化時に指定した範囲の一様分布乱数を発生させるクラス
 	//デフォルト: 乱数生成器 -> メルセンヌツイスター

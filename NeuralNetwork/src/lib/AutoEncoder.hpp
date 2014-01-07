@@ -35,17 +35,14 @@ class AutoEncoder : public DataFormat<InputInfo_, OutputInfo_>
 	LayerPtr hidden_;
 	Perceptron ac_;
 
-private:
-
-
 public:
 	AutoEncoder() : hidden_(Layer::MakeInstance(HiddenDim)), ac_(std::vector<LayerPtr>{hidden_}){ static_assert(InputInfo_::dim == OutputInfo_::dim, "invalid dimension: different dim between input and output"); }
 
-	double Learn(InputDataPtr train_data, bool return_sqerror = false);
+	double Train(InputDataPtr train_data, bool return_sqerror = false);
 
 	OutputDataPtr Test(InputDataPtr test_data) const{ return ac_.Test(test_data); }
 
-	void SaveParameter(std::wstring pass) const{ ac_.SaveParameter(pass); }
+	void SaveParameter(std::wstring pass, bool select_optimal_state) const{ ac_.SaveParameter(pass, select_optimal_state); }
 
 	void LoadParameter(std::wstring pass) const{ ac_.LoadParameter(pass); }
 
@@ -61,7 +58,7 @@ public:
 
 
 template <class InputInfo_, uint HiddenDim, class OutputInfo_>
-double AutoEncoder<InputInfo_, HiddenDim, OutputInfo_>::Learn(InputDataPtr train_data, bool return_sqerror)
+double AutoEncoder<InputInfo_, HiddenDim, OutputInfo_>::Train(InputDataPtr train_data, bool return_sqerror)
 {
 	if (train_data->IsTestData()){
 		assert(false);
@@ -71,7 +68,7 @@ double AutoEncoder<InputInfo_, HiddenDim, OutputInfo_>::Learn(InputDataPtr train
 		for (uint i = 0; i < InputInfo_::dim; ++i) teacher[i] = input[i];
 	}
 
-	return ac_.Learn(train_data, return_sqerror);
+	return ac_.Train(train_data, return_sqerror);
 }
 
 }

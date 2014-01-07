@@ -71,6 +71,15 @@ protected:
 		return std::move(new_weight);
 	}
 
+	void RenewEdgeWeight(std::vector<double> const& delta, double weight_decay_rate)
+	{
+		int ct = -1;
+		for (auto& node : nodes_){
+			for (auto edge = node->in_begin(), end = node->in_end(); edge != end; ++edge){
+				(*edge)->Weight((*edge)->Weight() * weight_decay_rate + delta[++ct]);
+			}
+		}
+	}
 
 	auto begin() ->decltype(nodes_.begin()){ return nodes_.begin(); }
 	auto begin() const ->decltype(nodes_.cbegin()){ return nodes_.cbegin(); }

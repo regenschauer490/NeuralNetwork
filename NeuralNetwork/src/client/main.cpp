@@ -11,13 +11,8 @@ void Test1(){
 	using namespace signn;
 	const uint MAX_LOOP = 1000000;
 	const uint DNUM = 200;
-	const uint VNUM = 5;
-/*
-	std::vector<std::vector<double>> train_data{ { 0.40, 0.20 }, { 0.30, 0.40 }, { 0.80, 0.10 }, { 0.00, 0.00 }, { 0.10, 0.70 }, { 0.10, 0.20 }, { 0.50, 0.50 }, { 0.60, 0.20 }, { 0.20, 0.80 } };
-	std::vector<double> train_ans{ 0.60, 0.70, 0.90, 0.00, 0.80, 0.30, 1.00, 0.80, 1.00 };
-	std::vector<std::vector<double>> test_data{ { 0.40, 0.10 }, { 0.20, 0.70 }, { 0.10, 0.10 }, { 0.40, 0.40 } };
-	std::vector<double> test_ans{ 0.50, 0.90, 0.20, 0.80 };
-*/
+	const uint VNUM = 2;
+
 	typedef InputInfo<double, VNUM> InInfo;
 	typedef OutputInfo<OutputLayerType::Regression, 1> OutInfo;
 #if IS_BATCH
@@ -47,17 +42,27 @@ void Test1(){
 		return std::make_tuple(std::move(d), std::move(a));
 	};
 
-	auto CheckMSE = [](Perceptron const& nn, std::vector< std::vector<double>> const& test_data, std::vector<double> const& test_ans){
+	auto CheckMSE = [](Perceptron const& nn, std::vector< std::vector<double>> const& test_data, std::vector<double> const& test_ans, bool disp){
 		double tmse = 0;
 		for (uint k = 0; k < test_data.size(); ++k){
 			auto tresult = nn.Test(nn.MakeInputData(test_data[k].begin(), test_data[k].end()));
 			tmse += tresult->SquareError(test_ans[k]);
+
+			if(disp){
+				std::cout << "est:" << (*tresult)[0] << ", ans:" << test_ans[k] << std::endl;
+			}
 		}
 		tmse /= test_data.size();
-		std::cout << "test_mse:" << tmse << std::endl;
 		return tmse;
 	};
 
+	
+	std::vector<std::vector<double>> train_data{ { 0.40, 0.20 }, { 0.30, 0.40 }, { 0.80, 0.10 }, { 0.00, 0.00 }, { 0.10, 0.70 }, { 0.10, 0.20 }, { 0.50, 0.50 }, { 0.60, 0.20 }, { 0.20, 0.80 } };
+	std::vector<double> train_ans{ 0.60, 0.70, 0.90, 0.00, 0.80, 0.30, 1.00, 0.80, 1.00 };
+	std::vector<std::vector<double>> test_data{ { 0.40, 0.10 }, { 0.20, 0.70 }, { 0.10, 0.10 }, { 0.40, 0.40 } };
+	std::vector<double> test_ans{ 0.50, 0.90, 0.20, 0.80 };
+	
+/*
 	auto train = MakeData(DNUM, VNUM);
 	auto train_data = std::move(std::get<0>(train));
 	auto train_ans = std::move(std::get<1>(train));
@@ -65,7 +70,7 @@ void Test1(){
 	auto test = MakeData(DNUM / 10 + 10, VNUM);
 	auto test_data = std::move(std::get<0>(test));
 	auto test_ans = std::move(std::get<1>(test));
-
+*/
 	std::vector<Perceptron::InputDataPtr> inputs;
 	for (int i = 0; i < train_ans.size(); ++i){
 		inputs.push_back(nn.MakeInputData(train_data[i].begin(), train_data[i].end(), train_ans[i]));
@@ -80,10 +85,10 @@ void Test1(){
 		std::vector<double> moe;
 #if !IS_BATCH
 		for (uint i = 0; i < inputs.size(); ++i){
-			moe.push_back(nn.Learn(inputs[i], true));
+			moe.push_back(nn.Train(inputs[i], true));
 		}
 #else
-		moe.push_back(nn.Learn(inputs));
+		moe.push_back(nn.Train(inputs));
 #endif
 		p_mse = mse;
 		mse = std::accumulate(moe.begin(), moe.end(), 0.0) / train_data.size();
@@ -92,24 +97,28 @@ void Test1(){
 			std::get<1>(mse_min) = mse;
 		}
 
-		if (loop%1 == 0){
-			auto tmse = CheckMSE(nn, test_data, test_ans);
+		if (loop%100 == 0){
+			auto tmse = CheckMSE(nn, test_data, test_ans, false);
 			if (tmse < std::get<1>(tmse_min)){
 				std::get<0>(tmse_min) = loop;
 				std::get<1>(tmse_min) = tmse;
 			}
-			if (tmse < 0.0001) break;
+			if (tmse < 0.001) break;
+
+			std::cout << "test_mse:" << tmse << "	,mse:" << mse << std::endl;
 		}
 
-		if (std::abs(p_mse - mse)<0.00000001) break;
+		//if (std::abs(p_mse - mse)<0.00000001) break;
 		//if (mse < 0.00005) break;
 	}
 
 	tw.Stop();
 	std::cout << "time: " << tw.GetTime<std::chrono::seconds>() << std::endl;
 
-	CheckMSE(nn, test_data, test_ans);
-	
+	CheckMSE(nn, test_data, test_ans, true);
+
+	nn.SaveParameter(L"test data/dst", false);
+	nn.SaveParameter(L"test data/opt", true);
 }
 
 /*
@@ -153,7 +162,7 @@ void Test2(){
 	for (int loop = 0; true; ++loop){
 		std::vector<double> moe;
 		for (int i = 0; i < train_data.size(); ++i){
-			moe.push_back(nn.Learn(Perceptron::InputData(train_data[i].begin(), train_data[i].end(), train_ans[i])));
+			moe.push_back(nn.Train(Perceptron::InputData(train_data[i].begin(), train_data[i].end(), train_ans[i])));
 		}
 		p_esum = esum;
 		esum = std::accumulate(moe.begin(), moe.end(), 0.0);
@@ -173,6 +182,7 @@ void Test2(){
 //‘½’l•ª—Þ(Žè‘‚«•¶ŽšŽ¯•Ê)
 void Test3(){
 	using namespace signn;
+	const uint MAX_LOOP = 1000000;
 	
 	typedef bool input_type;
 	typedef InputInfo<input_type, 784> InInfo;
@@ -235,38 +245,41 @@ void Test3(){
 	for (auto const& td : test_data) test_inputs.push_back(nn.MakeInputData(td.begin(), td.end()));
 
 	double p_esum = 0, esum = 0;
-	for (int loop = 0; true; ++loop){
+	for (int loop = 0; loop < MAX_LOOP; ++loop){
 		sig::TimeWatch tw;
 		std::vector<double> moe;
 #if !IS_BATCH
 		for (int i = 0; i < inputs.size(); ++i){
-			moe.push_back(nn.Learn(inputs[i], true));
+			moe.push_back(nn.Train(inputs[i], true));
 		}
 		p_esum = esum;
 		esum = std::accumulate(moe.begin(), moe.end(), 0.0) / train_data.size();
 #else
 		for (uint div = 0; div < DATA_DIV; ++div){
 			p_esum = esum;
-			esum = nn.Learn(inputs[div]);
+			esum = nn.Train(inputs[div]);
 #endif
-		nn.SaveParameter(L"test data/aw");
 
 		tw.Stop();
-		std::cout << "time: " << tw.GetTime<std::chrono::seconds>() << std::endl;
-		if (loop % 1 == 0) std::cout << "train_mse: " << esum << std::endl << std::endl;
+		if (loop%1 == 0){
+			std::cout << "time: " << tw.GetTime<std::chrono::seconds>() << std::endl;
+			std::cout << "train_mse: " << esum << std::endl << std::endl;
 
-		for (int i=0; i< test_inputs.size(); ++i){
-			auto est = nn.Test(test_inputs[i]);
-			for (uint j = 0; j < est->size(); ++j){
-				if ((*est)[j]) std::cout << j << ", ";
+			for (int i=0; i< test_inputs.size(); ++i){
+				auto est = nn.Test(test_inputs[i]);
+				for (uint j = 0; j < est->size(); ++j){
+					if ((*est)[j]) std::cout << j << ", ";
+				}
+				std::cout << " ans:" << test_ans[i] << std::endl;
 			}
-			std::cout << " ans:" << test_ans[i] << std::endl;
 		}
 #if IS_BATCH
 			tw.ReStart();
 		}
 #endif
 		//if (esum < 1000) break;
+		nn.SaveParameter(L"test data/dst", false);
+		nn.SaveParameter(L"test data/opt", true);
 		if (std::abs(p_esum - esum) < 0.0000000001) break;
 	}
 }
@@ -281,7 +294,6 @@ void Test4()
 	typedef AutoEncoder<InInfo, 5> AutoEncoder;
 
 	AutoEncoder ae;
-	ae.SaveParameter(L"test data/pw/");
 
 	std::vector < std::vector<input_type>> train_data;
 
@@ -316,7 +328,7 @@ void Test4()
 		std::vector<double> moe;
 
 		for (int i = 0; i < inputs.size(); ++i){
-			moe.push_back(ae.Learn(inputs[i], true));
+			moe.push_back(ae.Train(inputs[i], true));
 			if (i>0 && std::abs(moe[i-1] - moe[i]) < 0.0000000001){
 				std::cout << "iteration:" << i+1 << " / " << inputs.size() << std::endl;
 				break;
@@ -328,7 +340,9 @@ void Test4()
 		tw.Stop();
 		std::cout << "\n\ntime: " << tw.GetTime<std::chrono::seconds>() << std::endl;
 		std::cout << "train_mse: " << esum << std::endl << std::endl;
-		ae.SaveParameter(L"test data/aw/");
+
+		ae.SaveParameter(L"test data/dst", false);
+		ae.SaveParameter(L"test data/opt", true);
 
 		if (loop % 1 == 0){
 			for (int i = 0; i < test_inputs.size(); ++i){
@@ -353,6 +367,6 @@ void Test4()
 
 
 int main(){
-	Test3();
+	Test1();
 }
 
