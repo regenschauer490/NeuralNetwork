@@ -36,11 +36,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <type_traits>
 
 /* namespace / typedef */
-typedef unsigned long int uint;
 
 namespace signn{
 #undef max
 #undef min
+
+	typedef unsigned long uint;
 
 	extern void* enabler;
 	

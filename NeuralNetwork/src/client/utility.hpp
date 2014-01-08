@@ -35,13 +35,6 @@
 
 #endif
 
-/* namespace / typedef */
-typedef unsigned long int uint;
-typedef std::shared_ptr< std::string > StrPtr;
-typedef std::shared_ptr< std::string const > C_StrPtr;
-typedef std::shared_ptr< std::wstring > WStrPtr;
-typedef std::shared_ptr< std::wstring const > C_WStrPtr;
-
 #ifdef ENABLE_BOOST
 
 template <typename T>
@@ -52,7 +45,10 @@ auto const nothing = boost::none;
 #endif
 
 namespace sig{
+#undef max
 #undef min
+
+	typedef unsigned long uint;
 
 /* メタ関数・メタクラス */
 	struct NullType{};
@@ -70,16 +66,14 @@ namespace sig{
 		typedef typename boost::call_traits<T>::reference		reference;
 		typedef typename boost::call_traits<T>::const_reference	const_reference;
 		typedef typename boost::call_traits<T>::value_type		result_type;
-
-		typedef uint size_type;
-
+		
 	private:
 		std::vector<T> _data;
 
 	public:
 		explicit FixedVector(Allocator const& alloc = Allocator()) : _data(alloc){}
-		explicit FixedVector(size_type size, param_type value = T(), Allocator const& alloc = Allocator()) : _data(size, value, alloc){}
-	//	explicit FixedVector(size_type count, T value) : _data(size, value){}
+		explicit FixedVector(std::size_t size, param_type value = T(), Allocator const& alloc = Allocator()) : _data(size, value, alloc){}
+	//	explicit FixedVector(std::size_t count, T value) : _data(size, value){}
 		template <class InputIter> FixedVector(InputIter first, InputIter last, Allocator const& alloc = Allocator()) : _data(first, last, alloc){}
 		explicit FixedVector(std::vector<T> const& src) : _data(src){}
 		explicit FixedVector(std::vector<T> && src) : _data(move(src)){}
@@ -125,11 +119,11 @@ namespace sig{
 		auto rend() const ->decltype(_data.rend()){ return _data.rend(); }
 		auto crend() const ->decltype(_data.crend()){ return _data.crend(); }
 
-		reference at(size_type pos){ return _data.at(pos); }
-		const_reference at(size_type pos) const{ return _data.at(pos); }
+		reference at(std::size_t pos){ return _data.at(pos); }
+		const_reference at(std::size_t pos) const{ return _data.at(pos); }
 
-		reference operator [](size_type pos){ return _data[pos]; }
-		const_reference operator [](size_type pos) const{ return _data[pos]; }
+		reference operator [](std::size_t pos){ return _data[pos]; }
+		const_reference operator [](std::size_t pos) const{ return _data[pos]; }
 
 		reference front(){ return _data.front(); }
 		const_reference front() const{ return _data.front(); }
@@ -139,9 +133,9 @@ namespace sig{
 
 		bool empty() const{ return _data.empty(); }
 
-		size_type size() const{ return _data.size(); }
+		std::size_t size() const{ return _data.size(); }
 
-		size_type max_size() const{ return _data.max_size; }
+		std::size_t max_size() const{ return _data.max_size; }
 
 		void swap(FixedVector& other){ _data.swap(other); }
 	};
@@ -233,7 +227,7 @@ namespace sig{
 
 	//重複の無い整数乱数を生成
 	template < template < class T, class = std::allocator<T >> class Container = std::vector >
-	Container<int> RandomUniqueNumbers(uint n, int min, int max, bool debug) {
+		Container<int> RandomUniqueNumbers(std::size_t n, int min, int max, bool debug) {
 		std::unordered_set<int> match;
 		Container<int> result;
 		static SimpleRandom<int> Rand(0, max - min, debug);
@@ -654,7 +648,7 @@ namespace sig{
 		};
 
 		template <class String>
-		template < template < class T, class Allocator = std::allocator<T >> class Container = std::vector >
+		template < template < class T, class Allocator = std::allocator<T >> class Container>
 		String TagText<String>::Encode(Container<String> const& src, Container<String> const& tag)
 		{
 			String result;
@@ -666,7 +660,7 @@ namespace sig{
 		}
 
 		template <class String>
-		template < template < class T, class Allocator = std::allocator<T >> class Container = std::vector >
+		template < template < class T, class Allocator = std::allocator<T >> class Container>
 		maybe<Container<String>> TagText<String>::Decode(String const& src, Container<String> const& tag)
 		{
 			Container<String> result;

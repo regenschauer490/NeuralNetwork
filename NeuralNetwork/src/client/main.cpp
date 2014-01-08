@@ -4,7 +4,7 @@
 
 #include "utility.hpp"
 
-#define IS_BATCH 1
+#define IS_BATCH 0
 
 //‰ñ‹A
 void Test1(){
@@ -72,7 +72,7 @@ void Test1(){
 	auto test_ans = std::move(std::get<1>(test));
 */
 	std::vector<Perceptron::InputDataPtr> inputs;
-	for (int i = 0; i < train_ans.size(); ++i){
+	for (uint i = 0; i < train_ans.size(); ++i){
 		inputs.push_back(nn.MakeInputData(train_data[i].begin(), train_data[i].end(), train_ans[i]));
 	}
 
@@ -249,7 +249,7 @@ void Test3(){
 		sig::TimeWatch tw;
 		std::vector<double> moe;
 #if !IS_BATCH
-		for (int i = 0; i < inputs.size(); ++i){
+		for (uint i = 0; i < inputs.size(); ++i){
 			moe.push_back(nn.Train(inputs[i], true));
 		}
 		p_esum = esum;
@@ -259,13 +259,13 @@ void Test3(){
 			p_esum = esum;
 			esum = nn.Train(inputs[div]);
 #endif
-
+			
 		tw.Stop();
 		if (loop%1 == 0){
 			std::cout << "time: " << tw.GetTime<std::chrono::seconds>() << std::endl;
 			std::cout << "train_mse: " << esum << std::endl << std::endl;
 
-			for (int i=0; i< test_inputs.size(); ++i){
+			for (uint i=0; i< test_inputs.size(); ++i){
 				auto est = nn.Test(test_inputs[i]);
 				for (uint j = 0; j < est->size(); ++j){
 					if ((*est)[j]) std::cout << j << ", ";
@@ -367,6 +367,6 @@ void Test4()
 
 
 int main(){
-	Test1();
+	Test3();
 }
 

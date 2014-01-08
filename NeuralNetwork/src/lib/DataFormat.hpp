@@ -50,7 +50,7 @@ public:
 			for (i = 0; i < InputInfo_::dim && input_begin != input_end; ++i, ++input_begin) input_[i] = *input_begin;
 			for (j = 0; j < OutputInfo_::dim && teacher_begin != teacher_end; ++j, ++teacher_begin) teacher_[j] = *teacher_begin;
 			
-			assert(i == InputInfo_::dim && j == OutputInfo_::dim && input_begin == input_end && teacher_begin == teacher_end, "invalid input data");
+			assert(i == InputInfo_::dim && j == OutputInfo_::dim && input_begin == input_end && teacher_begin == teacher_end);
 		}
 
 		uint size() const{ return InputInfo_::dim; }
