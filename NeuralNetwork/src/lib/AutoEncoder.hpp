@@ -36,7 +36,9 @@ class AutoEncoder : public DataFormat<InputInfo_, OutputInfo_>
 	Perceptron ac_;
 
 public:
-	AutoEncoder() : hidden_(Layer::MakeInstance(HiddenDim)), ac_(std::vector<LayerPtr>{hidden_}){ static_assert(InputInfo_::dim == OutputInfo_::dim, "invalid dimension: different dim between input and output"); }
+	AutoEncoder(double learning_rate, double L2_regularization, double goal_mse = std::numeric_limits<double>::max()) : hidden_(Layer::MakeInstance(HiddenDim)), ac_(learning_rate, L2_regularization, std::vector<LayerPtr>{hidden_}, goal_mse){
+		static_assert(InputInfo_::dim == OutputInfo_::dim, "invalid dimension: different dim between input and output");
+	}
 
 	double Train(InputDataPtr train_data, bool return_sqerror = false);
 

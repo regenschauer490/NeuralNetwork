@@ -40,8 +40,8 @@ class Perceptron_Online : public DataFormat<InputInfo_, OutputInfo_>
 	std::shared_ptr<MLP> optimal_state_;	//mlp state when mse is minimum
 		
 public:
-	explicit Perceptron_Online(std::vector<LayerPtr> hidden_layers, double goal_mse = std::numeric_limits<double>::max()) : mlp_(learning_rate, L2_regularization, hidden_layers),
-		min_mse_(goal_mse), optimal_state_(std::make_shared<MLP>(learning_rate, L2_regularization, hidden_layers)){}
+	explicit Perceptron_Online(double learning_rate, double L2_regularization, std::vector<LayerPtr> hidden_layers, double goal_mse = std::numeric_limits<double>::max())
+		: mlp_(learning_rate, L2_regularization, hidden_layers), min_mse_(goal_mse), optimal_state_(std::make_shared<MLP>(learning_rate, L2_regularization, hidden_layers)){}
 	virtual ~Perceptron_Online(){};
 
 	double Train(InputDataPtr train_data, bool check_mse = true);

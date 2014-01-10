@@ -39,10 +39,10 @@ namespace signn
 
 //parameter constant
 const bool DEBUG_MODE = true;
-const uint THREAD_NUM = 1;
+const uint THREAD_NUM = 3;
 const double threshold_theta = 0.5;
-const double learning_rate = 0.01;
-const double L2_regularization = 0.9999;
+const double learning_rate_sample = 0.01;
+const double L2__regularization_sample = 0.9999;
 
 //parameter selection
 enum class OutputLayerType { Regression, BinaryClassification, MultiClassClassification, MultiLabelClassification };

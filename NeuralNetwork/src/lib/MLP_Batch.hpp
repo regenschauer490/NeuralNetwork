@@ -42,7 +42,8 @@ class Perceptron_Batch : public DataFormat<InputInfo_, OutputInfo_>
 	std::shared_ptr<MLP> optimal_state_;	//mlp state when mse is minimum
 	
 public:
-	explicit Perceptron_Batch(std::vector<LayerPtr> hidden_layers, double goal_mse = std::numeric_limits<double>::max()) : alpha_(learning_rate), beta_(L2_regularization), mlp_(learning_rate, L2_regularization, hidden_layers),
+	explicit Perceptron_Batch(double learning_rate, double L2_regularization, std::vector<LayerPtr> hidden_layers, double goal_mse = std::numeric_limits<double>::max())
+		: alpha_(learning_rate), beta_(L2_regularization), mlp_(learning_rate, L2_regularization, hidden_layers),
 		min_mse_(goal_mse), optimal_state_(std::make_shared<MLP>(learning_rate, L2_regularization, hidden_layers))
 	{
 		for (uint i = 0; i < THREAD_NUM; ++i){

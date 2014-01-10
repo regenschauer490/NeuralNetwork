@@ -4,7 +4,7 @@
 
 #include "utility.hpp"
 
-#define IS_BATCH 0
+#define IS_BATCH 1
 
 //‰ñ‹A
 void Test1(){
@@ -21,7 +21,7 @@ void Test1(){
 	typedef Perceptron_Online<InInfo, OutInfo> Perceptron;
 #endif
 	auto mid = Layer::MakeInstance(2);
-	Perceptron nn({ mid });
+	Perceptron nn(learning_rate_sample, L2__regularization_sample, { mid });
 
 	auto MakeData = [](uint data_num, uint elem_num){
 		static SimpleRandom<double> rgen(0.0, 1.0, true);
@@ -195,7 +195,7 @@ void Test3(){
 
 	auto mid = Layer::MakeInstance(100);
 
-	Perceptron nn(std::vector<LayerPtr>{mid});
+	Perceptron nn(learning_rate_sample, 1.0, std::vector<LayerPtr>{mid});
 
 	//nn.LoadParameter(L"test data/");
 
@@ -293,7 +293,7 @@ void Test4()
 	typedef InputInfo<input_type, 784> InInfo;
 	typedef AutoEncoder<InInfo, 5> AutoEncoder;
 
-	AutoEncoder ae;
+	AutoEncoder ae(learning_rate_sample, L2__regularization_sample);
 
 	std::vector < std::vector<input_type>> train_data;
 
