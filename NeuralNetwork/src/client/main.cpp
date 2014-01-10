@@ -46,7 +46,7 @@ void Test1(){
 		double tmse = 0;
 		for (uint k = 0; k < test_data.size(); ++k){
 			auto tresult = nn.Test(nn.MakeInputData(test_data[k].begin(), test_data[k].end()));
-			tmse += tresult->SquareError(test_ans[k]);
+			tmse += tresult->MeanSquareError();
 
 			if(disp){
 				std::cout << "est:" << (*tresult)[0] << ", ans:" << test_ans[k] << std::endl;
@@ -195,9 +195,9 @@ void Test3(){
 
 	auto mid = Layer::MakeInstance(100);
 
-	Perceptron nn(learning_rate_sample, 1.0, std::vector<LayerPtr>{mid});
+	Perceptron nn(learning_rate_sample, L2__regularization_sample, std::vector<LayerPtr>{mid});
 
-	nn.LoadParameter(L"test data/opt");
+	//nn.LoadParameter(L"test data/opt");
 
 	std::vector<std::vector<input_type>> train_data;
 	std::vector<int> train_ans;
@@ -244,6 +244,7 @@ void Test3(){
 	std::vector<Perceptron::InputDataPtr> test_inputs;
 	for (auto const& td : test_data) test_inputs.push_back(nn.MakeInputData(td.begin(), td.end()));
 
+	long long total_time = 0;
 	double p_esum = 0, esum = 0;
 	for (int loop = 0; loop < MAX_LOOP; ++loop){
 		sig::TimeWatch tw;
@@ -261,17 +262,21 @@ void Test3(){
 #endif
 			
 		tw.Stop();
+		total_time += tw.GetTime<std::chrono::seconds>();
 		if (loop%1 == 0){
-			std::cout << "time: " << tw.GetTime<std::chrono::seconds>() << std::endl;
-			std::cout << "train_mse: " << esum << std::endl << std::endl;
+			std::cout << "time: " << tw.GetTime<std::chrono::seconds>() << " ,total: " << total_time << std::endl << std::endl;
 
+			double test_esum = 0;
 			for (uint i=0; i< test_inputs.size(); ++i){
 				auto est = nn.Test(test_inputs[i]);
 				for (uint j = 0; j < est->size(); ++j){
 					if ((*est)[j]) std::cout << j << ", ";
 				}
+				test_esum += est->MeanSquareError();
 				std::cout << " ans:" << test_ans[i] << std::endl;
 			}
+			std::cout << "train_mse: " << esum << std::endl;
+			std::cout << "test_mse: " << test_esum << std::endl << std::endl;
 		}
 #if IS_BATCH
 			tw.ReStart();
