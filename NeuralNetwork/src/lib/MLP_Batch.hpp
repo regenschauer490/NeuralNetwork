@@ -41,6 +41,14 @@ class Perceptron_Batch : public DataFormat<InputInfo_, OutputInfo_>
 	double min_mse_;						//minimum mean-square-error during iteration
 	std::shared_ptr<MLP> optimal_state_;	//mlp state when mse is minimum
 	
+private:
+	void ParameterCopy2Slave(){
+		for (auto& copy : copy_mlp_){
+			copy.CopyWeight(mlp_);
+		}
+
+	}
+
 public:
 	explicit Perceptron_Batch(double learning_rate, double L2_regularization, std::vector<LayerPtr> hidden_layers, double goal_mse = std::numeric_limits<double>::max())
 		: alpha_(learning_rate), beta_(L2_regularization), mlp_(learning_rate, L2_regularization, hidden_layers),
@@ -58,6 +66,11 @@ public:
 	OutputDataPtr Test(InputDataPtr test_data) const;
 
 	void SaveParameter(std::wstring pass, bool select_optimal_state) const{ select_optimal_state ? optimal_state_->SaveParameter(pass) : mlp_.SaveParameter(pass); };
+
+	void LoadParameter(std::wstring pass){
+		mlp_.LoadParameter(pass); 
+		ParameterCopy2Slave(); 
+	}
 };
 
 

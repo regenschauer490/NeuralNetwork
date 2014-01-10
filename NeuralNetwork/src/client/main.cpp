@@ -197,7 +197,7 @@ void Test3(){
 
 	Perceptron nn(learning_rate_sample, 1.0, std::vector<LayerPtr>{mid});
 
-	//nn.LoadParameter(L"test data/");
+	nn.LoadParameter(L"test data/opt");
 
 	std::vector<std::vector<input_type>> train_data;
 	std::vector<int> train_ans;

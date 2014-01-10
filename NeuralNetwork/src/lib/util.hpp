@@ -268,7 +268,7 @@ namespace File{
 	template <class R>
 	inline void ReadLine(std::vector<R>& empty_dest, typename IFS_SELECTION<R>::fstream& ifs, std::function< R(typename std::conditional<std::is_same<typename IFS_SELECTION<R>::fstream, std::ifstream>::value, std::string, std::wstring>::type)> const& conv = nullptr)
 	{
-		typename std::conditional<typename std::is_same<typename IFS_SELECTION<R>::fstream, std::ifstream>::value, std::string, std::wstring>::type line;
+		typename std::conditional< std::is_same<typename IFS_SELECTION<R>::fstream, std::ifstream>::value, std::string, std::wstring>::type line;
 
 		while (ifs && getline(ifs, line)){
 			conv ? empty_dest.push_back(conv(std::move(line))) : empty_dest.push_back(std::move(line));
