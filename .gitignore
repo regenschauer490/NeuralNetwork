@@ -25,4 +25,4 @@
 *.a
 
 #others
-*.vcxproj.filters
+#*.vcxproj.filters
