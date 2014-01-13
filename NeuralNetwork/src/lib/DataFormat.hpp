@@ -72,7 +72,12 @@ public:
 	public:
 		OutputData(std::shared_ptr<InputData const> input, OutputDataArray& estimate) : input_(input), estimate_(estimate){}
 
-		template<class Iter, typename = decltype(*std::declval<Iter&>(), void(), ++std::declval<Iter&>(), void())>
+		double MeanSquareError() const{
+			auto ans = input_->Teacher().begin();
+			return std::inner_product(estimate_.begin(), estimate_.end(), ans, 0.0, std::plus<double>(), [](typename OutputInfo_::type v1, typename InputInfo_::type v2){ return pow(v1 - v2, 2); }) / OutputInfo_::dim;
+		}
+
+/*		template<class Iter, typename = decltype(*std::declval<Iter&>(), void(), ++std::declval<Iter&>(), void())>
 		double SquareError(Iter ans_vector_begin) const{
 			static_assert(OutputInfo_::dim > 1, "error in OutputLayer::SquareError() : required answer dimension is 1 (scalar)");
 			return std::inner_product(estimate_.begin(), estimate_->Input().end(), ans_vector_begin, 0.0, std::plus<double>(), [](typename OutputInfo_::type v1, typename std::iterator_traits<Iter>::value_type v2){ return pow(v1 - v2, 2); });
@@ -82,7 +87,7 @@ public:
 			static_assert(OutputInfo_::dim < 2, "error in OutputLayer::SquareError() : answer dimension requires more than 2 (vector)");
 			return pow(estimate_[0] - answer, 2);
 		}
-
+*/
 		uint size() const{ return OutputInfo_::dim; }
 
 		auto begin() const ->decltype(estimate_.cbegin()){ return estimate_.cbegin(); }
