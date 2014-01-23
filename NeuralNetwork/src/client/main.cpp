@@ -46,7 +46,7 @@ void Test1(){
 		double tmse = 0;
 		for (uint k = 0; k < test_data.size(); ++k){
 			auto tresult = nn.Test(nn.MakeInputData(test_data[k].begin(), test_data[k].end()));
-			tmse += tresult->MeanSquareError();
+			tmse += tresult->MeanSquareError(test_ans[k]);
 
 			if(disp){
 				std::cout << "est:" << (*tresult)[0] << ", ans:" << test_ans[k] << std::endl;
@@ -264,7 +264,7 @@ void Test3(){
 		tw.Stop();
 		total_time += tw.GetTime<std::chrono::seconds>();
 		if (loop%1 == 0){
-			std::cout << "time: " << tw.GetTime<std::chrono::seconds>() << " ,total: " << total_time << std::endl << std::endl;
+			std::cout << "loop: " << loop << " ,time: " << tw.GetTime<std::chrono::seconds>() << " ,total: " << total_time << std::endl << std::endl;
 
 			double test_esum = 0;
 			for (uint i=0; i< test_inputs.size(); ++i){
@@ -272,11 +272,11 @@ void Test3(){
 				for (uint j = 0; j < est->size(); ++j){
 					if ((*est)[j]) std::cout << j << ", ";
 				}
-				test_esum += est->MeanSquareError();
+				test_esum += est->MeanSquareError(test_ans[i]);
 				std::cout << " ans:" << test_ans[i] << std::endl;
 			}
 			std::cout << "train_mse: " << esum << std::endl;
-			std::cout << "test_mse: " << test_esum << std::endl << std::endl;
+			std::cout << "test_mse: " << test_esum/test_inputs.size() << std::endl << std::endl;
 		}
 #if IS_BATCH
 			tw.ReStart();

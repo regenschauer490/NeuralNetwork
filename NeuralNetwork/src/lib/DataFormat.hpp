@@ -72,22 +72,30 @@ public:
 	public:
 		OutputData(std::shared_ptr<InputData const> input, OutputDataArray& estimate) : input_(input), estimate_(estimate){}
 
-		double MeanSquareError() const{
+/*		double MeanSquareError() const{
 			auto ans = input_->Teacher().begin();
 			return std::inner_product(estimate_.begin(), estimate_.end(), ans, 0.0, std::plus<double>(), [](typename OutputInfo_::type v1, typename InputInfo_::type v2){ return pow(v1 - v2, 2); }) / OutputInfo_::dim;
 		}
-
-/*		template<class Iter, typename = decltype(*std::declval<Iter&>(), void(), ++std::declval<Iter&>(), void())>
-		double SquareError(Iter ans_vector_begin) const{
-			static_assert(OutputInfo_::dim > 1, "error in OutputLayer::SquareError() : required answer dimension is 1 (scalar)");
-			return std::inner_product(estimate_.begin(), estimate_->Input().end(), ans_vector_begin, 0.0, std::plus<double>(), [](typename OutputInfo_::type v1, typename std::iterator_traits<Iter>::value_type v2){ return pow(v1 - v2, 2); });
-		}
-
-		double SquareError(typename OutputInfo_::type answer) const{
-			static_assert(OutputInfo_::dim < 2, "error in OutputLayer::SquareError() : answer dimension requires more than 2 (vector)");
-			return pow(estimate_[0] - answer, 2);
-		}
 */
+		template<class Iter, typename = decltype(*std::declval<Iter&>(), void(), ++std::declval<Iter&>(), void())>
+		double MeanSquareError(Iter ans_vector_begin) const{
+			static_assert(OutputInfo_::dim > 1, "error in OutputLayer::MeanSquareError() : required answer dimension is 1 (scalar)");
+			return std::inner_product(estimate_.begin(), estimate_.end(), ans_vector_begin, 0.0, std::plus<double>(), [](typename OutputInfo_::type v1, typename std::iterator_traits<Iter>::value_type v2){ return pow(v1 - v2, 2); }) / OutputInfo_::dim;
+		}
+
+		double MeanSquareError(typename OutputInfo_::type answer) const{
+			if (OutputInfo_::e_layertype == OutputLayerType::MultiClassClassification){
+				assert(answer < OutputInfo_::dim);
+				typename InputData::TeacherDataArray ans;
+				for (uint i = 0; i < OutputInfo_::dim; ++i){
+					if (answer == i)ans[i] = true;
+					else ans[i] = false;
+				}
+				return std::inner_product(estimate_.begin(), estimate_.end(), ans.begin(), 0.0, std::plus<double>(), [](typename OutputInfo_::type v1, typename OutputInfo_::type v2){ return pow(v1 - v2, 2); }) / OutputInfo_::dim;
+			}
+			else return pow(estimate_[0] - answer, 2);
+		}
+
 		uint size() const{ return OutputInfo_::dim; }
 
 		auto begin() const ->decltype(estimate_.cbegin()){ return estimate_.cbegin(); }
@@ -125,7 +133,7 @@ public:
 	//teacher:•ª—Þ‚Ìƒ‰ƒxƒ‹
 	template<class Iter1, typename = decltype(*std::declval<Iter1&>(), void(), ++std::declval<Iter1&>(), void()), class = typename std::enable_if<std::is_same<typename OutputInfo_::type, bool>::value>::type>
 	InputDataPtr MakeInputData(Iter1 input_begin, Iter1 input_end, uint teacher_label) const{
-		std::array<typename OutputInfo_::type, OutputInfo_::dim> teacher;
+		typename InputData::TeacherDataArray teacher;
 
 		if (OutputInfo_::e_layertype == OutputLayerType::MultiClassClassification){
 			assert(teacher_label < OutputInfo_::dim);
