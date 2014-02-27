@@ -1,12 +1,12 @@
-#include "../lib/MLP_Online.hpp"
-#include "../lib/MLP_Batch.hpp"
-#include "../lib/AutoEncoder.hpp"
+ï»¿#include "../lib/MLP_online.hpp"
+#include "../lib/MLP_batch.hpp"
+#include "../lib/auto_encoder.hpp"
 
 #include "utility.hpp"
 
 #define IS_BATCH 1
 
-//‰ñ‹A
+//å›å¸°
 void Test1(){
 	using namespace signn;
 	const uint MAX_LOOP = 1000000;
@@ -179,7 +179,7 @@ void Test2(){
 }
 */
 
-//‘½’l•ª—Ş(è‘‚«•¶š¯•Ê)
+//å¤šå€¤åˆ†é¡(æ‰‹æ›¸ãæ–‡å­—è­˜åˆ¥)
 void Test3(){
 	using namespace signn;
 	const uint MAX_LOOP = 1000000;
@@ -289,7 +289,7 @@ void Test3(){
 	}
 }
 
-//ƒI[ƒgƒGƒ“ƒR[ƒ_iè‘‚«•¶š•œŒ³j
+//ã‚ªãƒ¼ãƒˆã‚¨ãƒ³ã‚³ãƒ¼ãƒ€ï¼ˆæ‰‹æ›¸ãæ–‡å­—å¾©å…ƒï¼‰
 void Test4()
 {
 	using namespace signn;

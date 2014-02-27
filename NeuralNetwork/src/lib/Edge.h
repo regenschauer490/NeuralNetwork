@@ -1,27 +1,12 @@
-/*
-The MIT License(MIT)
-
+﻿/*
 Copyright(c) 2014 Akihiro Nishimura
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files(the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and / or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions :
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+This software is released under the MIT License.
+http://opensource.org/licenses/mit-license.php
 */
 
-#pragma once
+#ifndef SIG_NN_EDGE_H
+#define SIG_NN_EDGE_H
 
 #include "info.hpp"
 
@@ -40,7 +25,7 @@ class DirectedEdge
 	double pre_weight_;
 	
 public:
-	DirectedEdge(NodePtr tail, NodePtr head);
+	DirectedEdge(NodePtr tail, NodePtr head, typename sig::Just<double>::type weight = sig::Nothing(SIG_DEFAULT_EDGE_WEIGHT));
 	~DirectedEdge(){};
 
 
@@ -68,7 +53,6 @@ public:
 	C_NodePtr TailNode() const{ return tail_.lock(); }
 };
 
-
 template <class ActivationFunc>
 double DirectedEdge::CalcDeltaWeight(double alpha, double error)
 {
@@ -86,5 +70,44 @@ void DirectedEdge::UpdateWeight(double alpha, double beta, double error)
 	weight_ = weight_ * beta + alpha * tail_.lock()->Score() * delta_;
 }
 
+
+class UndirectedEdge
+{
+public:
+	using DEdge = DirectedEdge;
+
+private:
+	DEdge edge_;
+
+public:
+	UndirectedEdge(NodePtr tail, NodePtr head, boost::optional<double> weight = boost::none)
+		: edge_(tail, head), weight_(is_random ? weight : random_()), pre_weight_(weight_), delta_(0){}
+	~UndirectedEdge(){};
+
+	double CalcWeightedScore() const;
+
+	template <class ActivationFunc>
+	double CalcDeltaWeight(double alpha, double error);
+
+	template <class ActivationFunc>
+	void UpdateWeight(double alpha, double beta, double error);
+
+
+	void Weight(double v){ weight_ = v; }
+	double Weight() const{ return weight_; }
+
+	double PreWeight() const{ return pre_weight_; }
+
+	void Delta(double v){ delta_ = v; }
+	double Delta() const{ return delta_; }
+
+	NodePtr HeadNode(){ return head_.lock(); }
+	C_NodePtr HeadNode() const{ return head_.lock(); }
+
+	NodePtr TailNode(){ return tail_.lock(); }
+	C_NodePtr TailNode() const{ return tail_.lock(); }
+};
+
 }
+#endif
 

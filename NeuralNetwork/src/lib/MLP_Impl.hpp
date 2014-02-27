@@ -1,31 +1,16 @@
-/*
-The MIT License(MIT)
-
+ï»¿/*
 Copyright(c) 2014 Akihiro Nishimura
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files(the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and / or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions :
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+This software is released under the MIT License.
+http://opensource.org/licenses/mit-license.php
 */
 
-#pragma once
+#ifndef SIG_NN_MLP_IMPL_H
+#define SIG_NN_MLP_IMPL_H
 
-#include "InputLayer.hpp"
-#include "OutputLayer.hpp"
-#include "DataFormat.hpp"
+#include "layer_input.hpp"
+#include "layer_output.hpp"
+#include "data_format.hpp"
 
 namespace signn{
 
@@ -118,7 +103,7 @@ void MLP_Impl<InputInfo_, OutputInfo_>::MakeLink()
 template <class InputInfo_, class OutputInfo_>
 void MLP_Impl<InputInfo_, OutputInfo_>::ForwardPropagation(InputData const& input) const
 {
-	auto* tp = const_cast<MLP_Impl*>(this);		//—vŒŸ“¢
+	auto* tp = const_cast<MLP_Impl*>(this);		//è¦æ¤œè¨Ž
 
 	tp->in_layer_->SetData(input.Input());
 	for (auto& l : tp->layers_){

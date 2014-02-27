@@ -1,27 +1,12 @@
-/*
-The MIT License(MIT)
-
+ï»¿/*
 Copyright(c) 2014 Akihiro Nishimura
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files(the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and / or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions :
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+This software is released under the MIT License.
+http://opensource.org/licenses/mit-license.php
 */
 
-#pragma once
+#ifndef SIG_NN_DATA_FORMAT_H
+#define SIG_NN_DATA_FORMAT_H
 
 #include "info.hpp"
 
@@ -43,7 +28,7 @@ public:
 		TeacherDataArray teacher_;
 
 	public:
-		//teacher:o—Í‚Æ“¯Œ`®
+		//teacher:å‡ºåŠ›ã¨åŒå½¢å¼
 		template<class Iter1, class Iter2>
 		InputData(Iter1 input_begin, Iter1 input_end, Iter2 teacher_begin, Iter2 teacher_end, bool test_data) : is_test_data_(test_data){
 			uint i, j;
@@ -114,13 +99,13 @@ public:
 	DataFormat(){};
 	virtual ~DataFormat(){};
 
-	//teacher:o—Í‚Æ“¯Œ`®
+	//teacher:å‡ºåŠ›ã¨åŒå½¢å¼
 	template<class Iter1, class Iter2, typename = decltype(*std::declval<Iter1&>(), void(), ++std::declval<Iter1&>(), void()), typename = decltype(*std::declval<Iter2&>(), void(), ++std::declval<Iter2&>(), void())>
 	InputDataPtr MakeInputData(Iter1 input_begin, Iter1 input_end, Iter2 teacher_begin, Iter2 teacher_end) const{
 		return std::make_shared<InputData>(input_begin, input_end, teacher_begin, teacher_end, false);
 	}
 
-	//teacher:‰ñ‹A‚Ì³‰ğ’l
+	//teacher:å›å¸°ã®æ­£è§£å€¤
 	template<class Iter1, typename = decltype(*std::declval<Iter1&>(), void(), ++std::declval<Iter1&>(), void()), class = typename std::enable_if<!std::is_same<typename OutputInfo_::type, bool>::value>::type>
 	InputDataPtr MakeInputData(Iter1 input_begin, Iter1 input_end, typename OutputInfo_::type teacher_value) const{
 		static_assert(1 == OutputInfo_::dim, "invalid input data");
@@ -130,7 +115,7 @@ public:
 		return std::make_shared<InputData>(input_begin, input_end, teacher.begin(), teacher.end(), false);
 	}
 
-	//teacher:•ª—Ş‚Ìƒ‰ƒxƒ‹
+	//teacher:åˆ†é¡ã®ãƒ©ãƒ™ãƒ«
 	template<class Iter1, typename = decltype(*std::declval<Iter1&>(), void(), ++std::declval<Iter1&>(), void()), class = typename std::enable_if<std::is_same<typename OutputInfo_::type, bool>::value>::type>
 	InputDataPtr MakeInputData(Iter1 input_begin, Iter1 input_end, uint teacher_label) const{
 		typename InputData::TeacherDataArray teacher;
@@ -147,7 +132,7 @@ public:
 		return std::make_shared<InputData>(input_begin, input_end, teacher.begin(), teacher.end(), false);
 	}
 
-	//‹³tM†‚È‚µ  (ƒeƒXƒgƒf[ƒ^)
+	//æ•™å¸«ä¿¡å·ãªã—  (ãƒ†ã‚¹ãƒˆãƒ‡ãƒ¼ã‚¿)
 	template<class Iter1, typename = decltype(*std::declval<Iter1&>(), void(), ++std::declval<Iter1&>(), void())>
 	std::shared_ptr<InputData> MakeInputData(Iter1 input_begin, Iter1 input_end) const{
 		std::array<typename OutputInfo_::type, OutputInfo_::dim> teacher;
@@ -155,5 +140,5 @@ public:
 	}
 };
 
-
 }
+#endif

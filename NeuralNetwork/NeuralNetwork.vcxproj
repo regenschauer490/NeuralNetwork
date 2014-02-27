@@ -143,24 +143,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\client\utility.hpp" />
-    <ClInclude Include="src\lib\AutoEncoder.hpp" />
-    <ClInclude Include="src\lib\Edge.h" />
+    <ClInclude Include="src\lib\auto_encoder.hpp" />
+    <ClInclude Include="src\lib\data_format.hpp" />
+    <ClInclude Include="src\lib\edge.h" />
     <ClInclude Include="src\lib\info.hpp" />
-    <ClInclude Include="src\lib\InputLayer.hpp" />
-    <ClInclude Include="src\lib\Layer.hpp" />
-    <ClInclude Include="src\lib\DataFormat.hpp" />
-    <ClInclude Include="src\lib\MLP_Batch.hpp" />
-    <ClInclude Include="src\lib\MLP_Impl.hpp" />
-    <ClInclude Include="src\lib\MLP_Online.hpp" />
-    <ClInclude Include="src\lib\Node.hpp" />
-    <ClInclude Include="src\lib\OutputLayer.hpp" />
-    <ClInclude Include="src\lib\ParameterPack.hpp" />
+    <ClInclude Include="src\lib\layer.hpp" />
+    <ClInclude Include="src\lib\layer_input.hpp" />
+    <ClInclude Include="src\lib\layer_output.hpp" />
+    <ClInclude Include="src\lib\MLP_batch.hpp" />
+    <ClInclude Include="src\lib\MLP_impl.hpp" />
+    <ClInclude Include="src\lib\MLP_online.hpp" />
+    <ClInclude Include="src\lib\node.hpp" />
+    <ClInclude Include="src\lib\SOM_online.hpp" />
     <ClInclude Include="src\lib\util.hpp" />
+    <ClInclude Include="src\lib\__ParameterPack.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\client\main.cpp" />
-    <ClCompile Include="src\lib\Edge.cpp" />
+    <ClCompile Include="src\example\main.cpp" />
+    <ClCompile Include="src\lib\edge.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
