@@ -1,0 +1,26 @@
+const uint THREAD_NUM = 15;
+const double threshold_theta = 0.5;
+const double learning_rate_sample = 0.01;
+const double L2__regularization_sample = 0.9999;
+
+loop 2000, total_timeF268037(s) = 74.454722(h)
+
+4,6,	ans:4
+3,	ans:3
+2,6,8,	ans:2
+5,	ans:5
+7,	ans:7
+7,9,	ans:7
+2,	ans:2
+0,	ans:0
+4,6,	ans:4
+7,	ans:7
+7,9,	ans:9
+2,6,	ans:6
+8,9,	ans:8
+0,	ans:0
+
+train_mse:0.0191588
+test_mse:0.228571
+
+
