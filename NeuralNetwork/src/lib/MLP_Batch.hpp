@@ -15,16 +15,17 @@ namespace signn{
 template <class InputInfo_, class OutputInfo_>
 class Perceptron_Batch : public DataFormat<InputInfo_, OutputInfo_>
 {
-	typedef MLP_Impl<InputInfo_, OutputInfo_> MLP;
+	using MLP_ = MLP_Impl<InputInfo_, OutputInfo_>;
+	using LayerPtr_ = typename MLP_::LayerPtr_;
 
 	const double alpha_;
 	const double beta_;	//L2 regularization
 
-	MLP mlp_;
-	std::vector<MLP> copy_mlp_;
+	MLP_ mlp_;
+	std::vector<MLP_> copy_mlp_;
 
 	double min_mse_;						//minimum mean-square-error during iteration
-	std::shared_ptr<MLP> optimal_state_;	//mlp state when mse is minimum
+	std::shared_ptr<MLP_> optimal_state_;	//mlp state when mse is minimum
 	
 private:
 	void ParameterCopy2Slave(){
@@ -35,16 +36,18 @@ private:
 	}
 
 public:
-	explicit Perceptron_Batch(double learning_rate, double L2_regularization, std::vector<LayerPtr> hidden_layers, double goal_mse = std::numeric_limits<double>::max())
+	Perceptron_Batch(double learning_rate, double L2_regularization, std::vector<LayerPtr_> hidden_layers, double goal_mse = std::numeric_limits<double>::max())
 		: alpha_(learning_rate), beta_(L2_regularization), mlp_(learning_rate, L2_regularization, hidden_layers),
-		min_mse_(goal_mse), optimal_state_(std::make_shared<MLP>(learning_rate, L2_regularization, hidden_layers))
+		min_mse_(goal_mse), optimal_state_(std::make_shared<MLP_>(learning_rate, L2_regularization, hidden_layers))
 	{
 		for (uint i = 0; i < THREAD_NUM; ++i){
 			copy_mlp_.emplace_back(alpha_, beta_, hidden_layers);
 			copy_mlp_[i].CopyWeight(mlp_);
 		}
 	}
-	virtual ~Perceptron_Batch(){};
+
+	static LayerPtr_ MakeMidLayer(uint node_num){ return MLP_::MakeMidLayer(node_num); }
+
 
 	double Train(std::vector<InputDataPtr> const& inputs);
 
@@ -68,7 +71,7 @@ double Perceptron_Batch<InputInfo_, OutputInfo_>::Train(std::vector<InputDataPtr
 	double mse = 0;
 	std::vector<std::vector<double>> delta_weight;
 
-	auto LearnImpl = [](MLP& mlp, std::vector<InputDataPtr>::const_iterator begin, std::vector<InputDataPtr>::const_iterator end)
+	auto LearnImpl = [](MLP_& mlp, std::vector<InputDataPtr>::const_iterator begin, std::vector<InputDataPtr_>::const_iterator end)
 	{
 		std::vector< std::vector<double>> result;
 		double l_mse;

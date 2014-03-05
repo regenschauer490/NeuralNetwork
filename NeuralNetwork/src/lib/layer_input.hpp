@@ -13,17 +13,23 @@ http://opensource.org/licenses/mit-license.php
 namespace signn{
 
 template <class InputInfo_>
-class InputLayer : public Layer
+class InputLayer : public Layer<double, DirectedEdge<double>>
 {
-	FRIEND_WITH_LAYER
+public:
+	using NodeData_ = double;
+	using InputData_ = typename InputInfo_::type;
+	using Edge_ = DirectedEdge<NodeData_>;
+	using LayerPtr_ = LayerPtr<NodeData_, Edge_>;
+
+	SIG_FRIEND_WITH_LAYER
 
 private:
 	InputLayer() : Layer(InputInfo_::dim){};
 
 	void UpdateNodeScore() override{}
 
-	void SetData(std::array<typename InputInfo_::type, InputInfo_::dim> const& input){
-		for (size_t i = 0, end = NodeNum(); i < end; ++i) (*this)[i]->Score(input[i]);
+	void SetData(std::array<InputData_, InputInfo_::dim> const& input, std::function<NodeData_(InputData_)> const& convert){
+		for (size_t i = 0, end = InputInfo_::dim; i < end; ++i) (*this)[i]->Score(convert(input[i]));
 	}
 
 public:

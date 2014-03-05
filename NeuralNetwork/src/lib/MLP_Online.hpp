@@ -10,24 +10,31 @@ http://opensource.org/licenses/mit-license.php
 
 #include "MLP_impl.hpp"
 
+#undef min
+#undef max
+
 namespace signn{
 	
 template <class InputInfo_, class OutputInfo_>
 class Perceptron_Online : public DataFormat<InputInfo_, OutputInfo_>
 {
-	typedef MLP_Impl<InputInfo_, OutputInfo_> MLP;
-	//typedef typename MLP::InputDataPtr InputDataPtr;
-	//typedef typename MLP::OutputDataPtr OutputDataPtr;
-
-	MLP mlp_;
+public:
+	using MLP_ = MLP_Impl<InputInfo_, OutputInfo_>;
+	using Layer_ = typename MLP_::Layer_;
+	using LayerPtr_ = typename MLP_::LayerPtr_;
+	
+private:
+	MLP_ mlp_;
 
 	double min_mse_;						//minimum mean-square-error during iteration
-	std::shared_ptr<MLP> optimal_state_;	//mlp state when mse is minimum
+	std::shared_ptr<MLP_> optimal_state_;	//mlp state when mse is minimum
 		
 public:
-	explicit Perceptron_Online(double learning_rate, double L2_regularization, std::vector<LayerPtr> hidden_layers, double goal_mse = std::numeric_limits<double>::max())
-		: mlp_(learning_rate, L2_regularization, hidden_layers), min_mse_(goal_mse), optimal_state_(std::make_shared<MLP>(learning_rate, L2_regularization, hidden_layers)){}
-	virtual ~Perceptron_Online(){};
+	Perceptron_Online(double learning_rate, double L2_regularization, std::vector<LayerPtr_>&& hidden_layers, double goal_mse = std::numeric_limits<double>::max())
+		: mlp_(learning_rate, L2_regularization, hidden_layers), min_mse_(goal_mse), optimal_state_(std::make_shared<MLP_>(learning_rate, L2_regularization, hidden_layers)){}
+
+	static LayerPtr_ MakeMidLayer(uint node_num){ return MLP_::MakeMidLayer(node_num); }
+
 
 	double Train(InputDataPtr train_data, bool check_mse = true);
 

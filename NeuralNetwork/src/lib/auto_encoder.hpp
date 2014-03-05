@@ -15,13 +15,20 @@ namespace signn{
 template <class InputInfo_, uint HiddenDim, class OutputInfo_ = OutputInfo<OutputLayerType::BinaryClassification, InputInfo_::dim>>
 class AutoEncoder : public DataFormat<InputInfo_, OutputInfo_>
 {
-	typedef Perceptron_Online<InputInfo_, OutputInfo_> Perceptron;
+	using Perceptron_ = Perceptron_Online<InputInfo_, OutputInfo_>;
+	using Layer_ = typename Perceptron_::Layer_;
+	using LayerPtr_ = typename Perceptron_::LayerPtr_;
+	using DataFormat_ = DataFormat<InputInfo_, OutputInfo_>;
+	using DataFormat_::OutputType_;
+	using DataFormat_::OutputArrayType_;
 
-	LayerPtr hidden_;
-	Perceptron ac_;
+	LayerPtr_ hidden_;
+	Perceptron_ ac_;
 
 public:
-	AutoEncoder(double learning_rate, double L2_regularization, double goal_mse = std::numeric_limits<double>::max()) : hidden_(Layer::MakeInstance(HiddenDim)), ac_(learning_rate, L2_regularization, std::vector<LayerPtr>{hidden_}, goal_mse){
+	AutoEncoder(double learning_rate, double L2_regularization, double goal_mse = std::numeric_limits<double>::max())
+		: hidden_(Layer_::MakeInstance(HiddenDim)), ac_(learning_rate, L2_regularization, std::vector<LayerPtr_>{hidden_}, goal_mse)
+	{
 		static_assert(InputInfo_::dim == OutputInfo_::dim, "invalid dimension: different dim between input and output");
 	}
 
@@ -37,7 +44,7 @@ public:
 	template<class Iter1, typename = decltype(*std::declval<Iter1&>(), void(), ++std::declval<Iter1&>(), void())>
 	std::shared_ptr<InputData> MakeInputData(Iter1 input_begin, Iter1 input_end) const{
 		uint i = 0;
-		std::array<typename OutputInfo_::type, OutputInfo_::dim> teacher;
+		std::array<OutputType_, OutputInfo_::dim> teacher;
 		for (auto in = input_begin; in != input_end; ++in, ++i) teacher[i] = *in;
 		return std::make_shared<InputData>(input_begin, input_end, teacher.begin(), teacher.end(), false);
 	}
@@ -50,7 +57,7 @@ double AutoEncoder<InputInfo_, HiddenDim, OutputInfo_>::Train(InputDataPtr train
 	if (train_data->IsTestData()){
 		assert(false);
 		auto& input = train_data->Input();
-		auto& teacher = const_cast<InputData::TeacherDataArray&>(train_data->Teacher());
+		auto& teacher = const_cast<OutputArrayType&>(train_data->Teacher());
 
 		for (uint i = 0; i < InputInfo_::dim; ++i) teacher[i] = input[i];
 	}

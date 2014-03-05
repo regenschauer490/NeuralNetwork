@@ -8,18 +8,83 @@ http://opensource.org/licenses/mit-license.php
 #ifndef SIG_NN_UTIL_H
 #define SIG_NN_UTIL_H
 
-#include "external/SigUtil/lib/sigutil.hpp"
+#include <algorithm>
+#include <numeric>
+#include <assert.h>
+#include <vector>
+#include <array>
+#include <memory>
+#include <functional>
+#include <random>
+#include <future>
+
+#include "info.hpp"
+
+#if SIG_ENABLE_BOOST
+#include <boost/call_traits.hpp>
+#endif
 
 namespace signn
 {
 
-	template < class T, template < class T, class = std::allocator<T >> class Container>
-		inline double SquareError(Container<T> const& estimate, Container<T> const& answer) {
+#if SIG_ENABLE_BOOST
+template <class T> using ParamType = typename boost::call_traits<T>::param_type;
+#else
+template <class T>
+using ParamType = T const&;
+#endif
+
+	template <class T>
+	void Connect(NodePtr<DirectedEdge<T>,T>& departure, NodePtr<DirectedEdge<T>,T>& arrival, DirectedEdge<T>& edge)
+	{
+		departure->AddOutEdge(edge);
+		arrival->AddInEdge(edge);
+		edge->AddNode(departure, arrival);
+	}
+
+	//class Matrix はランダムアクセス(operator[])可能であることが条件
+	template <class T, template <class T_, class = std::allocator<T_>> class C, class Matrix>
+	void MakeLink(C<NodePtr<DirectedEdge<T>,T>>& data, Matrix const& adjacency)
+	{
+		const uint size = data.size();
+		
+		for(uint r=0; r<size; ++r){
+			auto& departure = data[r];
+			for(uint c=0; c<size; ++c){
+				if(adjacency[r][c]){
+					auto& arrival = data[c];
+					auto edge = std::make_shared<DirectedEdge<T>>();
+					Connect(departure, arrival, edge);
+				}
+			}
+		}
+	}
+	
+	//class Matrix はランダムアクセス(operator[])可能であることが条件
+	template <class T, template <class T_, class = std::allocator<T_>> class C, class Matrix>
+	void MakeLink(C<NodePtr<DirectedEdge<T>,T>>& layer1, C<NodePtr<DirectedEdge<T>,T>>& layer2, Matrix const& connection)
+	{
+		const uint size = sig::Min(layer1.size(), layer2.size());
+		
+		for(uint r=0; r<size; ++r){
+			auto& departure = layer1[r];
+			for(uint c=0; c<size; ++c){
+				if(adjacency[r][c]){
+					auto& arrival = layer2[c];
+					auto edge = std::make_shared<DirectedEdge>(departure, arrival);
+					Connect(departure, arrival, edge);
+				}
+			}
+		}
+	}
+
+	template <class T, template <class T_, class = std::allocator<T_>> class C>
+		inline double SquareError(C<T> const& estimate, C<T> const& answer) {
 		return std::inner_product(estimate.begin(), estimate.end(), answer.begin(), 0.0, std::plus<double>(), [](T v1, T v2){ return pow(v1 - v2, 2); });
 	}
 
-	template < class T, template < class T, class = std::allocator<T>> class Container>
-	double MeanSquareError(Container< Container<T>> const& estimates, Container< Container<T>> const& answers)
+	template <class T, template <class T_, class = std::allocator<T_>> class C>
+	double MeanSquareError(C<C<T>> const& estimates, C<C<T>> const& answers)
 	{
 		const uint dsize = std::min(estimates.size(), answers.size());
 		double error = 0;
@@ -29,5 +94,34 @@ namespace signn
 		}
 		return error / dsize;
 	}
+
+	template<class Iter1, class Iter2>
+	double Simirarlity(Iter1 xs_begin, Iter1 xs_end, Iter2 hs_begin, Iter2 hs_end, uint dilation)
+	{
+		uint size = 0;
+		double result = 0;
+		auto xs = xs_begin + dilation;
+		auto hs = hs_begin;
+
+		if (std::is_same<typename Iter1::value_type, bool>::value){
+			for (; xs != xs_end && hs != hs_end; ++xs, ++hs, ++size){
+				result += (*xs) == (*hs) ? 0 : 1;
+			}
+			for (xs = xs_begin; xs != xs_end && hs != hs_end; ++xs, ++hs, ++size){
+				result += (*xs) == (*hs) ? 0 : 1;
+			}
+		}
+		else{
+			for (; xs != xs_end && hs != hs_end; ++xs, ++hs, ++size){
+				result += std::abs((*xs) - (*hs));
+			}
+			for (xs = xs_begin; xs != xs_end && hs != hs_end; ++xs, ++hs, ++size){
+				result += std::abs((*xs) - (*hs));
+			}
+		}
+
+		return result / size;
+	}
+
 }
 #endif

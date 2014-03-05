@@ -11,31 +11,43 @@ http://opensource.org/licenses/mit-license.php
 #include "layer_input.hpp"
 #include "layer_output.hpp"
 #include "data_format.hpp"
+#include "external/SigUtil/lib/file.hpp"
 
 namespace signn{
 
 template <class InputInfo_, class OutputInfo_>
 class MLP_Impl
 {
-	typedef DataFormat<InputInfo_, OutputInfo_> DataFormat;
-	typedef typename DataFormat::InputData InputData;
-	typedef typename DataFormat::OutputData OutputData;
+public:
+	using DataFormat_ = DataFormat<InputInfo_, OutputInfo_>;
+	using InputData_ = typename DataFormat_::InputData;
+//	using OutputData_ = typename DataFormat_::OutputData;
+	using OutputArrayType_ = std::array<typename OutputInfo_::output_type, OutputInfo_::dim>;
+	using NodeData_ = double;
+	using DEdgePtr_ = DEdgePtr<NodeData_>;
+	using Layer_ = Layer<NodeData_, DirectedEdge<NodeData_>>;					//実際の中間レイヤーの型
+	using LayerPtr_ = LayerPtr<NodeData_, DirectedEdge<NodeData_>>;
+	using InputLayer_ = InputLayer<InputInfo_>;									//実際の入力レイヤーの型
+	using InputLayerPtr_ = InputLayerPtr<InputInfo_>;
+	using OutputLayer_ = typename OutputInfo_::template layer_map<OutputInfo_>;	//実際の出力レイヤーの型
+	using OutputLayerPtr_ = OutputLayerPtr<OutputInfo_>;
 
-	InputLayerPtr<InputInfo_> in_layer_;
-	OutputLayerPtr<OutputInfo_> out_layer_;
-	std::vector<LayerPtr> layers_;		//all layers
+private:
+	InputLayerPtr_ in_layer_;
+	OutputLayerPtr_ out_layer_;
+	std::vector<LayerPtr_> layers_;		//all layers
 
 	const double alpha_;	//learning rate
 	const double beta_;		//L2 regularization
 
 	//cache
-	std::vector< std::vector<DEdgePtr>> all_edges_;
+	std::vector< std::vector<DEdgePtr_>> all_edges_;
 
 public:
 	MLP_Impl(){}
-	explicit MLP_Impl(double alpha, double beta, std::vector<LayerPtr> hidden_layers) :
-		in_layer_(InputLayerPtr<InputInfo_>(new InputLayer<InputInfo_>())),
-		out_layer_(OutputLayerPtr<OutputInfo_>(new typename LayerTypeMap<OutputInfo_::e_layertype>::layertype<OutputInfo_>())),
+	MLP_Impl(double alpha, double beta, std::vector<LayerPtr_> hidden_layers) :
+		in_layer_(InputLayerPtr_(new InputLayer_())),
+		out_layer_(OutputLayerPtr_(new OutputLayer_())),
 		alpha_(alpha), beta_(beta)
 	{
 		layers_.push_back(in_layer_);
@@ -44,31 +56,35 @@ public:
 		MakeLink();
 	}
 
+	static LayerPtr_ MakeMidLayer(uint node_num){ return Layer<NodeData_, DirectedEdge<NodeData_>>::MakeInstance(node_num); }
+
+
 	void CopyWeight(MLP_Impl const& src){
 		for (uint l = 0; l < all_edges_.size(); ++l){
 			for (uint e = 0; e < all_edges_[l].size(); ++e) all_edges_[l][e]->Weight(src.all_edges_[l][e]->Weight());
 		}
 	}
 
-	void RenewEdgeWeight(std::vector < std::vector < double >> const& delta){
+	void RenewEdgeWeight(std::vector<std::vector<double>> const& delta){
 		for (uint l = 0; l < delta.size(); ++l){
 			layers_[l+1]->RenewEdgeWeight(delta[l], beta_);
 		}
 	}
 
 	void MakeLink();
+	template <class Matrix>
+	void MakeLink(Matrix const& connection);	//層間の接続を表現(row:前の層, col:後ろの層)
+
+	void ForwardPropagation(InputData_ const& input) const;
+
+	void BackPropagation(InputData_ const& input);
+
+	auto BackPropagation_Delay(InputData_ const& input) ->std::vector< std::vector<double>>;
 
 
-	void ForwardPropagation(InputData const& input) const;
+	auto OutputScore() const->OutputArrayType_{ return out_layer_->GetScore(); }
 
-	void BackPropagation(InputData const& input);
-
-	std::vector< std::vector<double>> BackPropagation_Delay(InputData const& input);
-
-
-	typename OutputData::OutputDataArray OutputScore() const{ return out_layer_->GetScore(); }
-
-	double MeanSquareError(typename InputData::TeacherDataArray const& teacher) const{ return out_layer_->MeanSquareError(teacher); };
+	double MeanSquareError(OutputArrayType_ const& teacher) const{ return out_layer_->MeanSquareError(teacher); };
 
 
 	void SaveParameter(std::wstring pass) const;
@@ -82,26 +98,39 @@ template <class InputInfo_, class OutputInfo_>
 void MLP_Impl<InputInfo_, OutputInfo_>::MakeLink()
 {
 	//make links between nodes
-	auto MakeLink = [&](LayerPtr layer_prev, LayerPtr layer_next, std::vector<DEdgePtr>& cache){
-		for (auto& l1 : *layer_prev){
-			for (auto& l2 : *layer_next){
-				auto edge = std::make_shared<DirectedEdge>(l1, l2);
-				l1->AddOutEdge(edge);
-				l2->AddInEdge(edge);
+	auto MakeLink = [&](LayerPtr_ layer_prev, LayerPtr_ layer_next, std::vector<DEdgePtr_>& cache){
+		for (auto& departure : *layer_prev){
+			for (auto& arrival : *layer_next){
+				auto edge = std::make_shared<DirectedEdge>();
+				Connect(departure, arrival, edge);
 				cache.push_back(edge);
 			}
 		}
 	};
 
 	for (uint i = 1; i < layers_.size(); ++i){
-		all_edges_.push_back(std::vector<DEdgePtr>());
+		all_edges_.push_back(std::vector<DEdgePtr_>());
 		MakeLink(layers_[i - 1], layers_[i], all_edges_.back());
+	}
+}
+
+template <class InputInfo_, class OutputInfo_>
+template <class Matrix>
+void MLP_Impl<InputInfo_, OutputInfo_>::MakeLink(Matrix const& connection)
+{
+	for (uint i = 1; i < layers_.size(); ++i){
+		all_edges_.push_back(std::vector<DEdgePtr_>());
+		signn::MakeLink(layers_[i - 1], layers_[i], matrix);
+
+		for(auto const& n : *layers_[i]){
+			for(auto e = n->in_begin(), end = n->in_end(); e != end; ++e) all_edges_.push_back(*e);
+		}
 	}
 }
 
 
 template <class InputInfo_, class OutputInfo_>
-void MLP_Impl<InputInfo_, OutputInfo_>::ForwardPropagation(InputData const& input) const
+void MLP_Impl<InputInfo_, OutputInfo_>::ForwardPropagation(InputData_ const& input) const
 {
 	auto* tp = const_cast<MLP_Impl*>(this);		//要検討
 
@@ -113,7 +142,7 @@ void MLP_Impl<InputInfo_, OutputInfo_>::ForwardPropagation(InputData const& inpu
 
 
 template <class InputInfo_, class OutputInfo_>
-void MLP_Impl<InputInfo_, OutputInfo_>::BackPropagation(InputData const& input)
+void MLP_Impl<InputInfo_, OutputInfo_>::BackPropagation(InputData_ const& input)
 {
 	assert(!input.IsTestData());
 
@@ -124,7 +153,7 @@ void MLP_Impl<InputInfo_, OutputInfo_>::BackPropagation(InputData const& input)
 }
 
 template <class InputInfo_, class OutputInfo_>
-std::vector< std::vector<double>> MLP_Impl<InputInfo_, OutputInfo_>::BackPropagation_Delay(InputData const& input)
+std::vector< std::vector<double>> MLP_Impl<InputInfo_, OutputInfo_>::BackPropagation_Delay(InputData_ const& input)
 {
 	assert(!input.IsTestData());
 
@@ -177,5 +206,5 @@ void MLP_Impl<InputInfo_, OutputInfo_>::LoadParameter(std::wstring pass)
 	}
 }
 
-
 }
+#endif

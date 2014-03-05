@@ -16,16 +16,19 @@ template <class InputInfo_, class OutputInfo_>
 class DataFormat
 {
 public:
+	using InputType_ = typename InputInfo_::type;
+	using InputParamType_ = ParamType<InputType_>;
+	using InputArrayType_ = std::array<InputType_, InputInfo_::dim>;
+	using OutputType_ = typename OutputInfo_::output_type;
+	using OutputParamType_ = ParamType<OutputType_>;
+	using OutputArrayType_ = std::array<OutputType_, OutputInfo_::dim>;
+
+public:
 	class InputData
 	{
-	public:
-		typedef std::array<typename InputInfo_::type, InputInfo_::dim> InputDataArray;
-		typedef std::array<typename OutputInfo_::type, OutputInfo_::dim> TeacherDataArray;
-
-	private:
 		const bool is_test_data_;
-		InputDataArray input_;
-		TeacherDataArray teacher_;
+		InputArrayType_ input_;
+		OutputArrayType_ teacher_;
 
 	public:
 		//teacher:出力と同形式
@@ -39,23 +42,20 @@ public:
 		}
 
 		uint size() const{ return InputInfo_::dim; }
+
 		bool IsTestData() const{ return is_test_data_; }
 
-		InputDataArray const& Input() const{ return input_; }
-		TeacherDataArray const& Teacher() const{ return teacher_; }
+		InputArrayType_ const& Input() const{ return input_; }
+		OutputArrayType_ const& Teacher() const{ return teacher_; }
 	};
 
 	class OutputData
 	{
-	public:
-		typedef std::array<typename OutputInfo_::type, OutputInfo_::dim> OutputDataArray;
-
-	private:
 		const std::shared_ptr<InputData const> input_;
-		OutputDataArray estimate_;
+		OutputArrayType_ estimate_;
 
 	public:
-		OutputData(std::shared_ptr<InputData const> input, OutputDataArray& estimate) : input_(input), estimate_(estimate){}
+		OutputData(std::shared_ptr<InputData const>& input, OutputArrayType_& estimate) : input_(input), estimate_(estimate){}
 
 /*		double MeanSquareError() const{
 			auto ans = input_->Teacher().begin();
@@ -65,18 +65,18 @@ public:
 		template<class Iter, typename = decltype(*std::declval<Iter&>(), void(), ++std::declval<Iter&>(), void())>
 		double MeanSquareError(Iter ans_vector_begin) const{
 			static_assert(OutputInfo_::dim > 1, "error in OutputLayer::MeanSquareError() : required answer dimension is 1 (scalar)");
-			return std::inner_product(estimate_.begin(), estimate_.end(), ans_vector_begin, 0.0, std::plus<double>(), [](typename OutputInfo_::type v1, typename std::iterator_traits<Iter>::value_type v2){ return pow(v1 - v2, 2); }) / OutputInfo_::dim;
+			return std::inner_product(estimate_.begin(), estimate_.end(), ans_vector_begin, 0.0, std::plus<double>(), [](OutputParamType_ v1, typename std::iterator_traits<Iter>::value_type v2){ return pow(v1 - v2, 2); }) / OutputInfo_::dim;
 		}
 
-		double MeanSquareError(typename OutputInfo_::type answer) const{
-			if (OutputInfo_::e_layertype == OutputLayerType::MultiClassClassification){
+		double MeanSquareError(OutputType_ answer) const{
+			if (OutputInfo_::enum_layer_type == OutputLayerType::MultiClassClassification){
 				assert(answer < OutputInfo_::dim);
-				typename InputData::TeacherDataArray ans;
+				OutputArrayType_ ans;
 				for (uint i = 0; i < OutputInfo_::dim; ++i){
 					if (answer == i)ans[i] = true;
 					else ans[i] = false;
 				}
-				return std::inner_product(estimate_.begin(), estimate_.end(), ans.begin(), 0.0, std::plus<double>(), [](typename OutputInfo_::type v1, typename OutputInfo_::type v2){ return pow(v1 - v2, 2); }) / OutputInfo_::dim;
+				return std::inner_product(estimate_.begin(), estimate_.end(), ans.begin(), 0.0, std::plus<double>(), [](OutputParamType_ v1, OutputParamType_ v2){ return pow(v1 - v2, 2); }) / OutputInfo_::dim;
 			}
 			else return pow(estimate_[0] - answer, 2);
 		}
@@ -87,13 +87,13 @@ public:
 
 		auto end() const ->decltype(estimate_.cend()){ return estimate_.cend(); }
 
-		typename OutputInfo_::type operator [](uint index) const{ return estimate_[index]; }
+		OutputType_ operator [](uint index) const{ return estimate_[index]; }
 	};
 
 public:
-	typedef std::shared_ptr<typename DataFormat<InputInfo_, OutputInfo_>::InputData const> InputDataPtr;
+	using InputDataPtr = std::shared_ptr<typename DataFormat<InputInfo_, OutputInfo_>::InputData const>;
 
-	typedef std::shared_ptr<typename DataFormat<InputInfo_, OutputInfo_>::OutputData> OutputDataPtr;
+	using OutputDataPtr = std::shared_ptr<typename DataFormat<InputInfo_, OutputInfo_>::OutputData>;
 
 public:
 	DataFormat(){};
@@ -106,8 +106,8 @@ public:
 	}
 
 	//teacher:回帰の正解値
-	template<class Iter1, typename = decltype(*std::declval<Iter1&>(), void(), ++std::declval<Iter1&>(), void()), class = typename std::enable_if<!std::is_same<typename OutputInfo_::type, bool>::value>::type>
-	InputDataPtr MakeInputData(Iter1 input_begin, Iter1 input_end, typename OutputInfo_::type teacher_value) const{
+	template<class Iter1, typename = decltype(*std::declval<Iter1&>(), void(), ++std::declval<Iter1&>(), void()), class = typename std::enable_if<!std::is_same<OutputType_, bool>::value>::type>
+	InputDataPtr MakeInputData(Iter1 input_begin, Iter1 input_end, OutputParamType_ teacher_value) const{
 		static_assert(1 == OutputInfo_::dim, "invalid input data");
 
 		std::array<typename OutputInfo_::type, 1> teacher{ {teacher_value} };
@@ -116,7 +116,7 @@ public:
 	}
 
 	//teacher:分類のラベル
-	template<class Iter1, typename = decltype(*std::declval<Iter1&>(), void(), ++std::declval<Iter1&>(), void()), class = typename std::enable_if<std::is_same<typename OutputInfo_::type, bool>::value>::type>
+	template<class Iter1, typename = decltype(*std::declval<Iter1&>(), void(), ++std::declval<Iter1&>(), void()), class = typename std::enable_if<std::is_same<OutputType_, bool>::value>::type>
 	InputDataPtr MakeInputData(Iter1 input_begin, Iter1 input_end, uint teacher_label) const{
 		typename InputData::TeacherDataArray teacher;
 
@@ -134,7 +134,7 @@ public:
 
 	//教師信号なし  (テストデータ)
 	template<class Iter1, typename = decltype(*std::declval<Iter1&>(), void(), ++std::declval<Iter1&>(), void())>
-	std::shared_ptr<InputData> MakeInputData(Iter1 input_begin, Iter1 input_end) const{
+	InputDataPtr MakeInputData(Iter1 input_begin, Iter1 input_end) const{
 		std::array<typename OutputInfo_::type, OutputInfo_::dim> teacher;
 		return std::make_shared<InputData>(input_begin, input_end, teacher.begin(), teacher.end(), true);
 	}

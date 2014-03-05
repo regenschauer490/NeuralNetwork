@@ -13,32 +13,43 @@ http://opensource.org/licenses/mit-license.php
 namespace signn{
 
 template <class OutputInfo_>
-class OutputLayer : public Layer
+class OutputLayer : public Layer<double, DirectedEdge<double>>
 {
-	FRIEND_WITH_LAYER;
+public:
+	using NodeData_ = double;
+	using OutputData_ = typename OutputInfo_::output_type;
+	using Edge_ = DirectedEdge<NodeData_>;
+	using LayerPtr_ = LayerPtr<NodeData_, Edge_>;
 
 private:
-	virtual LayerPtr CloneImpl() const override = 0;
+	SIG_FRIEND_WITH_LAYER;
+
+private:
+	virtual LayerPtr_ CloneImpl() const override = 0;
 
 protected:
 	OutputLayer() : Layer(OutputInfo_::dim){};
 
+	//forward propagation
 	virtual void UpdateNodeScore() override = 0;
 
-	virtual void UpdateEdgeWeight(double alpha, double beta, std::array<typename OutputInfo_::type, OutputInfo_::dim> teacher_signals) = 0;
+	//back propagation for online
+	virtual void UpdateEdgeWeight(double alpha, double beta, std::array<NodeData_, OutputInfo_::dim> teacher_signals) = 0;
 
-	virtual std::vector<double> CalcEdgeWeight(double alpha, std::array<typename OutputInfo_::type, OutputInfo_::dim> teacher_signals) = 0;
+	//back propagation for batch (not renew weight)
+	virtual std::vector<NodeData_> CalcEdgeWeight(double alpha, std::array<NodeData_, OutputInfo_::dim> teacher_signals) = 0;
 
-	virtual typename OutputInfo_::type OutputScore(double raw_score) const = 0;
+	//convert node-value into output-value
+	virtual OutputData_ OutputScore(NodeData_ raw_score) const = 0;
 
 public:
 	virtual ~OutputLayer(){};
 
 	OutputLayerPtr<OutputInfo_> CloneInitInstance() const{ return std::static_pointer_cast<OutputLayer<OutputInfo_>>(CloneImpl()); }
 
-	std::array<typename OutputInfo_::type, OutputInfo_::dim> GetScore() const{
-		std::array<typename OutputInfo_::type, OutputInfo_::dim> score;
-		for (uint i = 0; i < NodeNum(); ++i) score[i] = OutputScore(this->operator[](i)->Score());
+	auto GetScore() const->std::array<OutputData_, OutputInfo_::dim>{
+		std::array<OutputData_, dim_> score;
+		for (uint i = 0; i < OutputInfo_::dim; ++i) score[i] = OutputScore(this->operator[](i)->Score());
 		return score;
 	}
 
@@ -60,7 +71,7 @@ public:
 template <class OutputInfo_>
 template<class Container>
 double OutputLayer<OutputInfo_>::MeanSquareError(Container const& teacher) const{
-	return std::inner_product(begin(), end(), teacher.begin(), 0.0, std::plus<double>(), [](NodePtr const& v1, double v2){ return pow(v1->Score() - v2, 2); }) / NodeNum();
+	return std::inner_product(begin(), end(), teacher.begin(), 0.0, std::plus<double>(), [](NodePtr_ const& v1, double v2){ return pow(v1->Score() - v2, 2); }) / dim_;
 }
 
 #define PP_UpdateNodeScore(ACTIVATE_FUNC)\
@@ -71,9 +82,9 @@ double OutputLayer<OutputInfo_>::MeanSquareError(Container const& teacher) const
 	}
 
 #define PP_CalcEdgeWeight(ACTIVATE_FUNC)\
-	std::vector<double> CalcEdgeWeight(double alpha, std::array<typename OutputInfo_::type, OutputInfo_::dim> teacher_signals) override{\
-		std::vector<double> new_weight;\
-		for (uint n = 0, node_num = NodeNum(); n < node_num; ++n){\
+	std::vector<NodeData_> CalcEdgeWeight(double alpha, std::array<NodeData_, OutputInfo_::dim> teacher_signals) override{\
+		std::vector<NodeData_> new_weight; \
+		for (uint n = 0, node_num = OutputInfo_::dim; n < node_num; ++n){\
 			auto& node = (*this)[n];\
 			auto const error = teacher_signals[n] - node->Score();\
 			\
@@ -85,8 +96,8 @@ double OutputLayer<OutputInfo_>::MeanSquareError(Container const& teacher) const
 	}
 
 #define PP_UpdateEdgeWeight(ACTIVATE_FUNC)\
-	void UpdateEdgeWeight(double alpha, double beta, std::array<typename OutputInfo_::type, OutputInfo_::dim> teacher_signals) override{\
-		for (uint n = 0, node_num = NodeNum(); n < node_num; ++n){\
+	void UpdateEdgeWeight(double alpha, double beta, std::array<NodeData_, OutputInfo_::dim> teacher_signals) override{\
+		for (uint n = 0, node_num = OutputInfo_::dim; n < node_num; ++n){\
 			auto& node = (*this)[n]; \
 			auto const error = teacher_signals[n] - node->Score(); \
 			\
@@ -100,17 +111,17 @@ double OutputLayer<OutputInfo_>::MeanSquareError(Container const& teacher) const
 template <class OutputInfo_>
 class RegressionLayer : public OutputLayer<OutputInfo_>
 {
-	FRIEND_WITH_LAYER;
+	SIG_FRIEND_WITH_LAYER;
 
 private:
-	virtual LayerPtr CloneImpl() const override{ return std::shared_ptr<Layer>(new RegressionLayer<OutputInfo_>()); }
+	virtual LayerPtr_ CloneImpl() const override{ return std::shared_ptr<Layer>(new RegressionLayer<OutputInfo_>()); }
 
-	PP_UpdateNodeScore(Identity<typename OutputInfo_::type>);
+	PP_UpdateNodeScore(Identity<NodeData_>);
 
-	PP_CalcEdgeWeight(Identity<typename OutputInfo_::type>);
-	PP_UpdateEdgeWeight(Identity<typename OutputInfo_::type>);
+	PP_CalcEdgeWeight(Identity<NodeData_>);
+	PP_UpdateEdgeWeight(Identity<NodeData_>);
 
-	typename OutputInfo_::type OutputScore(double raw_score) const override{ return raw_score; }
+	OutputData_ OutputScore(NodeData_ raw_score) const override{ return raw_score; }
 
 public:
 	virtual ~RegressionLayer(){};
@@ -122,17 +133,20 @@ public:
 template <class OutputInfo_>
 class BinaryClassificationLayer : public OutputLayer<OutputInfo_>
 {
-	FRIEND_WITH_LAYER;
+	SIG_FRIEND_WITH_LAYER;
 
 private:
-	virtual LayerPtr CloneImpl() const override{ return std::shared_ptr<Layer>(new BinaryClassificationLayer<OutputInfo_>()); }
+	virtual LayerPtr_ CloneImpl() const override{ return std::shared_ptr<Layer>(new BinaryClassificationLayer<OutputInfo_>()); }
 
 	PP_UpdateNodeScore(Sigmoid);
 
 	PP_CalcEdgeWeight(Sigmoid);
 	PP_UpdateEdgeWeight(Sigmoid);
 
-	bool OutputScore(double raw_score) const override{ return raw_score < 0.5 ? false : true; }
+	OutputData_ OutputScore(NodeData_ raw_score) const override{
+		static_assert(std::is_same<OutputData_, bool>::value);
+		return raw_score < 0.5 ? false : true; 
+	}
 
 public:
 	virtual ~BinaryClassificationLayer(){};
@@ -144,10 +158,10 @@ public:
 template <class OutputInfo_>
 class MultiClassClassificationLayer : public OutputLayer<OutputInfo_>
 {
-	FRIEND_WITH_LAYER;
+	SIG_FRIEND_WITH_LAYER;
 
 private:
-	virtual LayerPtr CloneImpl() const override{ return std::shared_ptr<Layer>(new MultiClassClassificationLayer<OutputInfo_>()); }
+	virtual LayerPtr_ CloneImpl() const override{ return std::shared_ptr<Layer>(new MultiClassClassificationLayer<OutputInfo_>()); }
 
 	void UpdateNodeScore() override{
 		std::vector<double> exp_raw_score;
@@ -156,15 +170,15 @@ private:
 		}
 		auto exp_sum = std::accumulate(exp_raw_score.begin(), exp_raw_score.end(), 0.0);
 
-		for (uint n = 0, num = NodeNum(); n < num; ++n){
-			(*this)[n]->UpdateScore(Softmax::f(exp_raw_score[n], exp_sum));
+		for (uint n = 0, num = OutputInfo_::dim; n < num; ++n){
+			(*this)[n]->Score(Softmax::f(exp_raw_score[n], exp_sum));
 		}
 	}
 
-	std::vector<double> CalcEdgeWeight(double alpha, std::array<typename OutputInfo_::type, OutputInfo_::dim> teacher_signals) override{
-		std::vector<double> new_weight; 
+	std::vector<NodeData_> CalcEdgeWeight(double alpha, std::array<NodeData_, OutputInfo_::dim> teacher_signals) override{
+		std::vector<NodeData_> new_weight;
 
-		for (uint n = 0, node_num = NodeNum(); n < node_num; ++n){
+		for (uint n = 0, node_num = OutputInfo_::dim; n < node_num; ++n){
 			auto& node = (*this)[n]; 
 			auto const error = teacher_signals[n] - node->Score(); 
 
@@ -175,7 +189,7 @@ private:
 		return std::move(new_weight);
 	}
 
-	void UpdateEdgeWeight(double alpha, double beta, std::array<typename OutputInfo_::type, OutputInfo_::dim> teacher_signals) override{
+	void UpdateEdgeWeight(double alpha, double beta, std::array<NodeData_, OutputInfo_::dim> teacher_signals) override{
 		for (uint n = 0, node_num = NodeNum(); n < node_num; ++n){
 			auto& node = (*this)[n]; 
 			auto const error = teacher_signals[n] - node->Score(); 
@@ -186,7 +200,7 @@ private:
 		}
 	}
 
-	typename OutputInfo_::type OutputScore(double raw_score) const override{ return raw_score < 1.0 / OutputInfo_::dim ? false : true; }
+	OutputData_ OutputScore(NodeData_ raw_score) const override{ return raw_score < 1.0 / OutputInfo_::dim ? false : true; }
 
 public:
 	virtual ~MultiClassClassificationLayer(){};

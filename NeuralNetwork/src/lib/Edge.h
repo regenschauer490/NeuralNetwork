@@ -9,13 +9,21 @@ http://opensource.org/licenses/mit-license.php
 #define SIG_NN_EDGE_H
 
 #include "info.hpp"
+#include "util.hpp"
 
 namespace signn{
 	
+template <class NodeData>
 class DirectedEdge
 {
-	NodeWPtr tail_;
-	NodeWPtr head_;
+public:
+	using NodePtr_ = NodePtr<DirectedEdge, NodeData>;
+	using C_NodePtr_ = C_NodePtr<DirectedEdge, NodeData>;
+	using NodeWPtr_ = NodeWPtr<DirectedEdge, NodeData>;
+
+private:
+	NodeWPtr_ tail_;
+	NodeWPtr_ head_;
 
 	//parameter
 	double weight_;
@@ -23,11 +31,15 @@ class DirectedEdge
 	//cache
 	double delta_;
 	double pre_weight_;
-	
-public:
-	DirectedEdge(NodePtr tail, NodePtr head, typename sig::Just<double>::type weight = sig::Nothing(SIG_DEFAULT_EDGE_WEIGHT));
-	~DirectedEdge(){};
 
+	SIG_FRIEND_WITH_NODE_AND_EDGE
+private:
+	void AddNode(NodePtr_& tail, NodePtr_& head){ tail_ = tail; head_ = head; }
+
+public:
+	explicit DirectedEdge(typename sig::Just<double>::type weight = sig::Nothing(SIG_DEFAULT_EDGE_WEIGHT));
+	~DirectedEdge(){};
+	
 
 	double CalcWeightedScore() const;
 
@@ -46,15 +58,16 @@ public:
 	void Delta(double v){ delta_ = v; }
 	double Delta() const{ return delta_; }
 
-	NodePtr HeadNode(){ return head_.lock(); }
-	C_NodePtr HeadNode() const{ return head_.lock(); }
+	NodePtr_ HeadNode(){ return head_.lock(); }
+	C_NodePtr_ HeadNode() const{ return head_.lock(); }
 
-	NodePtr TailNode(){ return tail_.lock(); }
-	C_NodePtr TailNode() const{ return tail_.lock(); }
+	NodePtr_ TailNode(){ return tail_.lock(); }
+	C_NodePtr_ TailNode() const{ return tail_.lock(); }
 };
 
+template <class NodeData>
 template <class ActivationFunc>
-double DirectedEdge::CalcDeltaWeight(double alpha, double error)
+double DirectedEdge<NodeData>::CalcDeltaWeight(double alpha, double error)
 {
 	pre_weight_ = weight_;
 	delta_ = error * ActivationFunc::df(head_.lock()->PreActivateScore());
@@ -62,51 +75,54 @@ double DirectedEdge::CalcDeltaWeight(double alpha, double error)
 }
 
 
+template <class NodeData>
 template <class ActivationFunc>
-void DirectedEdge::UpdateWeight(double alpha, double beta, double error)
+void DirectedEdge<NodeData>::UpdateWeight(double alpha, double beta, double error)
 {
 	pre_weight_ = weight_;
 	delta_ = error * ActivationFunc::df(head_.lock()->PreActivateScore());
 	weight_ = weight_ * beta + alpha * tail_.lock()->Score() * delta_;
 }
 
-
+/*
+template <class NodeData>
 class UndirectedEdge
 {
 public:
-	using DEdge = DirectedEdge;
+	using NodePtr_ = NodePtr<UndirectedEdge, NodeData>;
+	using C_NodePtr_ = C_NodePtr<UndirectedEdge, NodeData>;
+	using NodeWPtr_ = NodeWPtr<UndirectedEdge, NodeData>;
 
 private:
-	DEdge edge_;
+	DEdgePtr<NodeData> edge_;
+
+private:
+	void AddNode(NodePtr_& side, NodePtr_& snother_side){ edge_; }
 
 public:
-	UndirectedEdge(NodePtr tail, NodePtr head, boost::optional<double> weight = boost::none)
-		: edge_(tail, head), weight_(is_random ? weight : random_()), pre_weight_(weight_), delta_(0){}
+	UndirectedEdge(typename sig::Just<double>::type weight = sig::Nothing(SIG_DEFAULT_EDGE_WEIGHT)) : edge_(weight){}
 	~UndirectedEdge(){};
 
-	double CalcWeightedScore() const;
+	double CalcWeightedScore() const{ return edge_->CalcWeightedScore(); }
 
 	template <class ActivationFunc>
-	double CalcDeltaWeight(double alpha, double error);
+	double CalcDeltaWeight(double alpha, double error){ return edge->CalcDeltaWeight(alpha, error); }
 
 	template <class ActivationFunc>
-	void UpdateWeight(double alpha, double beta, double error);
+	void UpdateWeight(double alpha, double beta, double error){ return edge_->UpdateWeight(alpha, beta, error); }
 
 
-	void Weight(double v){ weight_ = v; }
-	double Weight() const{ return weight_; }
+	void Weight(double v){ edge_->Weight(v); }
+	double Weight() const{ return edge_->Weight(); }
 
-	double PreWeight() const{ return pre_weight_; }
+	double PreWeight() const{ return edge_->PreWeight(); }
 
-	void Delta(double v){ delta_ = v; }
-	double Delta() const{ return delta_; }
+	void Delta(double v){ edge_->Delta(v); }
+	double Delta() const{ return edge_->Delta(); }
 
-	NodePtr HeadNode(){ return head_.lock(); }
-	C_NodePtr HeadNode() const{ return head_.lock(); }
-
-	NodePtr TailNode(){ return tail_.lock(); }
-	C_NodePtr TailNode() const{ return tail_.lock(); }
-};
+	auto Nodes() ->std::tuple<NodePtr, NodePtr>{ return std::make_tuple(edge_->HeadNode(), edge_->TailNode()); }
+	auto Nodes() const ->std::tuple<C_NodePtr, C_NodePtr>{ return std::make_tuple(edge_->HeadNode(), edge_->TailNode()); }
+};*/
 
 }
 #endif

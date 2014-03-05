@@ -2,7 +2,12 @@
 #include "../lib/MLP_batch.hpp"
 #include "../lib/auto_encoder.hpp"
 
-#include "utility.hpp"
+#include "../lib/external/SigUtil/lib/tool.hpp"
+#include "../lib/external/SigUtil/lib/file.hpp"
+#include "../lib/external/SigUtil/lib/modify.hpp"
+#include "../lib/external/SigUtil/lib/string.hpp"
+
+//#include "utility.hpp"
 
 #define IS_BATCH 1
 
@@ -20,11 +25,11 @@ void Test1(){
 #else
 	typedef Perceptron_Online<InInfo, OutInfo> Perceptron;
 #endif
-	auto mid = Layer::MakeInstance(2);
+	auto mid = Perceptron::MakeMidLayer(2);
 	Perceptron nn(learning_rate_sample, L2__regularization_sample, { mid });
 
-	auto MakeData = [](uint data_num, uint elem_num){
-		static SimpleRandom<double> rgen(0.0, 1.0, true);
+	auto MakeData = [&](uint data_num, uint elem_num){
+		static sig::SimpleRandom<double> rgen(0.0, 1.0, true);
 
 		std::vector<std::vector<double>> d; d.reserve(data_num);
 		std::vector<double> a;	a.reserve(elem_num);
@@ -79,6 +84,7 @@ void Test1(){
 	double p_mse = -1, mse = -1;
 	std::tuple<uint, double> mse_min{0, 1000000};
 	auto tmse_min = mse_min;
+
 	sig::TimeWatch tw;
 
 	for (uint loop = 0; loop < MAX_LOOP; ++loop){
@@ -112,8 +118,8 @@ void Test1(){
 		//if (mse < 0.00005) break;
 	}
 
-	tw.Stop();
-	std::cout << "time: " << tw.GetTime<std::chrono::seconds>() << std::endl;
+	tw.Save();
+	std::cout << "time: " << tw.GetTotalTime<std::chrono::seconds>() << std::endl;
 
 	CheckMSE(nn, test_data, test_ans, true);
 
@@ -193,9 +199,9 @@ void Test3(){
 	typedef Perceptron_Online<InInfo, OutInfo> Perceptron;
 #endif
 
-	auto mid = Layer::MakeInstance(100);
+	auto mid = Perceptron::MakeMidLayer(100);
 
-	Perceptron nn(learning_rate_sample, L2__regularization_sample, std::vector<LayerPtr>{mid});
+	Perceptron nn(learning_rate_sample, L2__regularization_sample, {mid});
 
 	//nn.LoadParameter(L"test data/opt");
 
@@ -203,11 +209,11 @@ void Test3(){
 	std::vector<int> train_ans;
 
 	for (int doc = 0; doc <10; ++doc){
-		auto rows = *sig::File::ReadLine<std::string>(L"test data/train" + std::to_wstring(doc) + L".txt");
+		auto rows = *sig::ReadLine<std::string>(L"test data/train" + std::to_wstring(doc) + L".txt");
 		
 		for (uint r=0; r<rows.size(); ++r){
 			train_data.push_back(std::vector<input_type>());
-			auto split = sig::String::Split(rows[r], ",");
+			auto split = sig::Split(rows[r], ",");
 			train_ans.push_back(std::stoi(split[0]));
 			std::transform(++split.begin(), split.end(), std::back_inserter(train_data.back()), [](std::string s){ return std::stoi(s); });
 		}
@@ -261,10 +267,10 @@ void Test3(){
 			esum = nn.Train(inputs[div]);
 #endif
 			
-		tw.Stop();
-		total_time += tw.GetTime<std::chrono::seconds>();
+		tw.Save();
+		total_time += tw.GetTotalTime<std::chrono::seconds>();
 		if (loop%1 == 0){
-			std::cout << "loop: " << loop << " ,time: " << tw.GetTime<std::chrono::seconds>() << " ,total: " << total_time << std::endl << std::endl;
+			std::cout << "loop: " << loop << " ,time: " << tw.GetTotalTime<std::chrono::seconds>() << " ,total: " << total_time << std::endl << std::endl;
 
 			double test_esum = 0;
 			for (uint i=0; i< test_inputs.size(); ++i){
@@ -302,11 +308,11 @@ void Test4()
 
 	std::vector < std::vector<input_type>> train_data;
 
-	auto rows = *sig::File::ReadLine<std::string>(L"test data/train2.txt");
+	auto rows = *sig::ReadLine<std::string>(L"test data/train2.txt");
 
 	for (uint r = 0; r < rows.size(); ++r){
 		train_data.push_back(std::vector<input_type>());
-		auto split = sig::String::Split(rows[r], ",");
+		auto split = sig::Split(rows[r], ",");
 		std::transform(++split.begin(), split.end(), std::back_inserter(train_data.back()), [](std::string s){ return std::stoi(s); });
 	}
 	
@@ -343,7 +349,7 @@ void Test4()
 		esum = std::accumulate(moe.begin(), moe.end(), 0.0) / train_data.size();
 
 		tw.Stop();
-		std::cout << "\n\ntime: " << tw.GetTime<std::chrono::seconds>() << std::endl;
+		std::cout << "\n\ntime: " << tw.GetTotalTime<std::chrono::seconds>() << std::endl;
 		std::cout << "train_mse: " << esum << std::endl << std::endl;
 
 		ae.SaveParameter(L"test data/dst", false);
@@ -356,12 +362,12 @@ void Test4()
 				std::vector<int> r;
 
 				for (uint j = 0; j < est.size(); ++j){
-					hist.Count( Simirarlity(test_data[i].begin(), test_data[i].end(), est.begin(), est.end(), j) );
+					hist.Count( signn::Simirarlity(test_data[i].begin(), test_data[i].end(), est.begin(), est.end(), j) );
 					r.push_back(est[j]);
 				}
 				hist.Print();
-				sig::File::SaveLineNum(test_data[i], L"test data/test0_ans.txt", sig::File::WriteMode::overwrite);
-				sig::File::SaveLineNum(r, L"test data/test0.txt", sig::File::WriteMode::overwrite);
+				sig::SaveNum(test_data[i], L"test data/test0_ans.txt", sig::WriteMode::overwrite);
+				sig::SaveNum(r, L"test data/test0.txt", sig::WriteMode::overwrite);
 			}
 		}
 

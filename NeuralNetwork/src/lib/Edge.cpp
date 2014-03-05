@@ -7,14 +7,18 @@ http://opensource.org/licenses/mit-license.php
 
 #include "edge.h"
 #include "node.hpp"
+#include "external/SigUtil/lib/tool.hpp"
 
 namespace signn{
 
-static auto random_ = SimpleRandom<double>(-1.0, 1.0, DEBUG_MODE);
+static auto random_ = sig::SimpleRandom<double>(-1.0, 1.0, DEBUG_MODE);
 
-DirectedEdge::DirectedEdge(NodePtr tail, NodePtr head) : tail_(tail), head_(head), weight_(random_()), pre_weight_(weight_), delta_(0){}
+template <class NodeData>
+DirectedEdge<NodeData>::DirectedEdge(typename sig::Just<double>::type weight = sig::Nothing(SIG_DEFAULT_EDGE_WEIGHT))
+	: tail_(nullptr), head_(nullptr), weight_(weight ? *weight : random_()), pre_weight_(weight_), delta_(0){}
 
-double DirectedEdge::CalcWeightedScore() const
+template <class NodeData>
+double DirectedEdge<NodeData>::CalcWeightedScore() const
 {
 	auto tp = tail_.lock();
 	if (tp) return tp->Score() * weight_;

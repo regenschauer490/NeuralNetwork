@@ -9,26 +9,34 @@ http://opensource.org/licenses/mit-license.php
 #define SIG_NN_LAYER_H
 
 #include "node.hpp"
-//#include "Edge.h"
-#include "info.hpp"
 
 namespace signn{
 
+template <class NodeData, class Edge>
 class Layer
 {
-	const uint node_num_;
-	std::vector<NodePtr> nodes_;
-
-	FRIEND_WITH_LAYER;
+public:
+	using LayerPtr_ = LayerPtr<NodeData, Edge>;
+	using Node_ = Node<NodeData, Edge>;
+	using NodePtr_ = NodePtr<NodeData, Edge>;
+	using C_NodePtr_ = C_NodePtr<NodeData, Edge>;
 
 private:
-	virtual LayerPtr CloneImpl() const{ return std::shared_ptr<Layer>(new Layer(this->node_num_)); }
+	const uint node_num_;
+	std::vector<NodePtr_> nodes_;
+
+	SIG_FRIEND_WITH_LAYER;
+
+private:
+	virtual LayerPtr_ CloneImpl() const{ return std::shared_ptr<Layer>(new Layer(this->node_num_)); }
 
 protected:
-	Layer(uint node_num) : node_num_(node_num){ for (uint i = 0; i < node_num_; ++i) nodes_.push_back(std::make_shared<Node>()); }
+	explicit Layer(uint node_num) : node_num_(node_num){ for (uint i = 0; i < node_num_; ++i) nodes_.push_back(std::make_shared<Node_>()); }
 
+	//forward propagation
 	virtual void UpdateNodeScore(){ for (auto& n : nodes_) n->UpdateScore<Sigmoid>(); }
 	
+	//back propagation for online
 	void UpdateEdgeWeight(double alpha, double beta){
 		for (auto& node : nodes_){
 			auto const error = std::accumulate(node->out_begin(), node->out_end(), 0.0, [](double sum, DEdgePtr& e){
@@ -41,6 +49,7 @@ protected:
 		}
 	}
 
+	//back propagation for batch (not renew weight)
 	std::vector<double> CalcEdgeWeight(double alpha){
 		std::vector<double> new_weight;
 
@@ -56,6 +65,7 @@ protected:
 		return std::move(new_weight);
 	}
 
+	//renew weight (for batch)
 	void RenewEdgeWeight(std::vector<double> const& delta, double weight_decay_rate)
 	{
 		int ct = -1;
@@ -72,15 +82,15 @@ protected:
 	auto end() ->decltype(nodes_.end()){ return nodes_.end(); }
 	auto end() const ->decltype(nodes_.cend()){ return nodes_.cend(); }
 
-	NodePtr operator[](uint index){ return nodes_[index]; }
-	C_NodePtr operator[](uint index) const{ return nodes_[index]; }
+	NodePtr_ operator[](uint index){ return nodes_[index]; }
+	C_NodePtr_ operator[](uint index) const{ return nodes_[index]; }
 
 public:
 	virtual ~Layer(){};
 
-	static LayerPtr MakeInstance(uint node_num){ return std::shared_ptr<Layer>(new Layer(node_num)); }
+	static LayerPtr_ MakeInstance(uint node_num){ return std::shared_ptr<Layer>(new Layer(node_num)); }
 
-	LayerPtr CloneInitInstance() const{ return CloneImpl(); }
+	LayerPtr_ CloneInitInstance() const{ return CloneImpl(); }
 
 	uint NodeNum() const{ return node_num_; }
 };
