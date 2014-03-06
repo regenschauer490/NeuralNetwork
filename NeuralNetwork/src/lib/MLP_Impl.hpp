@@ -24,10 +24,11 @@ public:
 //	using OutputData_ = typename DataFormat_::OutputData;
 	using OutputArrayType_ = std::array<typename OutputInfo_::output_type, OutputInfo_::dim>;
 	using NodeData_ = double;
+	using DEdge_ = DirectedEdge<NodeData_>;
 	using DEdgePtr_ = DEdgePtr<NodeData_>;
-	using Layer_ = Layer<NodeData_, DirectedEdge<NodeData_>>;					//実際の中間レイヤーの型
-	using LayerPtr_ = LayerPtr<NodeData_, DirectedEdge<NodeData_>>;
-	using InputLayer_ = InputLayer<InputInfo_>;									//実際の入力レイヤーの型
+	using Layer_ = Layer<NodeData_, DEdge_>;						//実際の中間レイヤーの型
+	using LayerPtr_ = LayerPtr<NodeData_, DEdge_>;
+	using InputLayer_ = InputLayer<InputInfo_>;							//実際の入力レイヤーの型
 	using InputLayerPtr_ = InputLayerPtr<InputInfo_>;
 	using OutputLayer_ = typename OutputInfo_::template layer_map<OutputInfo_>;	//実際の出力レイヤーの型
 	using OutputLayerPtr_ = OutputLayerPtr<OutputInfo_>;
@@ -56,7 +57,7 @@ public:
 		MakeLink();
 	}
 
-	static LayerPtr_ MakeMidLayer(uint node_num){ return Layer<NodeData_, DirectedEdge<NodeData_>>::MakeInstance(node_num); }
+	static LayerPtr_ MakeMidLayer(uint node_num){ return Layer_::MakeInstance(node_num); }
 
 
 	void CopyWeight(MLP_Impl const& src){
@@ -101,7 +102,7 @@ void MLP_Impl<InputInfo_, OutputInfo_>::MakeLink()
 	auto MakeLink = [&](LayerPtr_ layer_prev, LayerPtr_ layer_next, std::vector<DEdgePtr_>& cache){
 		for (auto& departure : *layer_prev){
 			for (auto& arrival : *layer_next){
-				auto edge = std::make_shared<DirectedEdge>();
+				auto edge = std::make_shared<DEdge_>();
 				Connect(departure, arrival, edge);
 				cache.push_back(edge);
 			}
@@ -171,16 +172,16 @@ std::vector< std::vector<double>> MLP_Impl<InputInfo_, OutputInfo_>::BackPropaga
 template <class InputInfo_, class OutputInfo_>
 void MLP_Impl<InputInfo_, OutputInfo_>::SaveParameter(std::wstring pass) const
 {
-	pass = File::DirpassTailModify(pass, true);
+	pass = sig::DirpassTailModify(pass, true);
 
 	for (uint l = 1; l < layers_.size(); ++l){
-		File::RemakeFile(pass + L"weight" + std::to_wstring(l) + L".txt");
+		sig::FileClear(pass + L"weight" + std::to_wstring(l) + L".txt");
 		for (auto const& node : *(layers_[l - 1])){
 			std::vector<double> weight;
 			for (auto edge = node->out_begin(), end = node->out_end(); edge != end; ++edge){
 				weight.push_back((*edge)->Weight());
 			}
-			File::SaveLineNum(weight, pass + L"weight" + std::to_wstring(l) + L".txt", File::WriteMode::append, ",");
+			sig::SaveNum(weight, pass + L"weight" + std::to_wstring(l) + L".txt", sig::WriteMode::append, ",");
 		}
 	}
 }
@@ -192,11 +193,11 @@ void MLP_Impl<InputInfo_, OutputInfo_>::LoadParameter(std::wstring pass)
 	for (uint l = 1; l < layers_.size(); ++l){
 		std::vector<std::string> data;
 		uint n = 0;
-		File::ReadLine(data, pass + L"weight" + std::to_wstring(l) + L".txt");
+		sig::ReadLine(data, pass + L"weight" + std::to_wstring(l) + L".txt");
 
 		for (auto const& node : *(layers_[l - 1])){
 			uint e = 0;
-			auto split = Split(data[n], ",");
+			auto split = sig::Split(data[n], ",");
 			for (auto edge = node->out_begin(), end = node->out_end(); edge != end; ++edge){
 				(*edge)->Weight(std::stod(split[e]));
 				++e;

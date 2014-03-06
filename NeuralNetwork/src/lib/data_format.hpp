@@ -110,7 +110,7 @@ public:
 	InputDataPtr MakeInputData(Iter1 input_begin, Iter1 input_end, OutputParamType_ teacher_value) const{
 		static_assert(1 == OutputInfo_::dim, "invalid input data");
 
-		std::array<typename OutputInfo_::type, 1> teacher{ {teacher_value} };
+		std::array<OutputType_, 1> teacher{ { teacher_value } };
 
 		return std::make_shared<InputData>(input_begin, input_end, teacher.begin(), teacher.end(), false);
 	}
@@ -118,9 +118,9 @@ public:
 	//teacher:分類のラベル
 	template<class Iter1, typename = decltype(*std::declval<Iter1&>(), void(), ++std::declval<Iter1&>(), void()), class = typename std::enable_if<std::is_same<OutputType_, bool>::value>::type>
 	InputDataPtr MakeInputData(Iter1 input_begin, Iter1 input_end, uint teacher_label) const{
-		typename InputData::TeacherDataArray teacher;
+		OutputArrayType_ teacher;
 
-		if (OutputInfo_::e_layertype == OutputLayerType::MultiClassClassification){
+		if (OutputInfo_::enum_layer_type == OutputLayerType::MultiClassClassification){
 			assert(teacher_label < OutputInfo_::dim);
 			for (uint i = 0; i < OutputInfo_::dim; ++i){
 				if (teacher_label == i) teacher[i] = true;
@@ -135,7 +135,7 @@ public:
 	//教師信号なし  (テストデータ)
 	template<class Iter1, typename = decltype(*std::declval<Iter1&>(), void(), ++std::declval<Iter1&>(), void())>
 	InputDataPtr MakeInputData(Iter1 input_begin, Iter1 input_end) const{
-		std::array<typename OutputInfo_::type, OutputInfo_::dim> teacher;
+		std::array<OutputType_, OutputInfo_::dim> teacher;
 		return std::make_shared<InputData>(input_begin, input_end, teacher.begin(), teacher.end(), true);
 	}
 };

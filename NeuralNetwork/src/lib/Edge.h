@@ -17,9 +17,9 @@ template <class NodeData>
 class DirectedEdge
 {
 public:
-	using NodePtr_ = NodePtr<DirectedEdge, NodeData>;
-	using C_NodePtr_ = C_NodePtr<DirectedEdge, NodeData>;
-	using NodeWPtr_ = NodeWPtr<DirectedEdge, NodeData>;
+	using NodePtr_ = NodePtr<NodeData, DirectedEdge>;
+	using C_NodePtr_ = C_NodePtr<NodeData, DirectedEdge>;
+	using NodeWPtr_ = NodeWPtr<NodeData, DirectedEdge>;
 
 private:
 	NodeWPtr_ tail_;
@@ -37,7 +37,8 @@ private:
 	void AddNode(NodePtr_& tail, NodePtr_& head){ tail_ = tail; head_ = head; }
 
 public:
-	explicit DirectedEdge(typename sig::Just<double>::type weight = sig::Nothing(SIG_DEFAULT_EDGE_WEIGHT));
+	explicit DirectedEdge(typename sig::Just<double>::type weight = sig::Nothing(SIG_DEFAULT_EDGE_WEIGHT))
+		: weight_(weight ? sig::FromJust(weight) : GetRandNum(-1.0, 1.0)), pre_weight_(weight_), delta_(0){}
 	~DirectedEdge(){};
 	
 
@@ -66,6 +67,14 @@ public:
 };
 
 template <class NodeData>
+double DirectedEdge<NodeData>::CalcWeightedScore() const
+{
+	auto tp = tail_.lock();
+	if (tp) return tp->Score() * weight_;
+	else assert(false, "class DirectedEdge: node link error");
+}
+
+template <class NodeData>
 template <class ActivationFunc>
 double DirectedEdge<NodeData>::CalcDeltaWeight(double alpha, double error)
 {
@@ -83,6 +92,7 @@ void DirectedEdge<NodeData>::UpdateWeight(double alpha, double beta, double erro
 	delta_ = error * ActivationFunc::df(head_.lock()->PreActivateScore());
 	weight_ = weight_ * beta + alpha * tail_.lock()->Score() * delta_;
 }
+
 
 /*
 template <class NodeData>

@@ -19,6 +19,7 @@ http://opensource.org/licenses/mit-license.php
 #include <future>
 
 #include "info.hpp"
+#include "external/SigUtil/lib/tool.hpp"
 
 #if SIG_ENABLE_BOOST
 #include <boost/call_traits.hpp>
@@ -35,7 +36,7 @@ using ParamType = T const&;
 #endif
 
 	template <class T>
-	void Connect(NodePtr<DirectedEdge<T>,T>& departure, NodePtr<DirectedEdge<T>,T>& arrival, DirectedEdge<T>& edge)
+	void Connect(NodePtr<T, DirectedEdge<T>>& departure, NodePtr<T, DirectedEdge<T>>& arrival, DEdgePtr<T>& edge)
 	{
 		departure->AddOutEdge(edge);
 		arrival->AddInEdge(edge);
@@ -44,7 +45,7 @@ using ParamType = T const&;
 
 	//class Matrix はランダムアクセス(operator[])可能であることが条件
 	template <class T, template <class T_, class = std::allocator<T_>> class C, class Matrix>
-	void MakeLink(C<NodePtr<DirectedEdge<T>,T>>& data, Matrix const& adjacency)
+	void MakeLink(C<NodePtr<T, DirectedEdge<T>>>& data, Matrix const& adjacency)
 	{
 		const uint size = data.size();
 		
@@ -53,8 +54,7 @@ using ParamType = T const&;
 			for(uint c=0; c<size; ++c){
 				if(adjacency[r][c]){
 					auto& arrival = data[c];
-					auto edge = std::make_shared<DirectedEdge<T>>();
-					Connect(departure, arrival, edge);
+					Connect(departure, arrival, std::make_shared<DirectedEdge<T>>());
 				}
 			}
 		}
@@ -62,7 +62,7 @@ using ParamType = T const&;
 	
 	//class Matrix はランダムアクセス(operator[])可能であることが条件
 	template <class T, template <class T_, class = std::allocator<T_>> class C, class Matrix>
-	void MakeLink(C<NodePtr<DirectedEdge<T>,T>>& layer1, C<NodePtr<DirectedEdge<T>,T>>& layer2, Matrix const& connection)
+	void MakeLink(C<NodePtr<T, DirectedEdge<T>>>& layer1, C<NodePtr<T, DirectedEdge<T>>>& layer2, Matrix const& connection)
 	{
 		const uint size = sig::Min(layer1.size(), layer2.size());
 		
@@ -71,8 +71,7 @@ using ParamType = T const&;
 			for(uint c=0; c<size; ++c){
 				if(adjacency[r][c]){
 					auto& arrival = layer2[c];
-					auto edge = std::make_shared<DirectedEdge>(departure, arrival);
-					Connect(departure, arrival, edge);
+					Connect(departure, arrival, std::make_shared<DirectedEdge>(departure, arrival));
 				}
 			}
 		}
@@ -121,6 +120,11 @@ using ParamType = T const&;
 		}
 
 		return result / size;
+	}
+
+	inline double GetRandNum(double min, double max){
+		static auto random = sig::SimpleRandom<double>(min, max, DEBUG_MODE);
+		return random();
 	}
 
 }

@@ -57,7 +57,7 @@ double AutoEncoder<InputInfo_, HiddenDim, OutputInfo_>::Train(InputDataPtr train
 	if (train_data->IsTestData()){
 		assert(false);
 		auto& input = train_data->Input();
-		auto& teacher = const_cast<OutputArrayType&>(train_data->Teacher());
+		auto& teacher = const_cast<OutputArrayType_&>(train_data->Teacher());
 
 		for (uint i = 0; i < InputInfo_::dim; ++i) teacher[i] = input[i];
 	}

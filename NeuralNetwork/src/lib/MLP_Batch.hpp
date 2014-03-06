@@ -15,9 +15,11 @@ namespace signn{
 template <class InputInfo_, class OutputInfo_>
 class Perceptron_Batch : public DataFormat<InputInfo_, OutputInfo_>
 {
+public:
 	using MLP_ = MLP_Impl<InputInfo_, OutputInfo_>;
 	using LayerPtr_ = typename MLP_::LayerPtr_;
 
+private:
 	const double alpha_;
 	const double beta_;	//L2 regularization
 
@@ -71,7 +73,7 @@ double Perceptron_Batch<InputInfo_, OutputInfo_>::Train(std::vector<InputDataPtr
 	double mse = 0;
 	std::vector<std::vector<double>> delta_weight;
 
-	auto LearnImpl = [](MLP_& mlp, std::vector<InputDataPtr>::const_iterator begin, std::vector<InputDataPtr_>::const_iterator end)
+	auto LearnImpl = [](MLP_& mlp, std::vector<InputDataPtr>::const_iterator begin, std::vector<InputDataPtr>::const_iterator end)
 	{
 		std::vector< std::vector<double>> result;
 		double l_mse;

@@ -19,6 +19,8 @@ public:
 	using LayerPtr_ = LayerPtr<NodeData, Edge>;
 	using Node_ = Node<NodeData, Edge>;
 	using NodePtr_ = NodePtr<NodeData, Edge>;
+	using DEdge_ = DirectedEdge<NodeData>;
+	using DEdgePtr_ = DEdgePtr<NodeData>;
 	using C_NodePtr_ = C_NodePtr<NodeData, Edge>;
 
 private:
@@ -39,7 +41,7 @@ protected:
 	//back propagation for online
 	void UpdateEdgeWeight(double alpha, double beta){
 		for (auto& node : nodes_){
-			auto const error = std::accumulate(node->out_begin(), node->out_end(), 0.0, [](double sum, DEdgePtr& e){
+			auto const error = std::accumulate(node->out_begin(), node->out_end(), 0.0, [](double sum, DEdgePtr_& e){
 				return sum + e->PreWeight() * e->Delta();
 			});
 
@@ -54,7 +56,7 @@ protected:
 		std::vector<double> new_weight;
 
 		for (auto& node : nodes_){
-			auto const error = std::accumulate(node->out_begin(), node->out_end(), 0.0, [](double sum, DEdgePtr& e){
+			auto const error = std::accumulate(node->out_begin(), node->out_end(), 0.0, [](double sum, DEdgePtr_& e){
 				return sum + e->PreWeight() * e->Delta();
 			});
 
@@ -77,13 +79,9 @@ protected:
 	}
 
 	auto begin() ->decltype(nodes_.begin()){ return nodes_.begin(); }
-	auto begin() const ->decltype(nodes_.cbegin()){ return nodes_.cbegin(); }
-
 	auto end() ->decltype(nodes_.end()){ return nodes_.end(); }
-	auto end() const ->decltype(nodes_.cend()){ return nodes_.cend(); }
 
 	NodePtr_ operator[](uint index){ return nodes_[index]; }
-	C_NodePtr_ operator[](uint index) const{ return nodes_[index]; }
 
 public:
 	virtual ~Layer(){};
@@ -93,6 +91,11 @@ public:
 	LayerPtr_ CloneInitInstance() const{ return CloneImpl(); }
 
 	uint NodeNum() const{ return node_num_; }
+
+	auto begin() const ->decltype(nodes_.cbegin()){ return nodes_.cbegin(); }
+	auto end() const ->decltype(nodes_.cend()){ return nodes_.cend(); }
+
+	C_NodePtr_ operator[](uint index) const{ return nodes_[index]; }
 };
 
 }

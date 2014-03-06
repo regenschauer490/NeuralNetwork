@@ -48,7 +48,7 @@ public:
 	}
 
 	template <class ActivationFunc>
-	void UpdateScore(){ *score_ = ActivationFunc::f(AccumulateRawScore()); }		//enable only DataType := double 
+	void UpdateScore(){ score_ = ActivationFunc::f(AccumulateRawScore()); }		//enable only DataType := double 
 
 	ParamType_ Score() const{ return score_; }		//return const T& if DataType is user defined types. otherwise return T.
 	void Score(ParamType_ v){ score_ = v; }

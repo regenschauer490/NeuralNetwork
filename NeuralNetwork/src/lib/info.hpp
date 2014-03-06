@@ -118,10 +118,13 @@ template <size_t RefVecDim>
 using SOMLayerPtr = std::shared_ptr<SOMLayer<RefVecDim>>;
 
 #define SIG_FRIEND_WITH_LAYER\
-	template <class InputInfo, class OutputInfo> friend class MLP_Impl;
+	template <class InputInfo_, class OutputInfo_> friend class MLP_Impl;
+
+#define SIG_FRIEND_WITH_SOMLAYER\
+	template <class InputInfo_> friend class SOM_Online : public DataFormat<InputInfo_, OutputInfo_>;
 
 #define SIG_FRIEND_WITH_NODE_AND_EDGE\
-	template <class T> friend void Connect(NodePtr<DirectedEdge<T>, T>& departure, NodePtr<DirectedEdge<T>, T>& arrival, DirectedEdge<T>& edge);
+	template <class T> friend void Connect(NodePtr<T, DirectedEdge<T>>& departure, NodePtr<T, DirectedEdge<T>>& arrival, DEdgePtr<T>& edge);
 
 //activation function
 template <class T>

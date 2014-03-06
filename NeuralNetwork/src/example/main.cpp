@@ -1,6 +1,7 @@
 ﻿#include "../lib/MLP_online.hpp"
 #include "../lib/MLP_batch.hpp"
 #include "../lib/auto_encoder.hpp"
+#include "../lib/SOM_online.hpp"
 
 #include "../lib/external/SigUtil/lib/tool.hpp"
 #include "../lib/external/SigUtil/lib/file.hpp"
@@ -376,8 +377,14 @@ void Test4()
 	}
 }
 
+//自己組織化マップ
+void Test5()
+{
+	//signn::SOM_Online
+}
+
 
 int main(){
-	Test3();
+	Test1();
 }
 
