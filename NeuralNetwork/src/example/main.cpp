@@ -20,7 +20,7 @@ void Test1(){
 	const uint VNUM = 2;
 
 	typedef InputInfo<double, VNUM> InInfo;
-	typedef OutputInfo<OutputLayerType::Regression, 1> OutInfo;
+	typedef OutputInfo<RegressionLayerInfo> OutInfo;
 #if IS_BATCH
 	typedef Perceptron_Batch<InInfo, OutInfo> Perceptron;
 #else
@@ -193,7 +193,7 @@ void Test3(){
 	
 	typedef bool input_type;
 	typedef InputInfo<input_type, 784> InInfo;
-	typedef OutputInfo<OutputLayerType::MultiClassClassification, 10> OutInfo;
+	typedef OutputInfo<MultiClassClassifyLayerInfo<10>> OutInfo;
 #if IS_BATCH
 	typedef Perceptron_Batch<InInfo, OutInfo> Perceptron;
 #else

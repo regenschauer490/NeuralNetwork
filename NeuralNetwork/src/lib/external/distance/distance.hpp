@@ -19,8 +19,9 @@ namespace sigdm{
 	template <size_t P>
 	struct MinkowskiDistance
 	{
-		template < class T, template < class T_, class = std::allocator <T_>> class C1>
-		double operator()(Container<T> const& vec1, Container<T> const& vec2){
+		template <class C1, class C2>
+		double operator()(C1 const& vec1, C2 const& vec2){
+			using T = typename std::common_type<sig::container_traits<C1>::value_type, sig::container_traits<C2>::value_type>::type;
 			auto delta = sig::ZipWith([&](T val1, T val2){ return std::pow(sig::DeltaAbsabs(val1, val2), P); }, vec1, vec2);
 			
 			return std::pow(std::accumulate(std::begin(delta), std::end(delta), 0.0, std::plus<double>()), 1.0 / P);

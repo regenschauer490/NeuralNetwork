@@ -13,13 +13,12 @@ http://opensource.org/licenses/mit-license.php
 
 namespace signn{
 
-template <class InputInfo_>
-class SOM_Online : public DataFormat<InputInfo_, OutputInfo_>
+template <class InputInfo_, size_t SideNodeNum>
+class SOM_Online : public DataFormat<InputInfo_, OutputInfo<SOMLayerInfo<SideNodeNum>>>
 {
 public:
-	using DataFormat = DataFormat<InputInfo_, OutputInfo_>;
-	using Layer_ = SOMLayer<InputInfo_::dim>;
-	using LayerPtr_ = SOMLayerPtr<InputInfo_::dim>;
+	using Layer_ = SOMLayer<InputInfo_::node_num>;
+	using LayerPtr_ = SOMLayerPtr<InputInfo_::node_num>;
 	using NodeData_ = typename Layer_::NodeData_;
 	using NodePtr_ = typename Layer_::NodePtr_;
 	using C_NodePtr_ = typename Layer_::C_NodePtr_;
@@ -31,29 +30,34 @@ private:
 	void Init();
 
 	//入力のベクトルと最も類似した参照ベクトルを探す
-	C_NodePtr_ SearchSimilarity(NodeData_ const& input) const;
+	C_NodePtr_ SearchSimilarity(InputData const& input) const;
 	
 public:
-	SOM_Online() : layer_(LayerPtr_(new Layer_(InputInfo_::dim))){}
+	SOM_Online() : layer_(LayerPtr_(new Layer_(InputInfo_::node_num))){}
 	
 	void Train(InputDataPtr input);
 };
 
-template <class InputInfo_, class OutputInfo_>
-void SOM_Online<InputInfo_, OutputInfo_>::Init()
+template <class InputInfo_, size_t SideNodeNum>
+void SOM_Online<InputInfo_, SideNodeNum>::Init()
 {
 }
 
-template <class InputInfo_, class OutputInfo_>
-auto SOM_Online<InputInfo_, OutputInfo_>::SearchSimilarity(NodeData_ const& input) const
+template <class InputInfo_, size_t SideNodeNum>
+auto SOM_Online<InputInfo_, SideNodeNum>::SearchSimilarity(InputData const& input) const->C_NodePtr_
 {
-	sigdm::EuclideanDistance dist;
+	typename sigdm::EuclideanDistance Dist;
+	double min_dist = std::numeric_limits<double>::max();
+	NodePtr_ nearest = nullptr;		//NodePtr_* にすべきか検討
 
-	for (auto const& row_nodes : layer_){
-		for (auto const& node : row_nodes){
-			dist(input, *node->Score(), )
+	for (auto const& node : layer_){
+		if (auto dist = Dist(input, *node->Score()) < min_dist){
+			min_dist = dist;
+			nearest = node;
 		}
 	}
+
+	return nearest;
 }
 
 }

@@ -71,7 +71,7 @@ double DirectedEdge<NodeData>::CalcWeightedScore() const
 {
 	auto tp = tail_.lock();
 	if (tp) return tp->Score() * weight_;
-	else assert(false, "class DirectedEdge: node link error");
+	else assert(false);	//"class DirectedEdge: node link error"
 }
 
 template <class NodeData>

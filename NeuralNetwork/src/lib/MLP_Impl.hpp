@@ -22,7 +22,7 @@ public:
 	using DataFormat_ = DataFormat<InputInfo_, OutputInfo_>;
 	using InputData_ = typename DataFormat_::InputData;
 //	using OutputData_ = typename DataFormat_::OutputData;
-	using OutputArrayType_ = std::array<typename OutputInfo_::output_type, OutputInfo_::dim>;
+	using OutputArrayType_ = std::array<typename OutputInfo_::output_type, OutputInfo_::node_num>;
 	using NodeData_ = double;
 	using DEdge_ = DirectedEdge<NodeData_>;
 	using DEdgePtr_ = DEdgePtr<NodeData_>;
@@ -30,7 +30,7 @@ public:
 	using LayerPtr_ = LayerPtr<NodeData_, DEdge_>;
 	using InputLayer_ = InputLayer<InputInfo_>;							//実際の入力レイヤーの型
 	using InputLayerPtr_ = InputLayerPtr<InputInfo_>;
-	using OutputLayer_ = typename OutputInfo_::template layer_map<OutputInfo_>;	//実際の出力レイヤーの型
+	using OutputLayer_ = typename OutputInfo_::template layer_type<OutputInfo_>;	//実際の出力レイヤーの型
 	using OutputLayerPtr_ = OutputLayerPtr<OutputInfo_>;
 
 private:

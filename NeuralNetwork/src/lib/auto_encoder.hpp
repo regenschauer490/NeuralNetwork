@@ -12,7 +12,7 @@ http://opensource.org/licenses/mit-license.php
 
 namespace signn{
 
-template <class InputInfo_, uint HiddenDim, class OutputInfo_ = OutputInfo<OutputLayerType::BinaryClassification, InputInfo_::dim>>
+template <class InputInfo_, uint HiddenDim, class OutputInfo_ = OutputInfo<MultiLabelClassifyLayerInfo<InputInfo_::node_num>>>
 class AutoEncoder : public DataFormat<InputInfo_, OutputInfo_>
 {
 	using Perceptron_ = Perceptron_Online<InputInfo_, OutputInfo_>;
@@ -29,7 +29,7 @@ public:
 	AutoEncoder(double learning_rate, double L2_regularization, double goal_mse = std::numeric_limits<double>::max())
 		: hidden_(Layer_::MakeInstance(HiddenDim)), ac_(learning_rate, L2_regularization, std::vector<LayerPtr_>{hidden_}, goal_mse)
 	{
-		static_assert(InputInfo_::dim == OutputInfo_::dim, "invalid dimension: different dim between input and output");
+		static_assert(InputInfo_::node_num == OutputInfo_::node_num, "invalid dimension: different dim between input and output");
 	}
 
 	double Train(InputDataPtr train_data, bool return_sqerror = false);
@@ -44,7 +44,7 @@ public:
 	template<class Iter1, typename = decltype(*std::declval<Iter1&>(), void(), ++std::declval<Iter1&>(), void())>
 	std::shared_ptr<InputData> MakeInputData(Iter1 input_begin, Iter1 input_end) const{
 		uint i = 0;
-		std::array<OutputType_, OutputInfo_::dim> teacher;
+		std::array<OutputType_, OutputInfo_::node_num> teacher;
 		for (auto in = input_begin; in != input_end; ++in, ++i) teacher[i] = *in;
 		return std::make_shared<InputData>(input_begin, input_end, teacher.begin(), teacher.end(), false);
 	}
@@ -59,7 +59,7 @@ double AutoEncoder<InputInfo_, HiddenDim, OutputInfo_>::Train(InputDataPtr train
 		auto& input = train_data->Input();
 		auto& teacher = const_cast<OutputArrayType_&>(train_data->Teacher());
 
-		for (uint i = 0; i < InputInfo_::dim; ++i) teacher[i] = input[i];
+		for (uint i = 0; i < InputInfo_::node_num; ++i) teacher[i] = input[i];
 	}
 
 	return ac_.Train(train_data, return_sqerror);

@@ -25,10 +25,6 @@ const double threshold_theta = 0.5;
 const double SIG_DEFAULT_EDGE_WEIGHT = 0.5;		//default edge weight(must not set same weight on MLP, AutoEncoder and so on)
 
 
-//parameter selection
-enum class OutputLayerType { Regression, BinaryClassification, MultiClassClassification, MultiLabelClassification };
-
-
 //forward declaration
 template <class OutputInfo_>
 class RegressionLayer;
@@ -42,45 +38,70 @@ class MultiClassClassificationLayer;
 template <size_t RefVecDim>
 class SOMLayer;
 
-//type map (enum class -> class)
-template <OutputLayerType EnumLayer>
-struct LayerTypeMap{};
 
-template <>
-struct LayerTypeMap<OutputLayerType::Regression>{
-	template<class OutInfo>
-	using layer_type = RegressionLayer<OutInfo>;
+//出力が実数値で、回帰を行いたい場合の設定
+struct RegressionLayerInfo{
+	template<class OutInfo> using layer_type = RegressionLayer<OutInfo>;
 	using output_type = double;
+	static constexpr size_t node_num = 1;
 };
 
-template <>
-struct LayerTypeMap<OutputLayerType::BinaryClassification>{
-	template<class OInfo>
-	using layer_type = BinaryClassificationLayer<OInfo>;
+//出力がバイナリ(bool)で、二値分類を行いたい場合の設定
+struct BinaryClassifyLayerInfo{
+	template<class OInfo> using layer_type = BinaryClassificationLayer<OInfo>;
 	using output_type = bool;
+	static constexpr size_t node_num = 1;
 };
 
-template <>
-struct LayerTypeMap<OutputLayerType::MultiClassClassification>{
-	template<class OInfo>
-	using layer_type = MultiClassClassificationLayer<OInfo>;
+//出力がバイナリ(bool)で、多値分類を行いたい場合の設定
+template <size_t NodeNum>
+struct MultiClassClassifyLayerInfo{
+	template<class OInfo> using layer_type = MultiClassClassificationLayer<OInfo>;
 	using output_type = bool;
+	static constexpr size_t node_num = NodeNum;
+};
+
+//出力がバイナリ(bool)で、マルチラベル分類を行いたい場合の設定
+template <size_t NodeNum>
+struct MultiLabelClassifyLayerInfo{
+	template<class OInfo> using layer_type = BinaryClassificationLayer<OInfo>;
+	using output_type = bool;
+	static constexpr size_t node_num = NodeNum;
+};
+
+//自己組織化マップ用の設定
+template <size_t SideNodeNum>
+struct SOMLayerInfo{
+	using layer_type = SOMLayer<SideNodeNum>;
+	using output_type = double;
+	static constexpr size_t node_num = SideNodeNum * SideNodeNum;
+};
+
+//出力レイヤーの任意設定
+template < template <class> class OutputLayer, class ValueType, size_t NodeNum>
+struct LayerInfo{
+	template<class OInfo> using layer_type = OutputLayer<OInfo>;
+	using output_type = ValueType;
+	static constexpr size_t node_num = NodeNum;
 };
 
 
-//meta info
-template <class Type, size_t Dim>
+
+//input meta info
+//Type: input data type
+//node_num: the number of nodes which this layer has
+template <class Type, size_t NodeNum>
 struct InputInfo{
-	typedef Type type;
-	static constexpr size_t dim = Dim;
+	using type = Type;
+	static constexpr size_t node_num = NodeNum;
 };
 
-template <OutputLayerType LayerType, size_t Dim>
+//output meta info
+template <class LayerInfo_>
 struct OutputInfo{
-	using output_type = typename LayerTypeMap<LayerType>::output_type;
-	template<class OI> using layer_map = typename LayerTypeMap<LayerType>::template layer_type<OI>;
-	static constexpr OutputLayerType enum_layer_type = LayerType;
-	static constexpr size_t dim = Dim;
+	using output_type = typename LayerInfo_::output_type;
+	template<class OI> using layer_type = typename LayerInfo_::template layer_type<OI>;
+	static constexpr size_t node_num = LayerInfo_::node_num;
 };
 
 
@@ -125,6 +146,7 @@ using SOMLayerPtr = std::shared_ptr<SOMLayer<RefVecDim>>;
 
 #define SIG_FRIEND_WITH_NODE_AND_EDGE\
 	template <class T> friend void Connect(NodePtr<T, DirectedEdge<T>>& departure, NodePtr<T, DirectedEdge<T>>& arrival, DEdgePtr<T>& edge);
+
 
 //activation function
 template <class T>
