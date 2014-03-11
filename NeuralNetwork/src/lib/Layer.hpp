@@ -33,7 +33,7 @@ private:
 	virtual LayerPtr_ CloneImpl() const{ return std::shared_ptr<Layer>(new Layer(this->node_num_)); }
 
 protected:
-	explicit Layer(uint node_num) : node_num_(node_num){ for (uint i = 0; i < node_num_; ++i) nodes_.push_back(std::make_shared<Node_>()); }
+	explicit Layer(uint dim) : node_num_(dim){ for (uint i = 0; i < node_num_; ++i) nodes_.push_back(std::make_shared<Node_>()); }
 
 	//forward propagation
 	virtual void UpdateNodeScore(){ for (auto& n : nodes_) n->UpdateScore<Sigmoid>(); }

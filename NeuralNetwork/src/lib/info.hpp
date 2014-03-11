@@ -24,6 +24,7 @@ const double L2__regularization_sample = 0.9999;
 const double threshold_theta = 0.5;
 const double SIG_DEFAULT_EDGE_WEIGHT = 0.5;		//default edge weight(must not set same weight on MLP, AutoEncoder and so on)
 
+const double som_learning_rate = 0.1;
 
 //forward declaration
 template <class OutputInfo_>
@@ -43,14 +44,14 @@ class SOMLayer;
 struct RegressionLayerInfo{
 	template<class OutInfo> using layer_type = RegressionLayer<OutInfo>;
 	using output_type = double;
-	static constexpr size_t node_num = 1;
+	static constexpr size_t dim = 1;
 };
 
 //出力がバイナリ(bool)で、二値分類を行いたい場合の設定
 struct BinaryClassifyLayerInfo{
 	template<class OInfo> using layer_type = BinaryClassificationLayer<OInfo>;
 	using output_type = bool;
-	static constexpr size_t node_num = 1;
+	static constexpr size_t dim = 1;
 };
 
 //出力がバイナリ(bool)で、多値分類を行いたい場合の設定
@@ -58,7 +59,7 @@ template <size_t NodeNum>
 struct MultiClassClassifyLayerInfo{
 	template<class OInfo> using layer_type = MultiClassClassificationLayer<OInfo>;
 	using output_type = bool;
-	static constexpr size_t node_num = NodeNum;
+	static constexpr size_t dim = NodeNum;
 };
 
 //出力がバイナリ(bool)で、マルチラベル分類を行いたい場合の設定
@@ -66,7 +67,7 @@ template <size_t NodeNum>
 struct MultiLabelClassifyLayerInfo{
 	template<class OInfo> using layer_type = BinaryClassificationLayer<OInfo>;
 	using output_type = bool;
-	static constexpr size_t node_num = NodeNum;
+	static constexpr size_t dim = NodeNum;
 };
 
 //自己組織化マップ用の設定
@@ -74,7 +75,7 @@ template <size_t SideNodeNum>
 struct SOMLayerInfo{
 	using layer_type = SOMLayer<SideNodeNum>;
 	using output_type = double;
-	static constexpr size_t node_num = SideNodeNum * SideNodeNum;
+	static constexpr size_t dim = SideNodeNum * SideNodeNum;
 };
 
 //出力レイヤーの任意設定
@@ -82,18 +83,18 @@ template < template <class> class OutputLayer, class ValueType, size_t NodeNum>
 struct LayerInfo{
 	template<class OInfo> using layer_type = OutputLayer<OInfo>;
 	using output_type = ValueType;
-	static constexpr size_t node_num = NodeNum;
+	static constexpr size_t dim = NodeNum;
 };
 
 
 
 //input meta info
 //Type: input data type
-//node_num: the number of nodes which this layer has
+//dim: the number of nodes which this layer has
 template <class Type, size_t NodeNum>
 struct InputInfo{
 	using type = Type;
-	static constexpr size_t node_num = NodeNum;
+	static constexpr size_t dim = NodeNum;
 };
 
 //output meta info
@@ -101,7 +102,7 @@ template <class LayerInfo_>
 struct OutputInfo{
 	using output_type = typename LayerInfo_::output_type;
 	template<class OI> using layer_type = typename LayerInfo_::template layer_type<OI>;
-	static constexpr size_t node_num = LayerInfo_::node_num;
+	static constexpr size_t dim = LayerInfo_::dim;
 };
 
 

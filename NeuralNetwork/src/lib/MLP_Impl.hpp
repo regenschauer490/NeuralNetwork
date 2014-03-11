@@ -22,7 +22,7 @@ public:
 	using DataFormat_ = DataFormat<InputInfo_, OutputInfo_>;
 	using InputData_ = typename DataFormat_::InputData;
 //	using OutputData_ = typename DataFormat_::OutputData;
-	using OutputArrayType_ = std::array<typename OutputInfo_::output_type, OutputInfo_::node_num>;
+	using OutputArrayType_ = std::array<typename OutputInfo_::output_type, OutputInfo_::dim>;
 	using NodeData_ = double;
 	using DEdge_ = DirectedEdge<NodeData_>;
 	using DEdgePtr_ = DEdgePtr<NodeData_>;
@@ -57,7 +57,7 @@ public:
 		MakeLink();
 	}
 
-	static LayerPtr_ MakeMidLayer(uint node_num){ return Layer_::MakeInstance(node_num); }
+	static LayerPtr_ MakeMidLayer(uint dim){ return Layer_::MakeInstance(dim); }
 
 
 	void CopyWeight(MLP_Impl const& src){

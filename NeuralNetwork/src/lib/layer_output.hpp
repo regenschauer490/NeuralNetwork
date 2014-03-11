@@ -27,16 +27,16 @@ private:
 	virtual LayerPtr_ CloneImpl() const override = 0;
 
 protected:
-	OutputLayer() : Layer(OutputInfo_::node_num){};
+	OutputLayer() : Layer(OutputInfo_::dim){};
 
 	//forward propagation
 	virtual void UpdateNodeScore() override = 0;
 
 	//back propagation for online
-	virtual void UpdateEdgeWeight(double alpha, double beta, std::array<OutputData_, OutputInfo_::node_num> teacher_signals) = 0;
+	virtual void UpdateEdgeWeight(double alpha, double beta, std::array<OutputData_, OutputInfo_::dim> teacher_signals) = 0;
 
 	//back propagation for batch (not renew weight)
-	virtual std::vector<NodeData_> CalcEdgeWeight(double alpha, std::array<OutputData_, OutputInfo_::node_num> teacher_signals) = 0;
+	virtual std::vector<NodeData_> CalcEdgeWeight(double alpha, std::array<OutputData_, OutputInfo_::dim> teacher_signals) = 0;
 
 	//convert node-value into output-value
 	virtual OutputData_ OutputScore(NodeData_ raw_score) const = 0;
@@ -46,9 +46,9 @@ public:
 
 	OutputLayerPtr<OutputInfo_> CloneInitInstance() const{ return std::static_pointer_cast<OutputLayer<OutputInfo_>>(CloneImpl()); }
 
-	auto GetScore() const->std::array<OutputData_, OutputInfo_::node_num>{
-		std::array<OutputData_, OutputInfo_::node_num> score;
-		for (uint i = 0; i < OutputInfo_::node_num; ++i) score[i] = OutputScore(this->operator[](i)->Score());
+	auto GetScore() const->std::array<OutputData_, OutputInfo_::dim>{
+		std::array<OutputData_, OutputInfo_::dim> score;
+		for (uint i = 0; i < OutputInfo_::dim; ++i) score[i] = OutputScore(this->operator[](i)->Score());
 		return score;
 	}
 
@@ -60,7 +60,7 @@ public:
 	double SquareError(Iter ans_vector_begin) const;
 
 	double SquareError(typename OutputInfo_::type ans) const{
-		static_assert(OutputInfo_::node_num < 2, "error in OutputLayer::SquareError() : need OutputLayer_::node_num < 2");
+		static_assert(OutputInfo_::dim < 2, "error in OutputLayer::SquareError() : need OutputLayer_::dim < 2");
 		return pow((*this)[0]->Score() - ans, 2);
 	}
 */
@@ -70,7 +70,7 @@ public:
 template <class OutputInfo_>
 template<class Container>
 double OutputLayer<OutputInfo_>::MeanSquareError(Container const& teacher) const{
-	return std::inner_product(begin(), end(), teacher.begin(), 0.0, std::plus<double>(), [](NodePtr_ const& v1, double v2){ return pow(v1->Score() - v2, 2); }) / OutputInfo_::node_num;
+	return std::inner_product(begin(), end(), teacher.begin(), 0.0, std::plus<double>(), [](NodePtr_ const& v1, double v2){ return pow(v1->Score() - v2, 2); }) / OutputInfo_::dim;
 }
 
 #define PP_UpdateNodeScore(ACTIVATE_FUNC)\
@@ -81,8 +81,8 @@ double OutputLayer<OutputInfo_>::MeanSquareError(Container const& teacher) const
 	}
 
 #define PP_UpdateEdgeWeight(ACTIVATE_FUNC)\
-	void UpdateEdgeWeight(double alpha, double beta, std::array<OutputData_, OutputInfo_::node_num> teacher_signals) override{\
-		for (uint n = 0, node_num = OutputInfo_::node_num; n < node_num; ++n){\
+	void UpdateEdgeWeight(double alpha, double beta, std::array<OutputData_, OutputInfo_::dim> teacher_signals) override{\
+		for (uint n = 0, node_num = OutputInfo_::dim; n < node_num; ++n){\
 			auto& node = (*this)[n]; \
 			auto const error = teacher_signals[n] - node->Score(); /* OutputData_(double or bool) - NodeData_(double) */ \
 			\
@@ -94,9 +94,9 @@ double OutputLayer<OutputInfo_>::MeanSquareError(Container const& teacher) const
 
 
 #define PP_CalcEdgeWeight(ACTIVATE_FUNC)\
-	std::vector<NodeData_> CalcEdgeWeight(double alpha, std::array<OutputData_, OutputInfo_::node_num> teacher_signals) override{\
+	std::vector<NodeData_> CalcEdgeWeight(double alpha, std::array<OutputData_, OutputInfo_::dim> teacher_signals) override{\
 		std::vector<NodeData_> new_weight; \
-		for (uint n = 0, node_num = OutputInfo_::node_num; n < node_num; ++n){\
+		for (uint n = 0, node_num = OutputInfo_::dim; n < node_num; ++n){\
 			auto& node = (*this)[n];\
 			auto const error = teacher_signals[n] - node->Score(); /* OutputData_(double or bool) - NodeData_(double) */ \
 			\
@@ -169,15 +169,15 @@ private:
 		}
 		auto exp_sum = std::accumulate(exp_raw_score.begin(), exp_raw_score.end(), 0.0);
 
-		for (uint n = 0, num = OutputInfo_::node_num; n < num; ++n){
+		for (uint n = 0, num = OutputInfo_::dim; n < num; ++n){
 			(*this)[n]->Score(Softmax::f(exp_raw_score[n], exp_sum));
 		}
 	}
 
-	std::vector<NodeData_> CalcEdgeWeight(double alpha, std::array<OutputData_, OutputInfo_::node_num> teacher_signals) override{
+	std::vector<NodeData_> CalcEdgeWeight(double alpha, std::array<OutputData_, OutputInfo_::dim> teacher_signals) override{
 		std::vector<NodeData_> new_weight;
 
-		for (uint n = 0, node_num = OutputInfo_::node_num; n < node_num; ++n){
+		for (uint n = 0, node_num = OutputInfo_::dim; n < node_num; ++n){
 			auto& node = (*this)[n]; 
 			auto const error = teacher_signals[n] - node->Score(); // OutputData_(bool) - NodeData_(double)
 
@@ -188,8 +188,8 @@ private:
 		return std::move(new_weight);
 	}
 
-	void UpdateEdgeWeight(double alpha, double beta, std::array<OutputData_, OutputInfo_::node_num> teacher_signals) override{
-		for (uint n = 0, node_num = OutputInfo_::node_num; n < node_num; ++n){
+	void UpdateEdgeWeight(double alpha, double beta, std::array<OutputData_, OutputInfo_::dim> teacher_signals) override{
+		for (uint n = 0, node_num = OutputInfo_::dim; n < node_num; ++n){
 			auto& node = (*this)[n]; 
 			auto const error = teacher_signals[n] - node->Score();  // OutputData_(bool) - NodeData_(double)
 
@@ -199,7 +199,7 @@ private:
 		}
 	}
 
-	OutputData_ OutputScore(NodeData_ raw_score) const override{ return raw_score < 1.0 / OutputInfo_::node_num ? false : true; }
+	OutputData_ OutputScore(NodeData_ raw_score) const override{ return raw_score < 1.0 / OutputInfo_::dim ? false : true; }
 
 public:
 	virtual ~MultiClassClassificationLayer(){};

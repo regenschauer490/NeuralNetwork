@@ -147,7 +147,7 @@
   <ItemGroup>
     <ClInclude Include="src\lib\auto_encoder.hpp" />
     <ClInclude Include="src\lib\data_format.hpp" />
-    <ClInclude Include="src\lib\edge.h" />
+    <ClInclude Include="src\lib\edge.hpp" />
     <ClInclude Include="src\lib\info.hpp" />
     <ClInclude Include="src\lib\layer.hpp" />
     <ClInclude Include="src\lib\layer_input.hpp" />

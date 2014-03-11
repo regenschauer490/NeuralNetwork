@@ -8,7 +8,7 @@ http://opensource.org/licenses/mit-license.php
 #ifndef SIG_NN_LAYER_SOM_H
 #define SIG_NN_LAYER_SOM_H
 
-#include "edge.h"
+#include "edge.hpp"
 
 namespace signn{
 
@@ -43,7 +43,7 @@ namespace signn{
 	public:
 		SOMLayer(uint row_num, uint col_num);
 
-		//static LayerPtr_ MakeInstance(uint node_num){ return std::shared_ptr<SOMLayer>(new SOMLayer(node_num)); }
+		//static LayerPtr_ MakeInstance(uint dim){ return std::shared_ptr<SOMLayer>(new SOMLayer(dim)); }
 
 		LayerPtr_ CloneInitInstance() const{ return CloneImpl(); }
 

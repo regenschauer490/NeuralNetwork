@@ -8,7 +8,7 @@ http://opensource.org/licenses/mit-license.php
 #ifndef SIG_NN_NODE_H
 #define SIG_NN_NODE_H
 
-#include "edge.h"
+#include "edge.hpp"
 
 namespace signn{
 	
@@ -48,7 +48,9 @@ public:
 	}
 
 	template <class ActivationFunc>
-	void UpdateScore(){ score_ = ActivationFunc::f(AccumulateRawScore()); }		//enable only DataType := double 
+	void UpdateScore(){ score_ = ActivationFunc::f(AccumulateRawScore()); }		//enable only DataType := double
+
+	void UpdateScore(std::function<void(DataType&)> const& func){ func(score_); }	//apply score update function
 
 	ParamType_ Score() const{ return score_; }		//return const T& if DataType is user defined types. otherwise return T.
 	void Score(ParamType_ v){ score_ = v; }

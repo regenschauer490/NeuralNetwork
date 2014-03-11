@@ -19,7 +19,9 @@ http://opensource.org/licenses/mit-license.php
 #include <future>
 
 #include "info.hpp"
+#include "external/SigUtil/lib/sigutil.hpp"
 #include "external/SigUtil/lib/tool.hpp"
+#include "external/SigUtil/lib/calculation.hpp"
 
 #if SIG_ENABLE_BOOST
 #include <boost/call_traits.hpp>
@@ -27,13 +29,8 @@ http://opensource.org/licenses/mit-license.php
 
 namespace signn
 {
-
-#if SIG_ENABLE_BOOST
-template <class T> using ParamType = typename boost::call_traits<T>::param_type;
-#else
-template <class T>
-using ParamType = T const&;
-#endif
+	using sig::enabler;
+	using sig::ParamType;
 
 	template <class T>
 	void Connect(NodePtr<T, DirectedEdge<T>>& departure, NodePtr<T, DirectedEdge<T>>& arrival, DEdgePtr<T>& edge)
