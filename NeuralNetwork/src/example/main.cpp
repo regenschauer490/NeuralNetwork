@@ -10,6 +10,8 @@
 
 //#include "utility.hpp"
 
+const std::wstring test_folder = L"test data/";
+
 #define IS_BATCH 1
 
 //回帰
@@ -210,7 +212,7 @@ void Test3(){
 	std::vector<int> train_ans;
 
 	for (int doc = 0; doc <10; ++doc){
-		auto rows = *sig::ReadLine<std::string>(L"test data/train" + std::to_wstring(doc) + L".txt");
+		auto rows = *sig::ReadLine<std::string>(test_folder + L"mlp/train" + std::to_wstring(doc) + L".txt");
 		
 		for (uint r=0; r<rows.size(); ++r){
 			train_data.push_back(std::vector<input_type>());
@@ -290,8 +292,8 @@ void Test3(){
 		}
 #endif
 		//if (esum < 1000) break;
-		nn.SaveParameter(L"test data/dst", false);
-		nn.SaveParameter(L"test data/opt", true);
+		nn.SaveParameter(test_folder + L"mlp/dst", false);
+		nn.SaveParameter(test_folder + L"mlp/opt", true);
 		if (std::abs(p_esum - esum) < 0.0000000001) break;
 	}
 }
@@ -307,10 +309,10 @@ void Test4()
 
 	AutoEncoder ae(learning_rate_sample, L2__regularization_sample);
 
+	//テストデータ読み込み
 	std::vector < std::vector<input_type>> train_data;
 
-	auto rows = *sig::ReadLine<std::string>(L"test data/train2.txt");
-
+	auto rows = *sig::ReadLine<std::string>(test_folder + L"mlp/train2.txt");
 	for (uint r = 0; r < rows.size(); ++r){
 		train_data.push_back(std::vector<input_type>());
 		auto split = sig::Split(rows[r], ",");
@@ -326,6 +328,7 @@ void Test4()
 	}
 	train_data.resize(tds + 1);
 	
+	//入力用データ作成
 	std::vector<AutoEncoder::InputDataPtr> inputs;
 	for (auto const& td : train_data){
 		inputs.push_back(ae.MakeInputData(td.begin(), td.end()));
@@ -334,6 +337,7 @@ void Test4()
 	std::vector<AutoEncoder::InputDataPtr> test_inputs;
 	for (auto const& td : test_data) test_inputs.push_back(ae.MakeInputData(td.begin(), td.end()));
 
+	//学習開始
 	double p_esum = 0, esum = 0;
 	for (int loop = 0; true; ++loop){
 		sig::TimeWatch tw;
@@ -353,8 +357,8 @@ void Test4()
 		std::cout << "\n\ntime: " << tw.GetTotalTime<std::chrono::seconds>() << std::endl;
 		std::cout << "train_mse: " << esum << std::endl << std::endl;
 
-		ae.SaveParameter(L"test data/dst", false);
-		ae.SaveParameter(L"test data/opt", true);
+		ae.SaveParameter(test_folder + L"mlp/dst", false);
+		ae.SaveParameter(test_folder + L"mlp/opt", true);
 
 		if (loop % 1 == 0){
 			for (int i = 0; i < test_inputs.size(); ++i){
@@ -367,8 +371,8 @@ void Test4()
 					r.push_back(est[j]);
 				}
 				hist.Print();
-				sig::SaveNum(test_data[i], L"test data/test0_ans.txt", sig::WriteMode::overwrite);
-				sig::SaveNum(r, L"test data/test0.txt", sig::WriteMode::overwrite);
+				sig::SaveNum(test_data[i], test_folder + L"mlp/test0_ans.txt", "", sig::WriteMode::overwrite);
+				sig::SaveNum(r, test_folder + L"mlp/test0.txt", "", sig::WriteMode::overwrite);
 			}
 		}
 
@@ -380,11 +384,48 @@ void Test4()
 //自己組織化マップ
 void Test5()
 {
-	//signn::SOM_Online
+	using namespace signn;
+	const uint ITERATION = 1;				//データ全体を学習する反復を何回するか
+
+	const uint SOM_NODE_SQUARE = 10;		//SOMレイヤーの1辺のノード数
+	using InInfo = InputInfo<double, 4>;
+	using SOM = signn::SOM_Online<InInfo, SOM_NODE_SQUARE>;
+
+	SOM som;
+
+	//テストデータ読み込み
+	auto test_raw_data = sig::ReadNum<std::vector<std::vector<double>>>(test_folder + L"som/test_iris.csv", ",");
+	if (!test_raw_data){
+		std::cout << "test-folder pass error" << std::endl;
+		assert(false);
+	}
+
+	std::vector<int> train_ans;
+
+	for (auto& row : *test_raw_data){
+		train_ans.push_back(static_cast<int>(row[4]));
+		row.pop_back();
+	}
+	auto train_data = std::move(*test_raw_data);
+	const auto data_size = train_data.size();
+
+	//入力用データ作成
+	std::vector<SOM::InputDataPtr> inputs;
+
+	for (auto i=0; i<data_size; ++i){
+		inputs.push_back( som.MakeInputData(train_data[i].begin(), train_data[i].end(), train_ans[i]) );
+	}
+
+	//学習開始
+	for (int loop = 0; loop < ITERATION; ++loop){
+		for(auto const& input : inputs) som.Train(input);
+	}
+
+	auto pos = som.NearestPosition(inputs[0]);
 }
 
 
 int main(){
-	Test1();
+	Test5();
 }
 

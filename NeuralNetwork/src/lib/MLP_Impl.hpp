@@ -181,7 +181,7 @@ void MLP_Impl<InputInfo_, OutputInfo_>::SaveParameter(std::wstring pass) const
 			for (auto edge = node->out_begin(), end = node->out_end(); edge != end; ++edge){
 				weight.push_back((*edge)->Weight());
 			}
-			sig::SaveNum(weight, pass + L"weight" + std::to_wstring(l) + L".txt", sig::WriteMode::append, ",");
+			sig::SaveNum(weight, pass + L"weight" + std::to_wstring(l) + L".txt", ",", sig::WriteMode::append);
 		}
 	}
 }

@@ -21,8 +21,15 @@ namespace sigdm{
 	{
 		template <class C1, class C2>
 		double operator()(C1 const& vec1, C2 const& vec2){
-			using T = typename std::common_type<sig::container_traits<C1>::value_type, sig::container_traits<C2>::value_type>::type;
-			auto delta = sig::ZipWith([&](T val1, T val2){ return std::pow(sig::DeltaAbsabs(val1, val2), P); }, vec1, vec2);
+			using T = typename std::common_type<typename sig::container_traits<C1>::value_type, typename sig::container_traits<C2>::value_type>::type;
+			//auto delta = sig::ZipWith([&](T val1, T val2){ return std::pow(sig::DeltaAbs(val1, val2), P); }, vec1, vec2);
+			std::vector<T> delta;
+			auto it1 = std::begin(vec1), end1 = std::end(vec1);
+			auto it2 = std::begin(vec2), end2 = std::end(vec2);
+
+			for (; it1 != end1 && it2 != end2; ++it1, ++it2){
+				delta.push_back(std::pow(sig::DeltaAbs(*it1, *it2), P));
+			}
 			
 			return std::pow(std::accumulate(std::begin(delta), std::end(delta), 0.0, std::plus<double>()), 1.0 / P);
 		}

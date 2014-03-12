@@ -73,7 +73,7 @@ struct MultiLabelClassifyLayerInfo{
 //自己組織化マップ用の設定
 template <size_t SideNodeNum>
 struct SOMLayerInfo{
-	using layer_type = SOMLayer<SideNodeNum>;
+	template<class OInfo> using layer_type = SOMLayer<SideNodeNum>;
 	using output_type = double;
 	static constexpr size_t dim = SideNodeNum * SideNodeNum;
 };
@@ -138,6 +138,8 @@ using C_OutputLayerPtr = std::shared_ptr<OutputLayer<OutputInfo_> const>;
 
 template <size_t RefVecDim>
 using SOMLayerPtr = std::shared_ptr<SOMLayer<RefVecDim>>;
+template <size_t RefVecDim>
+using C_SOMLayerPtr = std::shared_ptr<const SOMLayer<RefVecDim>>;
 
 #define SIG_FRIEND_WITH_LAYER\
 	template <class InputInfo_, class OutputInfo_> friend class MLP_Impl;
