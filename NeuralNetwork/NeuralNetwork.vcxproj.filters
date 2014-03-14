@@ -13,56 +13,113 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="ヘッダー ファイル\external">
+      <UniqueIdentifier>{dcbb47f4-2b1d-47d1-a43b-6f9c023e36c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\external\SigUtil">
+      <UniqueIdentifier>{46258e41-a53f-49d1-8bcb-ff2cdfb9966e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\external\distance">
+      <UniqueIdentifier>{6f088c84-b1c2-4ade-89bb-8e479cac2796}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\lib\util.hpp">
+    <ClInclude Include="lib\MLP_online.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\lib\auto_encoder.hpp">
+    <ClInclude Include="lib\MLP_batch.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\lib\data_format.hpp">
+    <ClInclude Include="lib\edge.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\lib\info.hpp">
+    <ClInclude Include="lib\node.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\lib\layer.hpp">
+    <ClInclude Include="lib\layer_output.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\lib\layer_input.hpp">
+    <ClInclude Include="lib\layer_input.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\lib\layer_output.hpp">
+    <ClInclude Include="lib\layer.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\lib\MLP_batch.hpp">
+    <ClInclude Include="lib\auto_encoder.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\lib\MLP_impl.hpp">
+    <ClInclude Include="lib\info.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\lib\MLP_online.hpp">
+    <ClInclude Include="lib\layer_som.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\lib\node.hpp">
+    <ClInclude Include="lib\MLP_impl.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\lib\__ParameterPack.hpp">
+    <ClInclude Include="lib\SOM_online.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\lib\SOM_online.hpp">
+    <ClInclude Include="lib\util.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\lib\layer_som.hpp">
+    <ClInclude Include="lib\data_format.hpp">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\lib\edge.hpp">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="lib\external\SigUtil\lib\container_helper.hpp">
+      <Filter>ヘッダー ファイル\external\SigUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\external\SigUtil\lib\type_map.hpp">
+      <Filter>ヘッダー ファイル\external\SigUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\external\SigUtil\lib\string.hpp">
+      <Filter>ヘッダー ファイル\external\SigUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\external\SigUtil\lib\others.hpp">
+      <Filter>ヘッダー ファイル\external\SigUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\external\SigUtil\lib\modify.hpp">
+      <Filter>ヘッダー ファイル\external\SigUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\external\SigUtil\lib\functional.hpp">
+      <Filter>ヘッダー ファイル\external\SigUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\external\SigUtil\lib\calculation.hpp">
+      <Filter>ヘッダー ファイル\external\SigUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\external\SigUtil\lib\sigutil.hpp">
+      <Filter>ヘッダー ファイル\external\SigUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\external\SigUtil\lib\tool.hpp">
+      <Filter>ヘッダー ファイル\external\SigUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\external\SigUtil\lib\array.hpp">
+      <Filter>ヘッダー ファイル\external\SigUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\external\SigUtil\lib\file.hpp">
+      <Filter>ヘッダー ファイル\external\SigUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\external\SigUtil\lib\external\container traits\eval.h">
+      <Filter>ヘッダー ファイル\external\SigUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\external\SigUtil\lib\external\container traits\container_traits.h">
+      <Filter>ヘッダー ファイル\external\SigUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\external\distance\cosine_similarity.hpp">
+      <Filter>ヘッダー ファイル\external\distance</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\external\distance\JS_divergence.hpp">
+      <Filter>ヘッダー ファイル\external\distance</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\external\distance\KL_divergence.hpp">
+      <Filter>ヘッダー ファイル\external\distance</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\external\distance\distance.hpp">
+      <Filter>ヘッダー ファイル\external\distance</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\example\main.cpp">
+    <ClCompile Include="example\main.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>

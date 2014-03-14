@@ -367,8 +367,8 @@ void Test4()
 					r.push_back(est[j]);
 				}
 				hist.Print();
-				sig::SaveNum(test_data[i], L"test data/test0_ans.txt", sig::WriteMode::overwrite);
-				sig::SaveNum(r, L"test data/test0.txt", sig::WriteMode::overwrite);
+				sig::SaveNum(test_data[i], L"test data/test0_ans.txt", "", sig::WriteMode::overwrite);
+				sig::SaveNum(r, L"test data/test0.txt", "", sig::WriteMode::overwrite);
 			}
 		}
 

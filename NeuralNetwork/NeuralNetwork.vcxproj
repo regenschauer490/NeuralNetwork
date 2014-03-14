@@ -145,24 +145,40 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\lib\auto_encoder.hpp" />
-    <ClInclude Include="src\lib\data_format.hpp" />
-    <ClInclude Include="src\lib\edge.hpp" />
-    <ClInclude Include="src\lib\info.hpp" />
-    <ClInclude Include="src\lib\layer.hpp" />
-    <ClInclude Include="src\lib\layer_input.hpp" />
-    <ClInclude Include="src\lib\layer_output.hpp" />
-    <ClInclude Include="src\lib\layer_som.hpp" />
-    <ClInclude Include="src\lib\MLP_batch.hpp" />
-    <ClInclude Include="src\lib\MLP_impl.hpp" />
-    <ClInclude Include="src\lib\MLP_online.hpp" />
-    <ClInclude Include="src\lib\node.hpp" />
-    <ClInclude Include="src\lib\SOM_online.hpp" />
-    <ClInclude Include="src\lib\util.hpp" />
-    <ClInclude Include="src\lib\__ParameterPack.hpp" />
+    <ClInclude Include="lib\auto_encoder.hpp" />
+    <ClInclude Include="lib\data_format.hpp" />
+    <ClInclude Include="lib\edge.hpp" />
+    <ClInclude Include="lib\external\distance\cosine_similarity.hpp" />
+    <ClInclude Include="lib\external\distance\distance.hpp" />
+    <ClInclude Include="lib\external\distance\JS_divergence.hpp" />
+    <ClInclude Include="lib\external\distance\KL_divergence.hpp" />
+    <ClInclude Include="lib\external\SigUtil\lib\array.hpp" />
+    <ClInclude Include="lib\external\SigUtil\lib\calculation.hpp" />
+    <ClInclude Include="lib\external\SigUtil\lib\container_helper.hpp" />
+    <ClInclude Include="lib\external\SigUtil\lib\external\container traits\container_traits.h" />
+    <ClInclude Include="lib\external\SigUtil\lib\external\container traits\eval.h" />
+    <ClInclude Include="lib\external\SigUtil\lib\file.hpp" />
+    <ClInclude Include="lib\external\SigUtil\lib\functional.hpp" />
+    <ClInclude Include="lib\external\SigUtil\lib\modify.hpp" />
+    <ClInclude Include="lib\external\SigUtil\lib\others.hpp" />
+    <ClInclude Include="lib\external\SigUtil\lib\sigutil.hpp" />
+    <ClInclude Include="lib\external\SigUtil\lib\string.hpp" />
+    <ClInclude Include="lib\external\SigUtil\lib\tool.hpp" />
+    <ClInclude Include="lib\external\SigUtil\lib\type_map.hpp" />
+    <ClInclude Include="lib\info.hpp" />
+    <ClInclude Include="lib\layer.hpp" />
+    <ClInclude Include="lib\layer_input.hpp" />
+    <ClInclude Include="lib\layer_output.hpp" />
+    <ClInclude Include="lib\layer_som.hpp" />
+    <ClInclude Include="lib\MLP_batch.hpp" />
+    <ClInclude Include="lib\MLP_impl.hpp" />
+    <ClInclude Include="lib\MLP_online.hpp" />
+    <ClInclude Include="lib\node.hpp" />
+    <ClInclude Include="lib\SOM_online.hpp" />
+    <ClInclude Include="lib\util.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\example\main.cpp" />
+    <ClCompile Include="example\main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
