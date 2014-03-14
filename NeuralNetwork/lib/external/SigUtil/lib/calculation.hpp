@@ -24,9 +24,9 @@ namespace sig
 	template <class OP, class C1, class C2>
 	auto BinaryOperation(OP func, C1 const& c1, C2 const& c2)
 		->typename container_traits<C1>::template rebind<decltype(eval(
-		func,
-		std::declval<typename container_traits<C1>::value_type>(),
-		std::declval<typename container_traits<C2>::value_type>()
+			func,
+			std::declval<typename container_traits<C1>::value_type>(),
+			std::declval<typename container_traits<C2>::value_type>()
 		))>
 	{
 		using T1 = typename container_traits<C1>::value_type;
@@ -38,9 +38,9 @@ namespace sig
 	template <class OP, class C, class T, class = typename container_traits<C>::value_type>
 	auto BinaryOperation(OP func, C const& c, T v)
 		->typename container_traits<C>::template rebind<decltype(eval(
-		func,
-		std::declval<typename container_traits<C>::value_type>(),
-		v
+			func,
+			std::declval<typename container_traits<C>::value_type>(),
+			v
 		))>
 	{
 		using CT = typename container_traits<C>::value_type;
@@ -56,9 +56,9 @@ namespace sig
 	template <class OP, class T, class C, class = typename container_traits<C>::value_type>
 	auto BinaryOperation(OP func, T v, C const& c)
 		->typename container_traits<C>::template rebind<decltype(eval(
-		func,
-		std::declval<typename container_traits<C>::value_type>(),
-		v
+			func,
+			std::declval<typename container_traits<C>::value_type>(),
+			v
 		))>
 	{
 		return Plus(c, v);
@@ -76,14 +76,20 @@ namespace sig
 \
 	template <class C1, class C2, class = decltype(std::declval<typename container_traits<C1>::value_type>() Operator std::declval<typename container_traits<C2>::value_type>())>\
 	auto FunctionName(C1 const& c1, C2 const& c2)\
+		->typename container_traits<C1>::template rebind<decltype(\
+			std::declval<typename container_traits<C1>::value_type>() Operator std::declval<typename container_traits<C2>::value_type>()\
+		)>\
 	{\
 		using T1 = typename container_traits<C1>::value_type;\
 		using T2 = typename container_traits<C2>::value_type;\
 		return BinaryOperation([](T1 v1, T2 v2){ return v1 Operator v2; }, c1, c2);\
 	}\
 \
-	template <class C, class T, class = decltype(std::declval<typename container_traits<C>::value_type>() Operator std::declval<T>())>\
+	template <class C, class T, class = decltype(std::declval<typename container_traits<C>::value_type>() Operator std::dec	lval<T>())>\
 	auto FunctionName(C const& c, T v)\
+		->typename container_traits<C>::template rebind<decltype(\
+			std::declval<typename container_traits<C>::value_type>() Operator v\
+		)>\
 	{\
 		using CT = typename container_traits<C>::value_type;\
 		return BinaryOperation([](CT v1, T v2){ return v1 Operator v2; }, c, v);\
@@ -91,6 +97,9 @@ namespace sig
 \
 	template <class T, class C, class = decltype(std::declval<typename container_traits<C>::value_type>() Operator std::declval<T>())>\
 	auto FunctionName(T v, C const& c)\
+		->typename container_traits<C>::template rebind<decltype(\
+			std::declval<typename container_traits<C>::value_type>() Operator v\
+		)>\
 	{\
 		return FunctionName(c, v);\
 	}\
@@ -120,7 +129,7 @@ namespace sig
 
 	//効率を重視したコンテナへの代入演算 (element-wise: container and scalar)
 	template <class OP, class C, class T, typename std::enable_if<container_traits<C>::exist && !container_traits<T>::exist>::type*& = enabler>
-	auto CompoundAssignment(OP const& assign_op, C& dest, T src)
+	void CompoundAssignment(OP const& assign_op, C& dest, T src)
 //		->decltype(eval(assign_op, std::declval<typename container_traits<C>::value_type>(), src), void())
 	{
 		auto it = std::begin(dest), end = std::end(dest);

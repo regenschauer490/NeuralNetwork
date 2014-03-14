@@ -108,7 +108,7 @@ public:
 	//teacher:回帰の正解値
 	template<class Iter1, typename = decltype(*std::declval<Iter1&>(), void(), ++std::declval<Iter1&>(), void()), class = typename std::enable_if<!std::is_same<OutputType_, bool>::value>::type>
 	InputDataPtr MakeInputData(Iter1 input_begin, Iter1 input_end, OutputParamType_ teacher_value) const{
-		static_assert(1 == OutputInfo_::dim, "invalid input data");
+		//static_assert(1 == OutputInfo_::dim, "invalid input data");
 
 		std::array<OutputType_, 1> teacher{ { teacher_value } };
 
@@ -117,13 +117,16 @@ public:
 
 	//teacher:分類のラベル (2値の場合{0,1}, 多値の場合は0から始まる連続した整数)
 	template<class Iter1, typename = decltype(*std::declval<Iter1&>(), void(), ++std::declval<Iter1&>(), void()), class = typename std::enable_if<std::is_same<OutputType_, bool>::value>::type>
-	InputDataPtr MakeInputData(Iter1 input_begin, Iter1 input_end, uint teacher_label) const{
+	InputDataPtr MakeInputData(Iter1 input_begin, Iter1 input_end, int teacher_label) const{
+		assert(teacher_label < 0);
+
 		OutputArrayType_ teacher;
+		uint label = static_cast<uint>(teacher_label);
 
 		if (std::is_same<typename OutputInfo_::layer_type<OutputInfo_>, MultiClassClassificationLayer<OutputInfo_>>::value){
-			teacher = ConvertBinaryVector(teacher_label);
+			teacher = ConvertBinaryVector(label);
 		}
-		else teacher[0] = teacher_label;
+		else teacher[0] = label;
 
 		return std::make_shared<InputData>(input_begin, input_end, teacher.begin(), teacher.end(), false);
 	}

@@ -26,7 +26,8 @@ namespace signn{
 	private:
 		std::vector<NodePtr_> nodes_;	//矩形を行で直列化. [row*COL + col]でアクセス
 
-//		SIG_FRIEND_WITH_SOMLAYER
+		//SOMレイヤーの座標値に変換する際の修正値(正方形では補正なし、ハニカムでは偶数番目に+0.5)
+		const double pos_col_offset;
 
 	public:
 		const uint row_num_;
@@ -51,6 +52,8 @@ namespace signn{
 
 		C_NodePtr_ Access(uint row, uint col) const{ return nodes_[row * col_num_ + col]; }
 
+		auto SearchPosition(C_NodePtr_ const& target) const->std::array<double, 2>;
+
 		auto begin() const ->decltype(nodes_.cbegin()){ return nodes_.cbegin(); }
 		auto end() const ->decltype(nodes_.cend()){ return nodes_.cend(); }
 	};
@@ -58,7 +61,7 @@ namespace signn{
 
 	template <size_t RefVecDim>
 	SOMLayer<RefVecDim>::SOMLayer(uint row_num, uint col_num)
-		: row_num_(row_num), col_num_(col_num), nodes_(std::vector<NodePtr_>(row_num * col_num))
+		: row_num_(row_num), col_num_(col_num), nodes_(std::vector<NodePtr_>(row_num * col_num)), pos_col_offset(0.0)
 	{
 		// ノード間距離計算
 		auto CalcEdgeCost = [&](NodePtr_ const& nd, NodePtr_ const& na){
@@ -77,6 +80,18 @@ namespace signn{
 							std::make_shared<DEdge_>(CalcEdgeCost(nodes_[rd * col_num_ + cd], nodes_[ra * col_num_ + ca]))
 						);
 					}
+				}
+			}
+		}
+	}
+
+	template <size_t RefVecDim>
+	auto SOMLayer<RefVecDim>::SearchPosition(C_NodePtr_ const& target) const->std::array<double, 2>
+	{
+		for (uint r = 0; r < row_num_; ++r){
+			for (uint c = 0; c < col_num_; ++c){
+				if (target == nodes_[r * col_num_ + c]){
+					return {{ r, r % 2 == 0 ? c + pos_col_offset : c }};	//座標値(y, x)
 				}
 			}
 		}

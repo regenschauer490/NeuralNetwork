@@ -18,6 +18,11 @@ namespace sig
 	//n引数高階関数
 	template <class F, class C1, class... Cs>
 	auto HigherOrderFunction(F const& func, C1 const& container1, Cs const&... containers)
+		->typename container_traits<C1>::template rebind<decltype(eval(
+		func,
+		std::declval<typename container_traits<C1>::value_type>(),
+		std::declval<typename container_traits<Cs>::value_type>()...
+		))>
 	{
 		using OutputType = typename container_traits<C1>::template rebind<decltype(eval(
 			func,
@@ -45,6 +50,7 @@ namespace sig
 	//2引数高階関数
 	template <class F, class C1, class C2>
 	auto ZipWith(F const& func, C1 const& container1, C2 const& container2)
+		->decltype(HigherOrderFunction(func, container1, container2))
 	{
 		return HigherOrderFunction(func, container1, container2);
 	}

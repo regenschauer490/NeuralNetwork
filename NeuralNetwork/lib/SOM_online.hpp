@@ -19,6 +19,7 @@ class SOM_Online : public DataFormat<InputInfo_, OutputInfo<SOMLayerInfo<SideNod
 public:
 	using Layer_ = SOMLayer<InputInfo_::dim>;			//InputInfo_::dim : 参照ベクトルの次元
 	using LayerPtr_ = SOMLayerPtr<InputInfo_::dim>;
+	using C_LayerPtr_ = C_SOMLayerPtr<InputInfo_::dim>;
 	using NodeData_ = typename Layer_::NodeData_;
 	using NodePtr_ = typename Layer_::NodePtr_;
 	using C_NodePtr_ = typename Layer_::C_NodePtr_;
@@ -40,7 +41,12 @@ public:
 	SOM_Online() : layer_(LayerPtr_(new Layer_(SideNodeNum, SideNodeNum))), alpha_(som_learning_rate){}
 	
 	void Train(InputDataPtr input){
-		RenewNeighbor(input, SearchSimilarity(input), alpha_);
+		RenewNeighbor(*input, SearchSimilarity(*input), alpha_);
+	}
+
+	//入力データと最も類似した参照ベクトルの座標を返す
+	auto NearestPosition(InputDataPtr input)  const->std::array<double, 2>{
+		return layer_->SearchPosition(SearchSimilarity(*input));
 	}
 };
 
@@ -53,17 +59,23 @@ void SOM_Online<InputInfo_, SideNodeNum>::Init()
 template <class InputInfo_, size_t SideNodeNum>
 void SOM_Online<InputInfo_, SideNodeNum>::RenewNeighbor(InputData const& input, NodePtr_ center, double learning_rate)
 {
-	auto MakeUpdateFunc = [&](double alpha){
+	auto MakeUpdateFunc = [&](double alpha) ->std::function<void(NodeData_&)>{
 		return [&,alpha](NodeData_& pre_score){
+			InputArrayType_ tmp;
+			for (uint i = 0; i<InputInfo_::dim; ++i){
+				tmp[i] = alpha * input.Input()[i];
+			}
+
 			//score' = score * (1 - alpha) + alpha * input
-			sig::CompoundAssignment([](double& dest, double corr){ dest *= corr; }, pre_score, (1-alpha));				//score *= (1 - alpha)
-			sig::CompoundAssignment([](double& dest, double in){ dest += in; }, pre_score, sig::Mult(alpha, input));	//score += (input * alpha)
+			sig::CompoundAssignment([](double& dest, double corr){ dest *= corr; }, pre_score, (1-alpha));						//score *= (1 - alpha)
+			sig::CompoundAssignment([](double& dest, double in){ dest += in; }, pre_score, tmp);	//score += (input * alpha)
 		};
 	};
 
 	center->UpdateScore(MakeUpdateFunc(learning_rate));		//中心の参照ベクトルを更新
 
-	for(auto edge = node->out_begin(), end = node->out_end(); edge != end; ++edge){
+	for(auto edge_it = center->out_begin(), end = center->out_end(); edge_it != end; ++edge_it){
+		auto edge = *edge_it;
 		double corr = learning_rate * std::exp(- edge->Weight());
 		edge->TailNode()->UpdateScore(MakeUpdateFunc(corr));		//近傍の参照ベクトルを更新
 	}
@@ -76,8 +88,8 @@ auto SOM_Online<InputInfo_, SideNodeNum>::SearchSimilarity(InputData const& inpu
 	double min_dist = std::numeric_limits<double>::max();
 	NodePtr_ nearest = nullptr;			//NodePtr_* にすべきか検討
 
-	for (auto const& node : layer_){
-		if (auto dist = Dist(input, *node->Score()) < min_dist){
+	for (auto const& node : *static_cast<C_LayerPtr_>(layer_)){
+		if (auto dist = Dist(node->Score(), input.Input()) < min_dist){
 			min_dist = dist;
 			nearest = node;
 		}
