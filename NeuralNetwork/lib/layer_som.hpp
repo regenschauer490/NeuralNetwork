@@ -63,9 +63,12 @@ namespace signn{
 	SOMLayer<RefVecDim>::SOMLayer(uint row_num, uint col_num)
 		: row_num_(row_num), col_num_(col_num), pos_col_offset(0.0)
 	{
+		sig::SimpleRandom<double> random(0.0, 1.0, DEBUG_MODE);
+
 		for (uint i = 0; i < row_num * col_num; ++i){
 			auto node = std::make_shared<Node_>();
-			auto init_score = 
+			sig::Array<double, RefVecDim> init_score;
+			for (uint j = 0; j<RefVecDim; ++j) init_score.push_back(random());
 			node->Score(init_score);
 			nodes_.push_back(node);
 		}

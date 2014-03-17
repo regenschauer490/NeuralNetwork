@@ -30,7 +30,7 @@ void Test1(){
 #endif
 	auto mid = Perceptron::MakeMidLayer(2);
 	Perceptron nn(learning_rate_sample, L2__regularization_sample, { mid });
-
+	
 	auto MakeData = [&](uint data_num, uint elem_num){
 		static sig::SimpleRandom<double> rgen(0.0, 1.0, true);
 
@@ -411,7 +411,7 @@ void Test5()
 
 	//入力用データ作成
 	std::vector<SOM::InputDataPtr> inputs;
-
+	
 	for (auto i=0; i<data_size; ++i){
 		inputs.push_back( som.MakeInputData(train_data[i].begin(), train_data[i].end(), train_ans[i]) );
 	}

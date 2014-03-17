@@ -17,6 +17,7 @@ http://opensource.org/licenses/mit-license.php
 #include <functional>
 #include <random>
 #include <future>
+#include <type_traits>
 
 #include "info.hpp"
 #include "external/SigUtil/lib/sigutil.hpp"

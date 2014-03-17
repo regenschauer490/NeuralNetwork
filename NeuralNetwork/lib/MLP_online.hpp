@@ -24,6 +24,13 @@ public:
 	using LayerPtr_ = typename MLP_::LayerPtr_;
 	
 private:
+	struct Proxy :
+		public RawVectorProxy,
+		public typename std::conditional<std::is_same<OutputType_, bool>::value, ClassificationProxy, RegressionProxy>::type,
+		public TestProxy
+	{};
+
+private:
 	MLP_ mlp_;
 
 	double min_mse_;						//minimum mean-square-error during iteration
@@ -34,6 +41,8 @@ public:
 		: mlp_(learning_rate, L2_regularization, hidden_layers), min_mse_(goal_mse), optimal_state_(std::make_shared<MLP_>(learning_rate, L2_regularization, hidden_layers)){}
 
 	static LayerPtr_ MakeMidLayer(uint node_num){ return MLP_::MakeMidLayer(node_num); }
+
+	Proxy MakeInputData() const{ return Proxy(); }
 
 
 	double Train(InputDataPtr train_data, bool check_mse = true);
