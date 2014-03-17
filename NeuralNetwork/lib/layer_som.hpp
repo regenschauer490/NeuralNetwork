@@ -16,7 +16,7 @@ namespace signn{
 	class SOMLayer
 	{
 	public:
-		using NodeData_ = std::array<double, RefVecDim>;
+		using NodeData_ = sig::Array<double, RefVecDim>;
 		using DEdge_ = DirectedEdge<NodeData_>;
 		using Node_ = Node<NodeData_, DEdge_>;
 		using NodePtr_ = NodePtr<NodeData_, DEdge_>;
@@ -61,8 +61,15 @@ namespace signn{
 
 	template <size_t RefVecDim>
 	SOMLayer<RefVecDim>::SOMLayer(uint row_num, uint col_num)
-		: row_num_(row_num), col_num_(col_num), nodes_(std::vector<NodePtr_>(row_num * col_num)), pos_col_offset(0.0)
+		: row_num_(row_num), col_num_(col_num), pos_col_offset(0.0)
 	{
+		for (uint i = 0; i < row_num * col_num; ++i){
+			auto node = std::make_shared<Node_>();
+			auto init_score = 
+			node->Score(init_score);
+			nodes_.push_back(node);
+		}
+
 		// ƒm[ƒhŠÔ‹——£ŒvŽZ
 		auto CalcEdgeCost = [&](NodePtr_ const& nd, NodePtr_ const& na){
 			using NVal = decltype(*nd->Score().begin());

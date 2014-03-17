@@ -22,6 +22,7 @@ http://opensource.org/licenses/mit-license.php
 #include "external/SigUtil/lib/sigutil.hpp"
 #include "external/SigUtil/lib/tool.hpp"
 #include "external/SigUtil/lib/calculation.hpp"
+#include "external/SigUtil/lib/array.hpp"
 
 #if SIG_ENABLE_BOOST
 #include <boost/call_traits.hpp>
