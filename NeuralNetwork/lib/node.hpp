@@ -16,7 +16,7 @@ template <class DataType, class Edge>
 class Node;
 
 template <class DataType>
-class Node<DataType, DirectedEdge<DataType>>
+class DirectedNode<DataType, DirectedEdge<DataType>>
 {
 public:
 	using ParamType_ = ParamType<DataType>;

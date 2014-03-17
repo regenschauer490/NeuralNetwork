@@ -24,6 +24,12 @@ public:
 	using NodePtr_ = typename Layer_::NodePtr_;
 	using C_NodePtr_ = typename Layer_::C_NodePtr_;
 
+private:
+	//入力データ形式の指定
+	struct InputProxy :
+		public UnsupervisedProxy
+	{};
+
 private: 
 	LayerPtr_ layer_;
 	double alpha_;		//learning-rate
@@ -39,7 +45,10 @@ private:
 	
 public:
 	SOM_Online() : layer_(LayerPtr_(new Layer_(SideNodeNum, SideNodeNum))), alpha_(som_learning_rate){}
-	
+
+	InputProxy MakeInputData() const{ return InputProxy(); }
+
+
 	void Train(InputDataPtr input){
 		RenewNeighbor(*input, SearchSimilarity(*input), alpha_);
 	}

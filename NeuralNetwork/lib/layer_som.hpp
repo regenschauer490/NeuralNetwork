@@ -82,8 +82,10 @@ namespace signn{
 
 		for (uint rd = 0; rd<row_num; ++rd){
 			for (uint cd = 0; cd<col_num; ++cd){
-				for (uint ra = rd; ra<row_num; ++ra){
-					for (uint ca = cd; ca<col_num; ++ca){
+				for (uint ra = 0; ra<row_num; ++ra){
+					for (uint ca = 0; ca<col_num; ++ca){
+						if (rd == ra && cd == ca) continue;
+
 						signn::Connect(
 							nodes_[rd * col_num_ + cd],
 							nodes_[ra * col_num_ + ca],

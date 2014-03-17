@@ -23,11 +23,12 @@ public:
 	using Layer_ = typename MLP_::Layer_;
 	using LayerPtr_ = typename MLP_::LayerPtr_;
 	
-private:
-	struct Proxy :
+public:
+	//入力データ形式の指定
+	struct InputProxy :
 		public RawVectorProxy,
-		public typename std::conditional<std::is_same<OutputType_, bool>::value, ClassificationProxy, RegressionProxy>::type,
-		public TestProxy
+		public std::conditional<std::is_same<OutputType_, bool>::value, ClassificationProxy, RegressionProxy>::type,
+		public UnsupervisedProxy
 	{};
 
 private:
@@ -42,7 +43,7 @@ public:
 
 	static LayerPtr_ MakeMidLayer(uint node_num){ return MLP_::MakeMidLayer(node_num); }
 
-	Proxy MakeInputData() const{ return Proxy(); }
+	InputProxy MakeInputData() const{ return InputProxy(); }
 
 
 	double Train(InputDataPtr train_data, bool check_mse = true);

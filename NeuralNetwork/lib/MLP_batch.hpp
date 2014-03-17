@@ -28,7 +28,15 @@ private:
 
 	double min_mse_;						//minimum mean-square-error during iteration
 	std::shared_ptr<MLP_> optimal_state_;	//mlp state when mse is minimum
-	
+
+private:
+	//入力データ形式の指定
+	struct InputProxy :
+		public RawVectorProxy,
+		public std::conditional<std::is_same<OutputType_, bool>::value, ClassificationProxy, RegressionProxy>::type,
+		public UnsupervisedProxy
+	{};
+
 private:
 	void ParameterCopy2Slave(){
 		for (auto& copy : copy_mlp_){
@@ -49,6 +57,8 @@ public:
 	}
 
 	static LayerPtr_ MakeMidLayer(uint node_num){ return MLP_::MakeMidLayer(node_num); }
+
+	InputProxy MakeInputData() const{ return InputProxy(); }
 
 
 	double Train(std::vector<InputDataPtr> const& inputs);

@@ -53,7 +53,7 @@ void Test1(){
 	auto CheckMSE = [](Perceptron const& nn, std::vector< std::vector<double>> const& test_data, std::vector<double> const& test_ans, bool disp){
 		double tmse = 0;
 		for (uint k = 0; k < test_data.size(); ++k){
-			auto tresult = nn.Test(nn.MakeInputData(test_data[k].begin(), test_data[k].end()));
+			auto tresult = nn.Test(nn.MakeInputData().Unsupervised(test_data[k].begin(), test_data[k].end()));
 			tmse += tresult->MeanSquareError(test_ans[k]);
 
 			if(disp){
@@ -81,7 +81,7 @@ void Test1(){
 */
 	std::vector<Perceptron::InputDataPtr> inputs;
 	for (uint i = 0; i < train_ans.size(); ++i){
-		inputs.push_back(nn.MakeInputData(train_data[i].begin(), train_data[i].end(), train_ans[i]));
+		inputs.push_back(nn.MakeInputData().Regression(train_data[i].begin(), train_data[i].end(), train_ans[i]));
 	}
 
 	double p_mse = -1, mse = -1;
@@ -240,7 +240,7 @@ void Test3(){
 	std::vector<std::vector<Perceptron::InputDataPtr>> inputs(DATA_DIV);
 	for (uint div = 0; div < DATA_DIV; ++div){
 		for (uint i = DATA_DIV_DELTA*div; i < DATA_DIV_DELTA*(div+1); ++i){
-			inputs[div].push_back(nn.MakeInputData(train_data[i].begin(), train_data[i].end(), train_ans[i]));
+			inputs[div].push_back(nn.MakeInputData().Classification(train_data[i].begin(), train_data[i].end(), train_ans[i]));
 		}
 	}
 #else
@@ -251,7 +251,7 @@ void Test3(){
 #endif
 	
 	std::vector<Perceptron::InputDataPtr> test_inputs;
-	for (auto const& td : test_data) test_inputs.push_back(nn.MakeInputData(td.begin(), td.end()));
+	for (auto const& td : test_data) test_inputs.push_back(nn.MakeInputData().Unsupervised(td.begin(), td.end()));
 
 	long long total_time = 0;
 	double p_esum = 0, esum = 0;
@@ -413,7 +413,7 @@ void Test5()
 	std::vector<SOM::InputDataPtr> inputs;
 	
 	for (auto i=0; i<data_size; ++i){
-		inputs.push_back( som.MakeInputData(train_data[i].begin(), train_data[i].end(), train_ans[i]) );
+		inputs.push_back( som.MakeInputData().Unsupervised(train_data[i].begin(), train_data[i].end()) );
 	}
 
 	//学習開始
