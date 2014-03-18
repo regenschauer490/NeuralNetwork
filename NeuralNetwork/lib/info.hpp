@@ -148,7 +148,8 @@ using C_SOMLayerPtr = std::shared_ptr<const SOMLayer<RefVecDim>>;
 	template <class InputInfo_> friend class SOM_Online : public DataFormat<InputInfo_, OutputInfo_>;
 
 #define SIG_FRIEND_WITH_NODE_AND_EDGE\
-	template <class T> friend void Connect(NodePtr<T, DirectedEdge<T>>& departure, NodePtr<T, DirectedEdge<T>>& arrival, DEdgePtr<T>& edge);
+	template <class T> friend void Connect(NodePtr<T, DirectedEdge<T>> const&, NodePtr<T, DirectedEdge<T>> const&, DEdgePtr<T> const&);\
+	template <class T> friend void Disconnect(C_NodePtr<T, DirectedEdge<T>> const&, C_NodePtr<T, DirectedEdge<T>> const&)
 
 
 //activation function

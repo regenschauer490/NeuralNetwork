@@ -22,6 +22,7 @@ public:
 	using NodeWPtr_ = NodeWPtr<NodeData, DirectedEdge>;
 
 private:
+	//nodeとの間で循環参照となるのでweak_ptrを使用
 	NodeWPtr_ tail_;
 	NodeWPtr_ head_;
 
@@ -32,9 +33,11 @@ private:
 	double delta_;
 	double pre_weight_;
 
+	//ノード・エッジ間の連結操作関数をfriend指定 (これらの関数でのみ連結の制御を行う)
 	SIG_FRIEND_WITH_NODE_AND_EDGE
+
 private:
-	void AddNode(NodePtr_& tail, NodePtr_& head){ tail_ = tail; head_ = head; }
+	void SetNode(NodePtr_& tail, NodePtr_& head){ tail_ = tail; head_ = head; }
 
 public:
 	explicit DirectedEdge(typename sig::Just<double>::type weight = sig::Nothing(SIG_DEFAULT_EDGE_WEIGHT))

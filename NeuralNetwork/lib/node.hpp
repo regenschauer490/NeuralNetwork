@@ -15,8 +15,9 @@ namespace signn{
 template <class DataType, class Edge>
 class Node;
 
+//node for directed-edge graph
 template <class DataType>
-class DirectedNode<DataType, DirectedEdge<DataType>>
+class Node<DataType, DirectedEdge<DataType>>
 {
 public:
 	using ParamType_ = ParamType<DataType>;
@@ -33,10 +34,15 @@ private:
 	//cache
 	DataType pre_activate_score_;
 
+	//ノード・エッジ間の連結操作関数をfriend指定 (これらの関数でのみ連結の制御を行う)
 	SIG_FRIEND_WITH_NODE_AND_EDGE
+
 private:
 	void AddInEdge(DEdgePtr_ edge){ in_.push_back(edge); }
 	void AddOutEdge(DEdgePtr_ edge){ out_.push_back(edge); }
+
+	void RemoveInEdge(DEdgePtr_ target){ sig::Erase(in_, target); }
+	void RemoveOutEdge(DEdgePtr_ target){ sig::Erase(out_, target); }
 
 public:
 	Node() : threshold_(threshold_theta), score_(), pre_activate_score_(score_){};

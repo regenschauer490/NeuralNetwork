@@ -34,12 +34,29 @@ namespace signn
 	using sig::enabler;
 	using sig::ParamType;
 
+
+	/* ノード・エッジ間の連結操作関数 */
+
 	template <class T>
-	void Connect(NodePtr<T, DirectedEdge<T>>& departure, NodePtr<T, DirectedEdge<T>>& arrival, DEdgePtr<T>& edge)
+	void Connect(NodePtr<T, DirectedEdge<T>> const& departure, NodePtr<T, DirectedEdge<T>> const& arrival, DEdgePtr<T> const& edge)
 	{
 		departure->AddOutEdge(edge);
 		arrival->AddInEdge(edge);
-		edge->AddNode(departure, arrival);
+		edge->SetNode(departure, arrival);
+	}
+
+	template <class T>
+	void Disconnect(C_NodePtr<T, DirectedEdge<T>> const& departure, C_NodePtr<T, DirectedEdge<T>> const& arrival)
+	{
+		for (auto oit = departure->out_begin(), oend = departure->out_end(); oit != oend; ++oit){
+			for (auto iit = arrival->in_begin(), iend = arrival->in_end(); iit != iend; ++iit){
+				if (*oit == *iit){
+					auto edge = *oit;
+					departure->RemoveOutEdge(edge);
+					arrival->RemoveInEdge(edge);
+				}
+			}
+		}
 	}
 
 	//class Matrix はランダムアクセス(operator[])可能であることが条件
@@ -75,6 +92,8 @@ namespace signn
 			}
 		}
 	}
+
+	/**/
 
 	template <class T, template <class T_, class = std::allocator<T_>> class C>
 		inline double SquareError(C<T> const& estimate, C<T> const& answer) {
