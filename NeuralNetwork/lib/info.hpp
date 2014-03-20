@@ -24,7 +24,7 @@ const double L2__regularization_sample = 0.9999;
 const double threshold_theta = 0.5;
 const double SIG_DEFAULT_EDGE_WEIGHT = 0.5;		//default edge weight(must not set same weight on MLP, AutoEncoder and so on)
 
-const double som_learning_rate = 0.1;
+const double som_learning_rate = 0.5;
 
 //forward declaration
 template <class OutputInfo_>
@@ -149,7 +149,7 @@ using C_SOMLayerPtr = std::shared_ptr<const SOMLayer<RefVecDim>>;
 
 #define SIG_FRIEND_WITH_NODE_AND_EDGE\
 	template <class T> friend void Connect(NodePtr<T, DirectedEdge<T>> const&, NodePtr<T, DirectedEdge<T>> const&, DEdgePtr<T> const&);\
-	template <class T> friend void Disconnect(C_NodePtr<T, DirectedEdge<T>> const&, C_NodePtr<T, DirectedEdge<T>> const&)
+	template <class T> friend void Disconnect(C_NodePtr<T, DirectedEdge<T>> const&, C_NodePtr<T, DirectedEdge<T>> const&);
 
 
 //activation function

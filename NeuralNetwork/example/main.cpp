@@ -385,9 +385,9 @@ void Test4()
 void Test5()
 {
 	using namespace signn;
-	const uint ITERATION = 1;				//データ全体を学習する反復を何回するか
+	const uint ITERATION = 1000;				//データ全体を学習する反復を何回するか
 
-	const uint SOM_NODE_SQUARE = 10;		//SOMレイヤーの1辺のノード数
+	const uint SOM_NODE_SQUARE = 5;		//SOMレイヤーの1辺のノード数
 	using InInfo = InputInfo<double, 4>;
 	using SOM = signn::SOM_Online<InInfo, SOM_NODE_SQUARE>;
 
@@ -420,8 +420,33 @@ void Test5()
 	for (int loop = 0; loop < ITERATION; ++loop){
 		for(auto const& input : inputs) som.Train(input);
 	}
+	
+	const uint BIN_NUM = SOM_NODE_SQUARE * SOM_NODE_SQUARE;
+	sig::Histgram<uint, BIN_NUM> hist_class1(0, BIN_NUM);
+	sig::Histgram<uint, BIN_NUM> hist_class2(0, BIN_NUM);
+	sig::Histgram<uint, BIN_NUM> hist_class3(0, BIN_NUM);
 
-	auto pos = som.NearestPosition(inputs[0]);
+	for (uint i=0; i<train_ans.size(); ++i){
+		auto pos = som.NearestPosition(inputs[i]);
+
+		switch (train_ans[i]){
+		case 0 :
+			hist_class1.Count(pos[0] * SOM_NODE_SQUARE + pos[1]);
+			break;
+		case 1 :
+			hist_class2.Count(pos[0] * SOM_NODE_SQUARE + pos[1]);
+			break;
+		case 2:
+			hist_class3.Count(pos[0] * SOM_NODE_SQUARE + pos[1]);
+			break;
+		default :
+			assert(false);
+		}
+	}
+
+	hist_class1.Print();
+	hist_class2.Print();
+	hist_class3.Print();
 }
 
 

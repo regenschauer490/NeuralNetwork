@@ -38,11 +38,11 @@ private:
 	SIG_FRIEND_WITH_NODE_AND_EDGE
 
 private:
-	void AddInEdge(DEdgePtr_ edge){ in_.push_back(edge); }
-	void AddOutEdge(DEdgePtr_ edge){ out_.push_back(edge); }
+	void AddInEdge(DEdgePtr_ const& edge){ in_.push_back(edge); }
+	void AddOutEdge(DEdgePtr_ const& edge){ out_.push_back(edge); }
 
-	void RemoveInEdge(DEdgePtr_ target){ sig::Erase(in_, target); }
-	void RemoveOutEdge(DEdgePtr_ target){ sig::Erase(out_, target); }
+	void RemoveInEdge(DEdgePtr_ const& target){ sig::Erase(in_, target); }
+	void RemoveOutEdge(DEdgePtr_ const& target){ sig::Erase(out_, target); }
 
 public:
 	Node() : threshold_(threshold_theta), score_(), pre_activate_score_(score_){};

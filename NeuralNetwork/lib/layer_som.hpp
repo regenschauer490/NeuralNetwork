@@ -52,7 +52,7 @@ namespace signn{
 
 		C_NodePtr_ Access(uint row, uint col) const{ return nodes_[row * col_num_ + col]; }
 
-		auto SearchPosition(C_NodePtr_ const& target) const->std::array<double, 2>;
+		auto SearchPosition(C_NodePtr_ const& target) const->std::array<uint, 2>;
 
 		auto begin() const ->decltype(nodes_.cbegin()){ return nodes_.cbegin(); }
 		auto end() const ->decltype(nodes_.cend()){ return nodes_.cend(); }
@@ -63,7 +63,7 @@ namespace signn{
 	SOMLayer<RefVecDim>::SOMLayer(uint row_num, uint col_num)
 		: row_num_(row_num), col_num_(col_num), pos_col_offset(0.0)
 	{
-		sig::SimpleRandom<double> random(0.0, 1.0, DEBUG_MODE);
+		sig::SimpleRandom<double> random(2.0, 8.0, DEBUG_MODE);
 
 		for (uint i = 0; i < row_num * col_num; ++i){
 			auto node = std::make_shared<Node_>();
@@ -98,7 +98,7 @@ namespace signn{
 	}
 
 	template <size_t RefVecDim>
-	auto SOMLayer<RefVecDim>::SearchPosition(C_NodePtr_ const& target) const->std::array<double, 2>
+	auto SOMLayer<RefVecDim>::SearchPosition(C_NodePtr_ const& target) const->std::array<uint, 2>
 	{
 		for (uint r = 0; r < row_num_; ++r){
 			for (uint c = 0; c < col_num_; ++c){

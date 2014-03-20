@@ -37,7 +37,7 @@ private:
 	SIG_FRIEND_WITH_NODE_AND_EDGE
 
 private:
-	void SetNode(NodePtr_& tail, NodePtr_& head){ tail_ = tail; head_ = head; }
+	void SetNode(NodePtr_ const& tail, NodePtr_ const& head){ tail_ = tail; head_ = head; }
 
 public:
 	explicit DirectedEdge(typename sig::Just<double>::type weight = sig::Nothing(SIG_DEFAULT_EDGE_WEIGHT))

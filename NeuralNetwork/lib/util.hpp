@@ -45,6 +45,7 @@ namespace signn
 		edge->SetNode(departure, arrival);
 	}
 
+	/*
 	template <class T>
 	void Disconnect(C_NodePtr<T, DirectedEdge<T>> const& departure, C_NodePtr<T, DirectedEdge<T>> const& arrival)
 	{
@@ -58,6 +59,7 @@ namespace signn
 			}
 		}
 	}
+	*/
 
 	//class Matrix はランダムアクセス(operator[])可能であることが条件
 	template <class T, template <class T_, class = std::allocator<T_>> class C, class Matrix>

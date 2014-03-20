@@ -53,8 +53,8 @@ public:
 		RenewNeighbor(*input, SearchSimilarity(*input), alpha_);
 	}
 
-	//入力データと最も類似した参照ベクトルの座標を返す
-	auto NearestPosition(InputDataPtr input)  const->std::array<double, 2>{
+	//入力データと最も類似した参照ベクトルの座標(y, x)を返す
+	auto NearestPosition(InputDataPtr input)  const->std::array<uint, 2>{
 		return layer_->SearchPosition(SearchSimilarity(*input));
 	}
 };
@@ -76,8 +76,8 @@ void SOM_Online<InputInfo_, SideNodeNum>::RenewNeighbor(InputData const& input, 
 			}
 
 			//score' = score * (1 - alpha) + alpha * input
-			sig::CompoundAssignment([](double& dest, double corr){ dest *= corr; }, pre_score, (1-alpha));						//score *= (1 - alpha)
-			sig::CompoundAssignment([](double& dest, double in){ dest += in; }, pre_score, tmp);	//score += (input * alpha)
+			sig::CompoundAssignment([](double& dest, double corr){ dest *= corr; }, pre_score, (1-alpha));			//score *= (1 - alpha)
+			sig::CompoundAssignment([](double& dest, double in){ dest += in; }, pre_score, tmp);			//score += (input * alpha)
 		};
 	};
 
@@ -98,7 +98,8 @@ auto SOM_Online<InputInfo_, SideNodeNum>::SearchSimilarity(InputData const& inpu
 	NodePtr_ nearest = nullptr;			//NodePtr_* にすべきか検討
 
 	for (auto const& node : *static_cast<C_LayerPtr_>(layer_)){
-		if (auto dist = Dist(node->Score(), input.Input()) < min_dist){
+		auto dist = Dist(node->Score(), input.Input());
+		if (dist < min_dist){
 			min_dist = dist;
 			nearest = node;
 		}
