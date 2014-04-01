@@ -176,6 +176,7 @@
     <ClInclude Include="lib\MLP_impl.hpp" />
     <ClInclude Include="lib\MLP_online.hpp" />
     <ClInclude Include="lib\node.hpp" />
+    <ClInclude Include="lib\SOM_impl.hpp" />
     <ClInclude Include="lib\SOM_online.hpp" />
     <ClInclude Include="lib\util.hpp" />
   </ItemGroup>

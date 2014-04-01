@@ -416,11 +416,11 @@ void Test5()
 		inputs.push_back( som.MakeInputData().Unsupervised(train_data[i].begin(), train_data[i].end()) );
 	}
 
-	//学習開始
-	for (int loop = 0; loop < ITERATION; ++loop){
-		for(auto const& input : inputs) som.Train(input);
-	}
+	//学習実行
+	som.Train(inputs, ITERATION);
 	
+	
+	//結果検証
 	const uint BIN_NUM = SOM_NODE_SQUARE * SOM_NODE_SQUARE;
 	sig::Histgram<uint, BIN_NUM> hist_class1(0, BIN_NUM);
 	sig::Histgram<uint, BIN_NUM> hist_class2(0, BIN_NUM);

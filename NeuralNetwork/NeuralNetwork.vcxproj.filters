@@ -117,6 +117,9 @@
     <ClInclude Include="lib\external\distance\distance.hpp">
       <Filter>ヘッダー ファイル\external\distance</Filter>
     </ClInclude>
+    <ClInclude Include="lib\SOM_impl.hpp">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="example\main.cpp">
