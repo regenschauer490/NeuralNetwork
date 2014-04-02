@@ -13,54 +13,35 @@ http://opensource.org/licenses/mit-license.php
 namespace signn{
 
 template <class InputInfo_, size_t SideNodeNum>
-class SOM_Online : public DataFormat<InputInfo_, OutputInfo<SOMLayerInfo<SideNodeNum>>>
+class SOM_Online
 {
 public:
 	using SOM_ = SOM_Impl<InputInfo_, SideNodeNum>;
-	using Layer_ = typename SOM::Layer_;
-	using LayerPtr_ =typename SOM::LayerPtr_;
+	using Layer_ = typename SOM_::Layer_;
+	using LayerPtr_ =typename SOM_::LayerPtr_;
 	using C_LayerPtr_ = C_SOMLayerPtr<InputInfo_::dim>;
 
-private:
-	//入力データ形式の指定
-	struct InputProxy :
-		public UnsupervisedProxy
-	{};
-
+	using InputProxy = typename SOM_::InputProxy;
+	using InputDataPtr = typename SOM_::InputDataPtr;
+	
 private: 
 	SOM_ som_;
 	
 public:
 	SOM_Online() : som_(som_learning_rate) {}
 
-	//入力データ作成を行うクラスを返す
-	//そのクラスを通して、入力データを作成する (InputDataPtr型の入力データが得られる)
+	// 入力データ作成を行うクラスを返す
+	// そのクラスを通して、入力データを作成する (InputDataPtr型の入力データが得られる)
 	InputProxy MakeInputData() const{ return InputProxy(); }
 
-
-/* InputDataPtrを要素に持つコンテナを与えて学習を行う */
+	// データを逐次的に与えて学習する
+	void Train(InputDataPtr const& input, uint iteration){ som_.RenewNeighbor(*input, som_.SearchSimilarity(*input)); }
 	
-	//データ全体を学習する操作を何回繰り返すかを指定して実行
-	template <class InputDataSet>
-	void Train(InputDataSet const& inputs, uint iteration);
-
-
-	//入力データと最も類似した参照ベクトルの座標(y, x)を返す
+	// 入力データと最も類似した参照ベクトルの座標(y, x)を返す
 	auto NearestPosition(InputDataPtr input)  const->std::array<uint, 2>{
-		return som_->NearestPosition(input);
+		return som_.NearestPosition(input);
 	}
 };
-
-
-template <class InputInfo_, size_t SideNodeNum>
-template <class InputDataSet>
-void SOM_Online<InputInfo_, SideNodeNum>::Train(InputDataSet const& inputs, uint iteration){
-	for (uint loop = 0; loop < iteration; ++loop){
-		for (auto const& input : inputs){
-			RenewNeighbor(*input, SearchSimilarity(*input), alpha_);
-		}
-	}
-}
 
 }
 #endif

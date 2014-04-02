@@ -14,7 +14,7 @@ http://opensource.org/licenses/mit-license.php
 namespace signn{
 
 template <class InputInfo_, size_t SideNodeNum>
-class SOM_Impl
+class SOM_Impl : public DataFormat<InputInfo_, OutputInfo<SOMLayerInfo<SideNodeNum>>>
 {
 public:
 	using Layer_ = SOMLayer<InputInfo_::dim>;			//InputInfo_::dim : 参照ベクトルの次元
@@ -24,19 +24,19 @@ public:
 	using NodePtr_ = typename Layer_::NodePtr_;
 	using C_NodePtr_ = typename Layer_::C_NodePtr_;
 
+public:
+	// 入力データ形式の指定
+	struct InputProxy :
+		public UnsupervisedProxy
+	{};
+
 private: 
 	LayerPtr_ layer_;
-	double alpha_;		//learning-rate
+	double alpha_;		//learning-rate (0 ≦ alpha_ ≦ 1)
 	
 private:
 	void Init();
 
-	// 指定参照ベクトルとその近傍の参照ベクトルを更新 (0 ≦ learning_rate ≦ 1)
-	void RenewNeighbor(InputData const& input, NodePtr_ center, double learning_rate);
-
-	// 入力のベクトルと最も類似した参照ベクトルを探す
-	NodePtr_ SearchSimilarity(InputData const& input) const;
-	
 public:
 	SOM_Impl(double learning_rate) : layer_(LayerPtr_(new Layer_(SideNodeNum, SideNodeNum))), alpha_(learning_rate){}
 	
@@ -48,20 +48,27 @@ public:
 		RenewNeighbor(*input, SearchSimilarity(*input), alpha_);
 	}
 
+
+	// 指定参照ベクトルとその近傍の参照ベクトルを更新
+	void RenewNeighbor(InputData const& input, NodePtr_ center);
+
+	// 入力のベクトルと最も類似した参照ベクトルを探す
+	NodePtr_ SearchSimilarity(InputData const& input) const;
+
 	// 入力データと最も類似した参照ベクトルの座標(y, x)を返す
 	auto NearestPosition(InputDataPtr input)  const->std::array<uint, 2>{
-		return layer_->SearchPosition(SearchSimilarity(*input));
+		return layer_->Position(SearchSimilarity(*input));
 	}
 };
 
 
 template <class InputInfo_, size_t SideNodeNum>
-void SOM_Online<InputInfo_, SideNodeNum>::Init()
+void SOM_Impl<InputInfo_, SideNodeNum>::Init()
 {
 }
 
 template <class InputInfo_, size_t SideNodeNum>
-void SOM_Online<InputInfo_, SideNodeNum>::RenewNeighbor(InputData const& input, NodePtr_ center, double learning_rate)
+void SOM_Impl<InputInfo_, SideNodeNum>::RenewNeighbor(InputData const& input, NodePtr_ center)
 {
 	auto MakeUpdateFunc = [&](double alpha) ->std::function<void(NodeData_&)>{
 		return [&,alpha](NodeData_& pre_score){
@@ -76,17 +83,17 @@ void SOM_Online<InputInfo_, SideNodeNum>::RenewNeighbor(InputData const& input, 
 		};
 	};
 
-	center->UpdateScore(MakeUpdateFunc(learning_rate));		//中心の参照ベクトルを更新
+	center->UpdateScore(MakeUpdateFunc(alpha_));		//中心の参照ベクトルを更新
 
 	for(auto edge_it = center->out_begin(), end = center->out_end(); edge_it != end; ++edge_it){
 		auto edge = *edge_it;
-		double corr = learning_rate * std::exp(- edge->Weight());
+		double corr = alpha_ * std::exp(- edge->Weight());
 		edge->TailNode()->UpdateScore(MakeUpdateFunc(corr));		//近傍の参照ベクトルを更新
 	}
 }
 
 template <class InputInfo_, size_t SideNodeNum>
-auto SOM_Online<InputInfo_, SideNodeNum>::SearchSimilarity(InputData const& input) const
+auto SOM_Impl<InputInfo_, SideNodeNum>::SearchSimilarity(InputData const& input) const ->NodePtr_
 {
 	typename sigdm::EuclideanDistance Dist;		//todo: 距離関数の選択をできるように拡張
 	double min_dist = std::numeric_limits<double>::max();

@@ -318,11 +318,11 @@ using SIG_WSMatch = std::wsmatch;
 	}
 
 	//V1 > V2 -> true
-	template <size_t V1, size_t V2>
+	template <uint V1, uint V2>
 	struct Greater{ static constexpr bool value = V1 > V2 ? true : false; };
 
 	//V1 < V2 -> true
-	template <size_t V1, size_t V2>
+	template <uint V1, uint V2>
 	struct Less{ static constexpr bool value = V1 < V2 ? true : false; };
 
 

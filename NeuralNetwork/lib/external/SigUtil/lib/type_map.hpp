@@ -93,13 +93,13 @@ namespace sig{
 	struct Str2RegexSelector{};
 	template <>
 	struct Str2RegexSelector<std::string>{
-		using regex = SIG_Regex;
-		using smatch = SIG_SMatch;
+		typedef SIG_Regex regex;
+		typedef SIG_SMatch smatch;
 	};
 	template <>
 	struct Str2RegexSelector<std::wstring>{
-		using regex = SIG_WRegex;
-		using smatch = SIG_WSMatch;
+		typedef SIG_WRegex regex;
+		typedef SIG_WSMatch smatch;
 	};
 }
 #endif

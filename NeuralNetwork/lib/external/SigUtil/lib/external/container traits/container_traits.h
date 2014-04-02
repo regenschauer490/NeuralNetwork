@@ -32,8 +32,6 @@ http://opensource.org/licenses/mit-license.php
 #include "eval.h"
 #include "../../array.hpp"
 
-namespace sig{
-
 template <class C>
 struct container_traits
 {
@@ -226,6 +224,5 @@ struct container_traits<std::basic_string<T,K<T>,A>>
         lhs+=rhs;
     }
 };
-}
 
 #endif

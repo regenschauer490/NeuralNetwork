@@ -16,6 +16,7 @@ http://opensource.org/licenses/mit-license.php
 #include <memory>
 #include <functional>
 #include <random>
+#include <cmath>
 #include <future>
 #include <type_traits>
 

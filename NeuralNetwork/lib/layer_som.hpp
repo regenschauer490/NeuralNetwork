@@ -71,7 +71,7 @@ namespace signn{
 	SOMLayer<RefVecDim>::SOMLayer(uint row_num, uint col_num)
 		: row_num_(row_num), col_num_(col_num), pos_col_offset(0.0)
 	{
-		sig::SimpleRandom<double> random(2.0, 8.0, DEBUG_MODE);
+		sig::SimpleRandom<double> random(2.0, 8.0, DEBUG_MODE);		// 参照ベクトルの初期値をランダムに決定
 
 		for (uint i = 0; i < row_num * col_num; ++i){
 			auto node = std::make_shared<Node_>();
@@ -90,7 +90,7 @@ namespace signn{
 						signn::Connect(
 							nodes_[rd * col_num_ + cd],
 							nodes_[ra * col_num_ + ca],
-							std::make_shared<DEdge_>(std::abs(rd - ra) + std::abs(cd - ca));
+							std::make_shared<DEdge_>(std::labs(rd - ra) + std::labs(cd - ca))
 						);
 					}
 				}

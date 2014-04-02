@@ -17,8 +17,6 @@
 #include <type_traits>
 #include <utility>
 
-namespace sig{
-
 template<
     class F, class... Args,
     class = typename std::enable_if<!std::is_member_function_pointer<F>::value>::type,
@@ -61,6 +59,5 @@ auto eval(R(C::*m), C& c) -> R&
 
 template<class... Args>
 using eval_result_type = decltype(eval(std::declval<Args>()...));
-}
 
 #endif
