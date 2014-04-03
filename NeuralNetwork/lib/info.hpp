@@ -24,7 +24,7 @@ const double L2__regularization_sample = 0.9999;
 const double threshold_theta = 0.5;
 const double SIG_DEFAULT_EDGE_WEIGHT = 0.5;		//default edge weight(must not set same weight on MLP, AutoEncoder and so on)
 
-const double som_learning_rate = 0.5;
+const double som_learning_rate = 0.2;
 
 //forward declaration
 template <class OutputInfo_>

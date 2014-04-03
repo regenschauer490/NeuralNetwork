@@ -23,6 +23,7 @@ public:
 	using NodeData_ = typename Layer_::NodeData_;
 	using NodePtr_ = typename Layer_::NodePtr_;
 	using C_NodePtr_ = typename Layer_::C_NodePtr_;
+	using DataRange_ = typename Layer_::DataRange_;
 
 public:
 	// 入力データ形式の指定
@@ -38,7 +39,7 @@ private:
 	void Init();
 
 public:
-	SOM_Impl(double learning_rate) : layer_(LayerPtr_(new Layer_(SideNodeNum, SideNodeNum))), alpha_(learning_rate){}
+	SOM_Impl(double learning_rate, DataRange_ ref_vector_init) : layer_(LayerPtr_(new Layer_(SideNodeNum, SideNodeNum, ref_vector_init))), alpha_(learning_rate){}
 	
 	void LearningRate(double rate){ alpha_ = rate; }
 	double LearningRate(){ return alpha_; }

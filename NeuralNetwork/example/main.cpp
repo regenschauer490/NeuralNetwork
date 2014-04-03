@@ -385,13 +385,14 @@ void Test4()
 void Test5()
 {
 	using namespace signn;
-	const uint ITERATION = 1000;				//データ全体を学習する反復を何回するか
+	const uint ITERATION = 10000;				//データ全体を学習する反復を何回するか
 
 	const uint SOM_NODE_SQUARE = 5;		//SOMレイヤーの1辺のノード数
-	using InInfo = InputInfo<double, 4>;
+	using InInfo = InputInfo<double, 4>;	//実数値、4列(データベクトルの次元数4)
 	using SOM = signn::SOM_Online<InInfo, SOM_NODE_SQUARE>;
 
-	SOM som;
+	//各列の最小・最大値 (事前の目安)
+	SOM som{{4.9, 7.3}, {2, 4.4}, {1, 6.9}, {0.1, 2.5}};
 
 	//テストデータ読み込み
 	auto test_raw_data = sig::ReadNum<std::vector<std::vector<double>>>(test_folder + L"som/test_iris.csv", ",");
@@ -417,7 +418,11 @@ void Test5()
 	}
 
 	//学習実行
-	som.Train(inputs, ITERATION);
+	for (uint loop = 0; loop < ITERATION; ++loop){
+		for (auto const& input : inputs){
+			som.Train(input);
+		}
+	}
 	
 	
 	//結果検証
@@ -426,18 +431,25 @@ void Test5()
 	sig::Histgram<uint, BIN_NUM> hist_class2(0, BIN_NUM);
 	sig::Histgram<uint, BIN_NUM> hist_class3(0, BIN_NUM);
 
+	std::vector<std::vector<int>> mat1(SOM_NODE_SQUARE, std::vector<int>(SOM_NODE_SQUARE, 0));
+	std::vector<std::vector<int>> mat2(SOM_NODE_SQUARE, std::vector<int>(SOM_NODE_SQUARE, 0));
+	std::vector<std::vector<int>> mat3(SOM_NODE_SQUARE, std::vector<int>(SOM_NODE_SQUARE, 0));
+
 	for (uint i=0; i<train_ans.size(); ++i){
 		auto pos = som.NearestPosition(inputs[i]);
 
 		switch (train_ans[i]){
 		case 0 :
 			hist_class1.Count(pos[0] * SOM_NODE_SQUARE + pos[1]);
+			++mat1[pos[0]][pos[1]];
 			break;
 		case 1 :
 			hist_class2.Count(pos[0] * SOM_NODE_SQUARE + pos[1]);
+			++mat2[pos[0]][pos[1]];
 			break;
 		case 2:
 			hist_class3.Count(pos[0] * SOM_NODE_SQUARE + pos[1]);
+			++mat3[pos[0]][pos[1]];
 			break;
 		default :
 			assert(false);
@@ -447,6 +459,10 @@ void Test5()
 	hist_class1.Print();
 	hist_class2.Print();
 	hist_class3.Print();
+
+	signn::DispMatrix(mat1, 2);
+	signn::DispMatrix(mat2, 2);
+	signn::DispMatrix(mat3, 2);
 }
 
 

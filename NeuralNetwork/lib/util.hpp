@@ -148,5 +148,20 @@ namespace signn
 		return random();
 	}
 
+	template <class CC>
+	void DispMatrix(CC const& matrix, uint keta)
+	{
+		for (auto const& row : matrix){
+			std::cout << "|";
+
+			for (auto const& e : row){
+				std::cout << std::setw(keta) << e << "|";
+			}
+
+			std::cout << std::endl;
+		}
+		std::cout << std::endl;
+	}
+
 }
 #endif

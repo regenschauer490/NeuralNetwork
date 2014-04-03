@@ -16,12 +16,14 @@ namespace signn{
 	class SOMLayer
 	{
 	public:
-		using NodeData_ = sig::Array<double, RefVecDim>;
+		using ValueType_ = double;
+		using NodeData_ = sig::Array<ValueType_, RefVecDim>;
 		using DEdge_ = DirectedEdge<NodeData_>;
 		using Node_ = Node<NodeData_, DEdge_>;
 		using NodePtr_ = NodePtr<NodeData_, DEdge_>;
 		using C_NodePtr_ = C_NodePtr<NodeData_, DEdge_>;
 		using LayerPtr_ = SOMLayerPtr<RefVecDim>;
+		using DataRange_ = sig::Array<std::pair<ValueType_, ValueType_>, RefVecDim>;
 
 	private:
 		// 2次元の配置を行で直列化. [row*COL + col]でアクセス
@@ -46,7 +48,7 @@ namespace signn{
 		auto end() ->decltype(nodes_.end()){ return nodes_.end(); }
 
 	public:
-		SOMLayer(uint row_num, uint col_num);
+		SOMLayer(uint row_num, uint col_num, DataRange_ ref_vector_init);
 
 		// static LayerPtr_ MakeInstance(uint dim){ return std::shared_ptr<SOMLayer>(new SOMLayer(dim)); }
 
@@ -68,19 +70,26 @@ namespace signn{
 
 
 	template <size_t RefVecDim>
-	SOMLayer<RefVecDim>::SOMLayer(uint row_num, uint col_num)
+	SOMLayer<RefVecDim>::SOMLayer(uint row_num, uint col_num, DataRange_ ref_vector_init)
 		: row_num_(row_num), col_num_(col_num), pos_col_offset(0.0)
 	{
-		sig::SimpleRandom<double> random(2.0, 8.0, DEBUG_MODE);		// 参照ベクトルの初期値をランダムに決定
+		// 参照ベクトルの初期値を各次元の範囲内でランダムに生成
+		std::vector<sig::SimpleRandom<double>> random;
+		for(auto init_range : ref_vector_init){
+			auto min = std::get<0>(init_range) < std::get<1>(init_range) ? std::get<0>(init_range) : std::get<1>(init_range);
+			auto max = std::get<0>(init_range) < std::get<1>(init_range) ? std::get<1>(init_range) : std::get<0>(init_range);
+			random.push_back(sig::SimpleRandom<double>(min, max, DEBUG_MODE));
+		}		
 
 		for (uint i = 0; i < row_num * col_num; ++i){
 			auto node = std::make_shared<Node_>();
 			sig::Array<double, RefVecDim> init_score;
-			for (uint j = 0; j<RefVecDim; ++j) init_score.push_back(random());
+			for (uint j = 0; j<RefVecDim; ++j) init_score.push_back(random[j]());
 			node->Score(init_score);
 			nodes_.push_back(node);
 		}
 		
+		//2次元マップ上ノードのリンク生成
 		for (uint rd = 0; rd<row_num; ++rd){
 			for (uint cd = 0; cd<col_num; ++cd){
 				for (uint ra = 0; ra<row_num; ++ra){
