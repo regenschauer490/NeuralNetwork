@@ -2,13 +2,14 @@
 #include "../lib/MLP_batch.hpp"
 #include "../lib/auto_encoder.hpp"
 #include "../lib/SOM_online.hpp"
+#include "../lib/SOM_batch.hpp"
 
 #include "../lib/external/SigUtil/lib/tool.hpp"
 #include "../lib/external/SigUtil/lib/file.hpp"
 #include "../lib/external/SigUtil/lib/modify.hpp"
 #include "../lib/external/SigUtil/lib/string.hpp"
 
-//#include "utility.hpp"
+//#include "LinkedGraph.hpp"
 
 const std::wstring test_folder = L"test data/";
 
@@ -246,7 +247,7 @@ void Test3(){
 #else
 	std::vector<Perceptron::InputDataPtr> inputs;
 	for (uint i = 0; i < train_ans.size(); ++i){
-		inputs.push_back(nn.MakeInputData(train_data[i].begin(), train_data[i].end(), train_ans[i]));
+		inputs.push_back(nn.MakeInputData().Classification(train_data[i].begin(), train_data[i].end(), train_ans[i]));
 	}
 #endif
 	
@@ -389,10 +390,12 @@ void Test5()
 
 	const uint SOM_NODE_SQUARE = 5;		//SOMレイヤーの1辺のノード数
 	using InInfo = InputInfo<double, 4>;	//実数値、4列(データベクトルの次元数4)
-	using SOM = signn::SOM_Online<InInfo, SOM_NODE_SQUARE>;
 
-	//各列の最小・最大値 (事前の目安)
-	SOM som{{4.9, 7.3}, {2, 4.4}, {1, 6.9}, {0.1, 2.5}};
+#if IS_BATCH
+	using SOM = signn::SOM_Batch<InInfo, SOM_NODE_SQUARE>;
+#else
+	using SOM = signn::SOM_Online<InInfo, SOM_NODE_SQUARE>;
+#endif
 
 	//テストデータ読み込み
 	auto test_raw_data = sig::ReadNum<std::vector<std::vector<double>>>(test_folder + L"som/test_iris.csv", ",");
@@ -409,20 +412,33 @@ void Test5()
 	}
 	auto train_data = std::move(*test_raw_data);
 	const auto data_size = train_data.size();
-
+	
 	//入力用データ作成
 	std::vector<SOM::InputDataPtr> inputs;
 	
 	for (auto i=0; i<data_size; ++i){
-		inputs.push_back( som.MakeInputData().Unsupervised(train_data[i].begin(), train_data[i].end()) );
+		inputs.push_back( SOM::MakeInputData().Unsupervised(train_data[i].begin(), train_data[i].end()) );
 	}
+	
+#if IS_BATCH
+	SOM:
 
-	//学習実行
+	//事前に用意したデータセットを与える
+	SOM som(inputs);
+
+	som.Train(ITERATION);
+#else
+	//データセットの事前に分かる程度のプロパティを与える
+	//各列の最小・最大値 (大体の目安)
+	SOM som{{4.9, 7.3}, {2, 4.4}, {1, 6.9}, {0.1, 2.5}};
+
+	// オンライン学習実行
 	for (uint loop = 0; loop < ITERATION; ++loop){
 		for (auto const& input : inputs){
 			som.Train(input);
 		}
 	}
+#endif
 	
 	
 	//結果検証
@@ -463,6 +479,8 @@ void Test5()
 	signn::DispMatrix(mat1, 2);
 	signn::DispMatrix(mat2, 2);
 	signn::DispMatrix(mat3, 2);
+
+	
 }
 
 

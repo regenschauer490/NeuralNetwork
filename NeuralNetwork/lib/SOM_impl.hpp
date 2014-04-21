@@ -13,7 +13,7 @@ http://opensource.org/licenses/mit-license.php
 
 namespace signn{
 
-template <class InputInfo_, size_t SideNodeNum>
+template <class InputInfo_, size_t SideNodeNum, DistanceFunc DistFunc>
 class SOM_Impl : public DataFormat<InputInfo_, OutputInfo<SOMLayerInfo<SideNodeNum>>>
 {
 public:
@@ -35,12 +35,16 @@ private:
 	LayerPtr_ layer_;
 	double alpha_;		//learning-rate (0 ≦ alpha_ ≦ 1)
 	
-private:
-	void Init();
-
 public:
 	SOM_Impl(double learning_rate, DataRange_ ref_vector_init) : layer_(LayerPtr_(new Layer_(SideNodeNum, SideNodeNum, ref_vector_init))), alpha_(learning_rate){}
 	
+	// 入力データ作成を行うクラスを返す
+	// そのクラスを通して、入力データを作成する (InputDataPtr型の入力データが得られる)
+	static InputProxy MakeInputData(){ return InputProxy(); }
+
+	// データセットから各要素(列)の値の範囲を求める
+	static DataRange_ AnalyseRange(InputDataSet const& inputs);
+
 	void LearningRate(double rate){ alpha_ = rate; }
 	double LearningRate(){ return alpha_; }
 
@@ -48,7 +52,6 @@ public:
 	void Train(InputDataPtr input){
 		RenewNeighbor(*input, SearchSimilarity(*input), alpha_);
 	}
-
 
 	// 指定参照ベクトルとその近傍の参照ベクトルを更新
 	void RenewNeighbor(InputData const& input, NodePtr_ center);
@@ -63,13 +66,37 @@ public:
 };
 
 
-template <class InputInfo_, size_t SideNodeNum>
-void SOM_Impl<InputInfo_, SideNodeNum>::Init()
+template <class InputInfo_, size_t SideNodeNum, DistanceFunc DistFunc>
+auto SOM_Impl<InputInfo_, SideNodeNum, DistFunc>::AnalyseRange(InputDataSet const& inputs) ->DataRange_
 {
+	uint dim = InputInfo_::dim;
+	DataRange_ range(dim, std::make_pair(0, 0));
+
+	bool f = true;
+	for (auto const& input : inputs){
+		auto const& vec = input->Input();
+
+		for (uint i=0; i<dim; ++i){
+			if (f){
+				std::get<0>(range[i]) = vec[i];
+				std::get<1>(range[i]) = vec[i];
+			}
+			else{
+				if (vec[i] < std::get<0>(range[i])){
+					std::get<0>(range[i]) = vec[i];
+				}
+				else if (vec[i] > std::get<1>(range[i])){
+					std::get<1>(range[i]) = vec[i];
+				}
+			}
+		}
+		f = false;
+	}
+	return range;
 }
 
-template <class InputInfo_, size_t SideNodeNum>
-void SOM_Impl<InputInfo_, SideNodeNum>::RenewNeighbor(InputData const& input, NodePtr_ center)
+template <class InputInfo_, size_t SideNodeNum, DistanceFunc DistFunc>
+void SOM_Impl<InputInfo_, SideNodeNum, DistFunc>::RenewNeighbor(InputData const& input, NodePtr_ center)
 {
 	auto MakeUpdateFunc = [&](double alpha) ->std::function<void(NodeData_&)>{
 		return [&,alpha](NodeData_& pre_score){
@@ -93,15 +120,15 @@ void SOM_Impl<InputInfo_, SideNodeNum>::RenewNeighbor(InputData const& input, No
 	}
 }
 
-template <class InputInfo_, size_t SideNodeNum>
-auto SOM_Impl<InputInfo_, SideNodeNum>::SearchSimilarity(InputData const& input) const ->NodePtr_
+template <class InputInfo_, size_t SideNodeNum, DistanceFunc DistFunc>
+auto SOM_Impl<InputInfo_, SideNodeNum, DistFunc>::SearchSimilarity(InputData const& input) const ->NodePtr_
 {
-	typename sigdm::EuclideanDistance Dist;		//todo: 距離関数の選択をできるように拡張
+	typename DFSelector<DistFunc>::fobj df;		//選択した距離関数のクラスを選択
 	double min_dist = std::numeric_limits<double>::max();
 	NodePtr_ nearest = nullptr;			//NodePtr_* にすべきか検討
 
 	for (auto const& node : *static_cast<C_LayerPtr_>(layer_)){
-		auto dist = Dist(node->Score(), input.Input());
+		auto dist = df(node->Score(), input.Input());
 		if (dist < min_dist){
 			min_dist = dist;
 			nearest = node;

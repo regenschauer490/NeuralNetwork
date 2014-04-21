@@ -79,6 +79,9 @@ namespace sig
 
 	public:
 		Array() : tail_(0) {}
+
+		Array(uint size, T val) : tail_(0){ for(uint i=0; i<size; ++i) push_back(val); }
+
 		explicit Array(std::initializer_list<T> init) : tail_(0){
 			assert(init.size() <= N);
 			CompoundAssignment_([this](T& dest, ParamType<T> src){ dest = src; ++tail_; }, array_, init);

@@ -20,7 +20,8 @@ namespace sigdm{
 	struct MinkowskiDistance
 	{
 		template <class C1, class C2>
-		double operator()(C1 const& vec1, C2 const& vec2){
+		double operator()(C1 const& vec1, C2 const& vec2) const
+		{
 			using T = typename std::common_type<typename sig::container_traits<C1>::value_type, typename sig::container_traits<C2>::value_type>::type;
 			
 			return std::pow(
@@ -33,44 +34,47 @@ namespace sigdm{
 	//マンハッタン距離
 	using ManhattanDistance = MinkowskiDistance<1>;
 
+	const ManhattanDistance manhattan_distance;
+
 	//ユークリッド距離
 	using EuclideanDistance = MinkowskiDistance<2>;
+
+	const EuclideanDistance euclidean_distance;
 
 	//キャンベラ距離
 	struct CanberraDistance
 	{
-		template < class T, template < class T_, class = std::allocator <T_ >> class Container>
-		static double f(Container<T> const& vec1, Container<T> const& vec2){
-			return sig::Accumulate(
-				sig::ZipWith<double>(vec1, vec2, [](T val1, T val2){ return static_cast<double>(abs(val1 - val2)) / (abs(val1) + abs(val2)); }),
-				0,
-				std::plus<double>()
-				);
+		template <class C1, class C2>
+		double operator()(C1 const& vec1, C2 const& vec2) const
+		{
+			using T = typename std::common_type<typename sig::container_traits<C1>::value_type, typename sig::container_traits<C2>::value_type>::type;
+			
+			auto tmp = sig::ZipWith([](T val1, T val2){ return static_cast<T>(abs(val1 - val2)) / (abs(val1) + abs(val2)); }, vec1, vec2);
+
+			return std::accumulate(std::begin(tmp), std::end(tmp), T(), std::plus<T>());
 		}
 	};
+
+	const CanberraDistance canberra_distance;
 
 	//バイナリ距離
 	struct BinaryDistance
 	{
-		template < template < class T_, class = std::allocator <T_ >> class Container>
-		static double f(Container<int> const& vec1, Container<int> const& vec2){
+		template <class C1, class C2,
+			typename = typename std::enable_if<std::is_same<typename container_traits<C1>::value_type, int>::value || std::is_same<typename container_traits<C1>::value_type, bool>::value>::type,
+			typename = typename std::enable_if<std::is_same<typename container_traits<C2>::value_type, int>::value || std::is_same<typename container_traits<C1>::value_type, bool>::value>::type
+		>
+		double operator()(C1 const& vec1, C2 const& vec2) const
+		{
 			int ether = 0, both = 0;
-			for (auto it1 = vec1.begin(), it2 = vec2.begin(), end1 = vec1.end(), end2 = vec2.end(); it1 != end1 && it2 != end2; ++it1, ++it2){
+			for (auto it1 = std::begin(vec1), it2 = std::begin(vec2), end1 = std::end(vec1), end2 = std::end(vec2); it1 != end1 && it2 != end2; ++it1, ++it2){
 				if (*it1 == 1 && *it2 == 1) ++both;
 				else if (*it1 == 1 || *it2 == 1) ++ether;
 			}
 			return static_cast<double>(ether) / (ether + both);
 		}
-
-		template < template < class T_, class = std::allocator <T_ >> class Container>
-		static double f(Container<bool> const& vec1, Container<bool> const& vec2){
-			int ether = 0, both = 0;
-			for (auto it1 = vec1.begin(), it2 = vec2.begin(), end1 = vec1.end(), end2 = vec2.end(); it1 != end1 && it2 != end2; ++it1, ++it2){
-				if (*it1 && *it2) ++both;
-				else if (*it1 || *it2) ++ether;
-			}
-			return static_cast<double>(ether) / (ether + both);
-		}
 	};
+
+	const BinaryDistance binary_distance;
 }
 #endif

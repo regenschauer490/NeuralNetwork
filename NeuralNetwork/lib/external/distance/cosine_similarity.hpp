@@ -9,23 +9,28 @@ http://opensource.org/licenses/mit-license.php
 #define SIG_COSINE_SIMILARITY_H
 
 #include <numeric>
+#include "norm.hpp"
 #include "../SigUtil/lib/sigutil.hpp"
 
 namespace sigdm{
 
-//コサイン類似度
-//値域：[-1, 1]
-template<class T, template<class T, class = std::allocator<T>> class Container>
-inline maybe<double> CosineSimilarity(Container<T> const& vector1, Container<T> const& vector2)
+struct CosineSimilarity
 {
-	if(vector1.size() != vector2.size()) return nothing;
+	//コサイン類似度
+	//値域：[-1, 1]
+	//失敗時：boost::none (if not use boost, return 0)
+	template<class C1, class C2>
+	auto operator()(C1 const& vec1, C2 const& vec2) const ->typename sig::Just<double>::type
+	{
+		using T = std::common_type<typename sig::container_traits<C1>::value_type, typename sig::container_traits<C2>::value_type>::type;
 
-	const auto Abs = [](Container<T> const& vec)->double{
-		return std::sqrt( accumulate(vec.begin(), vec.end(), static_cast<T>(0), [](T sum, T val){ return sum + val*val; }) );
-	};
+		if(vec1.size() != vec2.size()) return sig::Nothing(0);
 
-	return std::inner_product(vector1.begin(), vector1.end(), vector2.begin(), static_cast<T>(0)) / (Abs(vector1) * Abs(vector2));
-}
+		return typename sig::Just<double>::type(std::inner_product(std::begin(vec1), std::end(vec1), std::begin(vec2), static_cast<T>(0)) / (L2Norm(vec1) * L2Norm(vec2)));
+	}
+};
+
+const CosineSimilarity cosine_similarity;
 
 }
 #endif

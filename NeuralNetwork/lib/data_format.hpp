@@ -82,10 +82,29 @@ public:
 		OutputType_ operator [](uint index) const{ return estimate_[index]; }
 	};
 
-public:
-	using InputDataPtr = std::shared_ptr<typename DataFormat<InputInfo_, OutputInfo_>::InputData const>;
 
+	using InputDataPtr = std::shared_ptr<typename DataFormat<InputInfo_, OutputInfo_>::InputData const>;
 	using OutputDataPtr = std::shared_ptr<typename DataFormat<InputInfo_, OutputInfo_>::OutputData>;
+
+public:
+	//batch学習用の入力データセット保持クラス
+	class InputDataSet
+	{
+		std::vector<InputDataPtr> inputs_;
+
+	public:
+		template <class InputDataList>
+		InputDataSet(InputDataList const& inputs) : inputs_(sig::Copy<std::vector<InputDataPtr>>(inputs)){}
+
+		InputDataPtr operator[](uint id) const{ return inputs_[id]; }
+
+		uint size(){ return inputs_.size(); }
+
+		auto begin() const ->decltype(inputs_.cbegin()){ return inputs_.cbegin(); }
+
+		auto end() const ->decltype(inputs_.cend()){ return inputs_.cend(); }
+
+	};
 
 protected:
 	//入力データ形式の列挙

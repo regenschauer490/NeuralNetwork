@@ -9,6 +9,10 @@ http://opensource.org/licenses/mit-license.php
 #define SIG_NN_INFO_H
 
 #include "external/SigUtil/lib/sigutil.hpp"
+#include "external/distance/distance.hpp"
+#include "external/distance/cosine_similarity.hpp"
+#include "external/distance/KL_divergence.hpp"
+#include "external/distance/JS_divergence.hpp"
 
 namespace signn{
 
@@ -87,17 +91,19 @@ struct LayerInfo{
 };
 
 
-
-//input meta info
-//Type: input data type
-//dim: the number of nodes which this layer has
+///input meta info
+//type: input data type
+//dim: the number of nodes which input-layer has
 template <class Type, size_t NodeNum>
 struct InputInfo{
 	using type = Type;
 	static constexpr size_t dim = NodeNum;
 };
 
-//output meta info
+///output meta info
+//type: output data type
+//layer_type: output-layer type
+//dim: the number of nodes which output-layer has
 template <class LayerInfo_>
 struct OutputInfo{
 	using output_type = typename LayerInfo_::output_type;
@@ -173,6 +179,83 @@ struct Softmax
 	static double f(double exp_x, double exp_sum){ return exp_x / exp_sum; }
 	//static double df(double exp_x, double exp_sum) { return (exp_x * (sum - exp_x)) / std::pow(exp_sum, 2); }
 	static double df(double x) { return 1; }
+};
+
+
+//distance function
+enum class DistanceFunc{ Manhattan, Euclidean, Canberra, Binary, Cosine, KLdiv, JSdiv };
+
+template <DistanceFunc F>
+struct DFSelector;
+
+template <>
+struct DFSelector<DistanceFunc::Manhattan>
+{
+	using fobj = sigdm::ManhattanDistance;
+};
+
+template <>
+struct DFSelector<DistanceFunc::Euclidean>
+{
+	using fobj = sigdm::EuclideanDistance;
+};
+
+template <>
+struct DFSelector<DistanceFunc::Canberra>
+{
+	using fobj = sigdm::CanberraDistance;
+};
+
+template <>
+struct DFSelector<DistanceFunc::Binary>
+{
+	using fobj = sigdm::BinaryDistance;
+};
+
+template <>
+struct DFSelector<DistanceFunc::Cosine>
+{
+	struct CosineDistance
+	{
+		template<class C1, class C2>
+		double operator()(C1 const& vec1, C2 const& vec2) const
+		{
+			return 1.0 - sig::FromJust(sigdm::cosine_similarity(vec1, vec2));
+		}
+	};
+
+	using fobj = CosineDistance;
+};
+
+template <>
+struct DFSelector<DistanceFunc::KLdiv>
+{
+	struct KLdiv
+	{
+		template<class C1, class C2>
+		double operator()(C1 const& vec1, C2 const& vec2) const
+		{
+			return sig::FromJust(sigdm::kl_divergence(vec1, vec2));
+		}
+	};
+
+	using fobj = KLdiv;
+};
+
+
+template <>
+struct DFSelector<DistanceFunc::JSdiv>
+{
+	struct JSdiv
+	{
+		template<class C1, class C2>
+		double operator()(C1 const& vec1, C2 const& vec2) const
+		{
+			return sig::FromJust(sigdm::js_divergence(vec1, vec2));
+		}
+	};
+
+	using fobj = JSdiv;
 };
 
 }

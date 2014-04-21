@@ -326,8 +326,6 @@ using SIG_WSMatch = std::wsmatch;
 	struct Less{ static constexpr bool value = V1 < V2 ? true : false; };
 
 
-/* 修正・補正・追加・削除 */
-
 	//範囲チェックと自動修正
 	template <class T, class U>
 	inline bool ModifyRange(T& val, U const& min, U const& max)
@@ -343,6 +341,15 @@ using SIG_WSMatch = std::wsmatch;
 		if(val<min){ return false; }
 		if(val>max){ return false; }
 		return true;
+	}
+
+
+	template <class RC, class C>
+	auto Copy(C const& src) ->RC
+	{
+		RC dest;
+		for (auto const& e : src) container_traits<RC>::add_element(dest, e);
+		return dest;
 	}
 }
 

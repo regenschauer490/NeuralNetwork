@@ -11,53 +11,59 @@ http://opensource.org/licenses/mit-license.php
 #include "SOM_impl.hpp"
 
 namespace signn{
-/*
-template <class InputInfo_, size_t SideNodeNum>
+
+template <class InputInfo_, size_t SideNodeNum, DistanceFunc DistFunc = DistanceFunc::Euclidean>
 class SOM_Batch
 {
 public:
-	using SOM_ = SOM_Impl<InputInfo_, SideNodeNum>;
-	using Layer_ = typename SOM_::Layer_;
-	using LayerPtr_ =typename SOM_::LayerPtr_;
-	using C_LayerPtr_ = C_SOMLayerPtr<InputInfo_::dim>;
+	using SOM = SOM_Impl<InputInfo_, SideNodeNum, DistFunc>;
 
-	using InputProxy = typename SOM_::InputProxy;
-	using InputDataPtr = typename SOM_::InputDataPtr;
+	using InputDataPtr = typename SOM::InputDataPtr;	//入力データそのもの
+	using InputDataSet = typename SOM::InputDataSet;	//入力データ集合
+	using InputProxy = typename SOM::InputProxy;		//入力データ作成用クラス
+	using DataRange = typename SOM::DataRange_;		//入力データベクトルの各要素の範囲指定
 	
 private: 
-	SOM_ som_;
+	InputDataSet dataset_;
+	SOM som_;
 	
+private:
+	//[0,1]に値を正規化
+	void Normalization();
+
+	//平均0, 分散σに値を標準化
+	void Standardization();
+
 public:
-	SOM_Batch() : som_(som_learning_rate) {}
+	SOM_Batch(InputDataSet const& inputs);
 
-	//入力データ作成を行うクラスを返す
-	//そのクラスを通して、入力データを作成する (InputDataPtr型の入力データが得られる)
-	InputProxy MakeInputData() const{ return InputProxy(); }
+	// 入力データ作成を行うクラスを返す
+	static InputProxy MakeInputData(){ return SOM::MakeInputData(); }
 
+	// データ全体を学習する操作を何回繰り返すかを指定して実行
+	void Train(uint iteration);
 
-/* InputDataPtrを要素に持つコンテナを与えて学習を行う */
-	
-	//データ全体を学習する操作を何回繰り返すかを指定して実行
-	template <class InputDataSet>
-	void Train(InputDataSet const& inputs, uint iteration);
-
-
-	//入力データと最も類似した参照ベクトルの座標(y, x)を返す
+	// 入力データと最も類似した参照ベクトルの座標(y, x)を返す
 	auto NearestPosition(InputDataPtr input)  const->std::array<uint, 2>{
 		return som_.NearestPosition(input);
 	}
 };
 
 
-template <class InputInfo_, size_t SideNodeNum>
-template <class InputDataSet>
-void SOM_Online<InputInfo_, SideNodeNum>::Train(InputDataSet const& inputs, uint iteration){
+template <class InputInfo_, size_t SideNodeNum, DistanceFunc DistFunc>
+SOM_Batch<InputInfo_, SideNodeNum, DistFunc>::SOM_Batch(InputDataSet const& inputs) :
+	dataset_(inputs),
+	som_(som_learning_rate, SOM::AnalyseRange(inputs))
+{}
+
+template <class InputInfo_, size_t SideNodeNum, DistanceFunc DistFunc>
+void SOM_Batch<InputInfo_, SideNodeNum, DistFunc>::Train(uint iteration){
 	for (uint loop = 0; loop < iteration; ++loop){
-		for (auto const& input : inputs){
+		for (auto const& input : dataset_){
 			som_.RenewNeighbor(*input, som_.SearchSimilarity(*input));
 		}
 	}
 }
-*/
+
 }
 #endif
