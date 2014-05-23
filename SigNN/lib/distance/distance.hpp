@@ -8,7 +8,7 @@ http://opensource.org/licenses/mit-license.php
 #ifndef SIG_DISTANCE_H
 #define SIG_DISTANCE_H
 
-#include "../SigUtil/lib/functional.hpp"
+#include "SigUtil/lib/functional.hpp"
 
 #undef max
 #undef min

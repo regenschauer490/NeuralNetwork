@@ -94,7 +94,7 @@ public:
 
 	public:
 		template <class InputDataList>
-		InputDataSet(InputDataList const& inputs) : inputs_(sig::Copy<std::vector<InputDataPtr>>(inputs)){}
+		InputDataSet(InputDataList const& inputs) : inputs_(sig::copy<std::vector<InputDataPtr>>(inputs)){}
 
 		InputDataPtr operator[](uint id) const{ return inputs_[id]; }
 

@@ -9,11 +9,12 @@ http://opensource.org/licenses/mit-license.php
 #define SIG_NN_SOM_IMPL_H
 
 #include "layer_som.hpp"
-#include "external/distance/distance.hpp"
+#include "distance/distance.hpp"
+#include "SigUtil/lib/iteration.hpp"
 
 namespace signn{
 
-template <class InputInfo_, size_t SideNodeNum, DistanceFunc DistFunc>
+template <class InputInfo_, size_t SideNodeNum>
 class SOM_Impl : public DataFormat<InputInfo_, OutputInfo<SOMLayerInfo<SideNodeNum>>>
 {
 public:
@@ -63,11 +64,14 @@ public:
 	auto NearestPosition(InputDataPtr input)  const->std::array<uint, 2>{
 		return layer_->Position(SearchSimilarity(*input));
 	}
+
+	//debug用
+	sig::array<double, InputInfo_::dim> RefVector(uint x, uint y){ return layer_->Access(y, x)->Score(); }
 };
 
 
-template <class InputInfo_, size_t SideNodeNum, DistanceFunc DistFunc>
-auto SOM_Impl<InputInfo_, SideNodeNum, DistFunc>::AnalyseRange(InputDataSet const& inputs) ->DataRange_
+template <class InputInfo_, size_t SideNodeNum>
+auto SOM_Impl<InputInfo_, SideNodeNum>::AnalyseRange(InputDataSet const& inputs) ->DataRange_
 {
 	uint dim = InputInfo_::dim;
 	DataRange_ range(dim, std::make_pair(0, 0));
@@ -95,8 +99,8 @@ auto SOM_Impl<InputInfo_, SideNodeNum, DistFunc>::AnalyseRange(InputDataSet cons
 	return range;
 }
 
-template <class InputInfo_, size_t SideNodeNum, DistanceFunc DistFunc>
-void SOM_Impl<InputInfo_, SideNodeNum, DistFunc>::RenewNeighbor(InputData const& input, NodePtr_ center)
+template <class InputInfo_, size_t SideNodeNum>
+void SOM_Impl<InputInfo_, SideNodeNum>::RenewNeighbor(InputData const& input, NodePtr_ center)
 {
 	auto MakeUpdateFunc = [&](double alpha) ->std::function<void(NodeData_&)>{
 		return [&,alpha](NodeData_& pre_score){
@@ -106,8 +110,8 @@ void SOM_Impl<InputInfo_, SideNodeNum, DistFunc>::RenewNeighbor(InputData const&
 			}
 
 			//score' = score * (1 - alpha) + alpha * input
-			sig::CompoundAssignment([](double& dest, double corr){ dest *= corr; }, pre_score, (1-alpha));			//score *= (1 - alpha)
-			sig::CompoundAssignment([](double& dest, double in){ dest += in; }, pre_score, tmp);			//score += (input * alpha)
+			sig::compound_assignment([](double& dest, double corr){ dest *= corr; }, pre_score, (1-alpha));			//score *= (1 - alpha)
+			sig::compound_assignment([](double& dest, double in){ dest += in; }, pre_score, tmp);			//score += (input * alpha)
 		};
 	};
 
@@ -115,20 +119,20 @@ void SOM_Impl<InputInfo_, SideNodeNum, DistFunc>::RenewNeighbor(InputData const&
 
 	for(auto edge_it = center->out_begin(), end = center->out_end(); edge_it != end; ++edge_it){
 		auto edge = *edge_it;
-		double corr = alpha_ * std::exp(- edge->Weight());
+		double corr = alpha_ * std::exp(-0.01 * edge->Weight());
 		edge->TailNode()->UpdateScore(MakeUpdateFunc(corr));		//近傍の参照ベクトルを更新
 	}
 }
 
-template <class InputInfo_, size_t SideNodeNum, DistanceFunc DistFunc>
-auto SOM_Impl<InputInfo_, SideNodeNum, DistFunc>::SearchSimilarity(InputData const& input) const ->NodePtr_
+template <class InputInfo_, size_t SideNodeNum>
+auto SOM_Impl<InputInfo_, SideNodeNum>::SearchSimilarity(InputData const& input) const ->NodePtr_
 {
-	typename DFSelector<DistFunc>::fobj df;		//選択した距離関数のクラスを選択
+	auto df = sigdm::CosineSimilarity();
 	double min_dist = std::numeric_limits<double>::max();
 	NodePtr_ nearest = nullptr;			//NodePtr_* にすべきか検討
 
 	for (auto const& node : *static_cast<C_LayerPtr_>(layer_)){
-		auto dist = df(node->Score(), input.Input());
+		auto dist = *df(node->Score(), input.Input());
 		if (dist < min_dist){
 			min_dist = dist;
 			nearest = node;

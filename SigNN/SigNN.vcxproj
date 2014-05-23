@@ -22,6 +22,7 @@
     <ProjectGuid>{216E8386-69DC-4941-9984-F78016C6707C}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>NeuralNetwork</RootNamespace>
+    <ProjectName>SigNN</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -85,12 +86,12 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(BOOST_DIR);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(BOOST_DIR);../../Utility/;../../../Utility/;C:\Users\Nishimura\Documents\github\Visualize\Visualize\lib\external\font;C:\Users\Nishimura\Documents\github\Visualize\Visualize\lib\external\font\freetype;C:\Users\Nishimura\Documents\github\Visualize\Visualize\lib\external\font\ftgl;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(BOOST_DIR)/stage/x86/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(BOOST_DIR)/stage/x86/lib;C:\Users\Nishimura\Documents\github\Visualize\Visualize\lib\external\font;C:\Users\Nishimura\Documents\github\Visualize\Visualize\lib\external\opengl\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -117,14 +118,14 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(BOOST_DIR);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(BOOST_DIR);../../Utility/;../../../Utility/;C:\Users\Nishimura\Documents\github\Visualize\Visualize\lib\external\font;C:\Users\Nishimura\Documents\github\Visualize\Visualize\lib\external\font\freetype;C:\Users\Nishimura\Documents\github\Visualize\Visualize\lib\external\font\ftgl;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(BOOST_DIR)/stage/x86/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(BOOST_DIR)/stage/x86/lib;C:\Users\Nishimura\Documents\github\Visualize\Visualize\lib\external\font;C:\Users\Nishimura\Documents\github\Visualize\Visualize\lib\external\opengl\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -154,19 +155,6 @@
     <ClInclude Include="lib\external\distance\distance.hpp" />
     <ClInclude Include="lib\external\distance\JS_divergence.hpp" />
     <ClInclude Include="lib\external\distance\KL_divergence.hpp" />
-    <ClInclude Include="lib\external\SigUtil\lib\array.hpp" />
-    <ClInclude Include="lib\external\SigUtil\lib\calculation.hpp" />
-    <ClInclude Include="lib\external\SigUtil\lib\container_helper.hpp" />
-    <ClInclude Include="lib\external\SigUtil\lib\external\container traits\container_traits.h" />
-    <ClInclude Include="lib\external\SigUtil\lib\external\container traits\eval.h" />
-    <ClInclude Include="lib\external\SigUtil\lib\file.hpp" />
-    <ClInclude Include="lib\external\SigUtil\lib\functional.hpp" />
-    <ClInclude Include="lib\external\SigUtil\lib\modify.hpp" />
-    <ClInclude Include="lib\external\SigUtil\lib\others.hpp" />
-    <ClInclude Include="lib\external\SigUtil\lib\sigutil.hpp" />
-    <ClInclude Include="lib\external\SigUtil\lib\string.hpp" />
-    <ClInclude Include="lib\external\SigUtil\lib\tool.hpp" />
-    <ClInclude Include="lib\external\SigUtil\lib\type_map.hpp" />
     <ClInclude Include="lib\info.hpp" />
     <ClInclude Include="lib\layer.hpp" />
     <ClInclude Include="lib\layer_input.hpp" />
@@ -182,7 +170,12 @@
     <ClInclude Include="lib\util.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="example\main.cpp" />
+    <ClCompile Include="..\..\Visualize\Visualize\lib\base.cpp" />
+    <ClCompile Include="..\..\Visualize\Visualize\lib\draw_object.cpp" />
+    <ClCompile Include="..\..\Visualize\Visualize\lib\element.cpp" />
+    <ClCompile Include="..\..\Visualize\Visualize\lib\interface_2d.cpp" />
+    <ClCompile Include="..\..\Visualize\Visualize\lib\word_cloud.cpp" />
+    <ClCompile Include="main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

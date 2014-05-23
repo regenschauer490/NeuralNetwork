@@ -10,7 +10,7 @@ http://opensource.org/licenses/mit-license.php
 
 #include <numeric>
 #include "norm.hpp"
-#include "../SigUtil/lib/sigutil.hpp"
+#include "SigUtil/lib/sigutil.hpp"
 
 namespace sigdm{
 

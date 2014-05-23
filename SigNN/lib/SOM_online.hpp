@@ -12,11 +12,11 @@ http://opensource.org/licenses/mit-license.php
 
 namespace signn{
 
-template <class InputInfo_, size_t SideNodeNum, DistanceFunc DistFunc = DistanceFunc::Cosine>
+template <class InputInfo_, size_t SideNodeNum, DistanceFunc NeighborFunc = DistanceFunc::Cosine>
 class SOM_Online
 {
 public:
-	using SOM = SOM_Impl<InputInfo_, SideNodeNum, DistFunc>;
+	using SOM = SOM_Impl<InputInfo_, SideNodeNum>;
 
 	using InputDataPtr = typename SOM::InputDataPtr;	//入力データそのもの
 	using InputDataSet = typename SOM::InputDataSet;	//入力データ集合
@@ -41,11 +41,14 @@ public:
 	auto NearestPosition(InputDataPtr input)  const->std::array<uint, 2>{
 		return som_.NearestPosition(input);
 	}
+
+	//debug用
+	sig::array<double, InputInfo_::dim> RefVector(uint x, uint y){ return som_.RefVector(x, y); }
 };
 
 
-template <class InputInfo_, size_t SideNodeNum, DistanceFunc DistFunc>
-SOM_Online<InputInfo_, SideNodeNum, DistFunc>::SOM_Online(std::initializer_list<typename DataRange::value_type> input_range)
+template <class InputInfo_, size_t SideNodeNum, DistanceFunc NeighborFunc>
+SOM_Online<InputInfo_, SideNodeNum, NeighborFunc>::SOM_Online(std::initializer_list<typename DataRange::value_type> input_range)
 	: som_(som_learning_rate, [&](){
 		DataRange ref_vector_init;
 		for (auto const& e : input_range) ref_vector_init.push_back(e);

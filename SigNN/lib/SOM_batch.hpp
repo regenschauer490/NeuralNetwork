@@ -12,11 +12,11 @@ http://opensource.org/licenses/mit-license.php
 
 namespace signn{
 
-template <class InputInfo_, size_t SideNodeNum, DistanceFunc DistFunc = DistanceFunc::Euclidean>
+template <class InputInfo_, size_t SideNodeNum>
 class SOM_Batch
 {
 public:
-	using SOM = SOM_Impl<InputInfo_, SideNodeNum, DistFunc>;
+	using SOM = SOM_Impl<InputInfo_, SideNodeNum>;
 
 	using InputDataPtr = typename SOM::InputDataPtr;	//入力データそのもの
 	using InputDataSet = typename SOM::InputDataSet;	//入力データ集合
@@ -50,14 +50,14 @@ public:
 };
 
 
-template <class InputInfo_, size_t SideNodeNum, DistanceFunc DistFunc>
-SOM_Batch<InputInfo_, SideNodeNum, DistFunc>::SOM_Batch(InputDataSet const& inputs) :
+template <class InputInfo_, size_t SideNodeNum>
+SOM_Batch<InputInfo_, SideNodeNum>::SOM_Batch(InputDataSet const& inputs) :
 	dataset_(inputs),
 	som_(som_learning_rate, SOM::AnalyseRange(inputs))
 {}
 
-template <class InputInfo_, size_t SideNodeNum, DistanceFunc DistFunc>
-void SOM_Batch<InputInfo_, SideNodeNum, DistFunc>::Train(uint iteration){
+template <class InputInfo_, size_t SideNodeNum>
+void SOM_Batch<InputInfo_, SideNodeNum>::Train(uint iteration){
 	for (uint loop = 0; loop < iteration; ++loop){
 		for (auto const& input : dataset_){
 			som_.RenewNeighbor(*input, som_.SearchSimilarity(*input));

@@ -1,15 +1,11 @@
-﻿#include "../lib/MLP_online.hpp"
-#include "../lib/MLP_batch.hpp"
-#include "../lib/auto_encoder.hpp"
-#include "../lib/SOM_online.hpp"
-#include "../lib/SOM_batch.hpp"
+﻿#include "lib/MLP_online.hpp"
+#include "lib/MLP_batch.hpp"
+#include "lib/auto_encoder.hpp"
+#include "lib/SOM_online.hpp"
+#include "lib/SOM_batch.hpp"
 
-#include "../lib/external/SigUtil/lib/tool.hpp"
-#include "../lib/external/SigUtil/lib/file.hpp"
-#include "../lib/external/SigUtil/lib/modify.hpp"
-#include "../lib/external/SigUtil/lib/string.hpp"
-
-//#include "LinkedGraph.hpp"
+#include "SigUtil/lib/modify.hpp"
+#include "../../Visualize/Visualize/lib/node_graph.hpp"
 
 const std::wstring test_folder = L"test data/";
 
@@ -122,8 +118,8 @@ void Test1(){
 		//if (mse < 0.00005) break;
 	}
 
-	tw.Save();
-	std::cout << "time: " << tw.GetTotalTime<std::chrono::seconds>() << std::endl;
+	tw.save();
+	std::cout << "time: " << tw.get_total_time<std::chrono::seconds>() << std::endl;
 
 	CheckMSE(nn, test_data, test_ans, true);
 
@@ -148,10 +144,10 @@ void Test2(){
 	std::vector<bool> train_ans;
 
 	for (int doc = 0; doc < 10; ++doc){
-		auto rows = *sig::File::ReadLine<std::string>(L"test data/train" + std::to_wstring(doc) + L".txt");
+		auto rows = *sig::File::read_line<std::string>(L"test data/train" + std::to_wstring(doc) + L".txt");
 		for (auto const& row : rows){
 			train_data.push_back(std::vector<double>());
-			auto split = sig::Split(row, ",");
+			auto split = sig::split(row, ",");
 			train_ans.push_back(std::stoi(split[0]) == 0);
 			std::transform(++split.begin(), split.end(), std::back_inserter(train_data.back()), [](std::string s){ return std::stod(s); });
 		}
@@ -159,10 +155,10 @@ void Test2(){
 
 	std::vector<std::vector<double>> test_data;
 	std::vector<bool> test_ans;
-	auto rows = *sig::File::ReadLine<std::string>(L"test data/test.txt");
+	auto rows = *sig::File::read_line<std::string>(L"test data/test.txt");
 	for (auto const& row : rows){
 		test_data.push_back(std::vector<double>());
-		auto split = sig::Split(row, ",");
+		auto split = sig::split(row, ",");
 		test_ans.push_back(std::stoi(split[0]) == 0);
 		std::transform(++split.begin(), split.end(), std::back_inserter(test_data.back()), [](std::string s){ return std::stod(s); });
 	}
@@ -213,17 +209,17 @@ void Test3(){
 	std::vector<int> train_ans;
 
 	for (int doc = 0; doc <10; ++doc){
-		auto rows = *sig::ReadLine<std::string>(test_folder + L"mlp/train" + std::to_wstring(doc) + L".txt");
+		auto rows = sig::fromJust(sig::read_line<std::string>(test_folder + L"mlp/train" + std::to_wstring(doc) + L".txt"));
 		
 		for (uint r=0; r<rows.size(); ++r){
 			train_data.push_back(std::vector<input_type>());
-			auto split = sig::Split(rows[r], ",");
+			auto split = sig::split(rows[r], ",");
 			train_ans.push_back(std::stoi(split[0]));
 			std::transform(++split.begin(), split.end(), std::back_inserter(train_data.back()), [](std::string s){ return std::stoi(s); });
 		}
 	}
 
-	sig::Shuffle(train_data, train_ans);
+	sig::shuffle(train_data, train_ans);
 	
 	std::vector<std::vector<input_type>> test_data;
 	std::vector<int> test_ans;
@@ -271,10 +267,10 @@ void Test3(){
 			esum = nn.Train(inputs[div]);
 #endif
 			
-		tw.Save();
-		total_time += tw.GetTotalTime<std::chrono::seconds>();
+		tw.save();
+		total_time += tw.get_total_time<std::chrono::seconds>();
 		if (loop%1 == 0){
-			std::cout << "loop: " << loop << " ,time: " << tw.GetTotalTime<std::chrono::seconds>() << " ,total: " << total_time << std::endl << std::endl;
+			std::cout << "loop: " << loop << " ,time: " << tw.get_total_time<std::chrono::seconds>() << " ,total: " << total_time << std::endl << std::endl;
 
 			double test_esum = 0;
 			for (uint i=0; i< test_inputs.size(); ++i){
@@ -289,7 +285,7 @@ void Test3(){
 			std::cout << "test_mse: " << test_esum/test_inputs.size() << std::endl << std::endl;
 		}
 #if IS_BATCH
-			tw.ReStart();
+			tw.restart();
 		}
 #endif
 		//if (esum < 1000) break;
@@ -313,14 +309,14 @@ void Test4()
 	//テストデータ読み込み
 	std::vector < std::vector<input_type>> train_data;
 
-	auto rows = *sig::ReadLine<std::string>(test_folder + L"mlp/train2.txt");
+	auto rows = sig::fromJust(sig::read_line<std::string>(test_folder + L"mlp/train2.txt"));
 	for (uint r = 0; r < rows.size(); ++r){
 		train_data.push_back(std::vector<input_type>());
-		auto split = sig::Split(rows[r], ",");
+		auto split = sig::split(rows[r], ",");
 		std::transform(++split.begin(), split.end(), std::back_inserter(train_data.back()), [](std::string s){ return std::stoi(s); });
 	}
 	
-	//sig::Shuffle(train_data);
+	//sig::shuffle(train_data);
 
 	std::vector<std::vector<input_type>> test_data;
 	uint tds;
@@ -354,8 +350,8 @@ void Test4()
 		p_esum = esum;
 		esum = std::accumulate(moe.begin(), moe.end(), 0.0) / train_data.size();
 
-		tw.Stop();
-		std::cout << "\n\ntime: " << tw.GetTotalTime<std::chrono::seconds>() << std::endl;
+		tw.save();
+		std::cout << "\n\ntime: " << tw.get_total_time<std::chrono::seconds>() << std::endl;
 		std::cout << "train_mse: " << esum << std::endl << std::endl;
 
 		ae.SaveParameter(test_folder + L"mlp/dst", false);
@@ -368,17 +364,17 @@ void Test4()
 				std::vector<int> r;
 
 				for (uint j = 0; j < est.size(); ++j){
-					hist.Count( signn::Simirarlity(test_data[i].begin(), test_data[i].end(), est.begin(), est.end(), j) );
+					hist.count( signn::Simirarlity(test_data[i].begin(), test_data[i].end(), est.begin(), est.end(), j) );
 					r.push_back(est[j]);
 				}
-				hist.Print();
-				sig::SaveNum(test_data[i], L"test data/test0_ans.txt", "", sig::WriteMode::overwrite);
-				sig::SaveNum(r, L"test data/test0.txt", "", sig::WriteMode::overwrite);
+				hist.print();
+				sig::save_num(test_data[i], L"test data/test0_ans.txt", "", sig::WriteMode::overwrite);
+				sig::save_num(r, L"test data/test0.txt", "", sig::WriteMode::overwrite);
 			}
 		}
 
 		//if (esum < 1000) break;
-		if (std::abs(p_esum - esum) < 0.0000000001) break;
+		if (sig::abs_delta(p_esum, esum) < 0.0000000001) break;
 	}
 }
 
@@ -386,9 +382,9 @@ void Test4()
 void Test5()
 {
 	using namespace signn;
-	const uint ITERATION = 10000;				//データ全体を学習する反復を何回するか
+	const uint ITERATION = 100;				//データ全体を学習する反復を何回するか
 
-	const uint SOM_NODE_SQUARE = 5;		//SOMレイヤーの1辺のノード数
+	const uint SOM_NODE_SQUARE = 10;		//SOMレイヤーの1辺のノード数
 	using InInfo = InputInfo<double, 4>;	//実数値、4列(データベクトルの次元数4)
 
 #if IS_BATCH
@@ -398,19 +394,20 @@ void Test5()
 #endif
 
 	//テストデータ読み込み
-	auto test_raw_data = sig::ReadNum<std::vector<std::vector<double>>>(test_folder + L"som/test_iris.csv", ",");
+	auto test_raw_data = sig::read_num<std::vector<std::vector<double>>>(test_folder + L"som/test_iris.csv", ",");
 	if (!test_raw_data){
 		std::cout << "test-folder pass error" << std::endl;
 		assert(false);
 	}
 
 	std::vector<int> train_ans;
+	auto test_raw_data_ = sig::fromJust(test_raw_data);
 
-	for (auto& row : *test_raw_data){
+	for (auto& row : test_raw_data_){
 		train_ans.push_back(static_cast<int>(row[4]));
 		row.pop_back();
 	}
-	auto train_data = std::move(*test_raw_data);
+	auto train_data = std::move(test_raw_data_);
 	const auto data_size = train_data.size();
 	
 	//入力用データ作成
@@ -419,6 +416,7 @@ void Test5()
 	for (auto i=0; i<data_size; ++i){
 		inputs.push_back( SOM::MakeInputData().Unsupervised(train_data[i].begin(), train_data[i].end()) );
 	}
+	sig::shuffle(inputs, train_ans);
 	
 #if IS_BATCH
 	SOM:
@@ -426,7 +424,10 @@ void Test5()
 	//事前に用意したデータセットを与える
 	SOM som(inputs);
 
-	som.Train(ITERATION);
+	for (int j=0; j<500; ++j){
+		som.Train(ITERATION);
+		sig::shuffle(inputs, train_ans);
+	}
 #else
 	//データセットの事前に分かる程度のプロパティを与える
 	//各列の最小・最大値 (大体の目安)
@@ -456,15 +457,15 @@ void Test5()
 
 		switch (train_ans[i]){
 		case 0 :
-			hist_class1.Count(pos[0] * SOM_NODE_SQUARE + pos[1]);
+			hist_class1.count(pos[0] * SOM_NODE_SQUARE + pos[1]);
 			++mat1[pos[0]][pos[1]];
 			break;
 		case 1 :
-			hist_class2.Count(pos[0] * SOM_NODE_SQUARE + pos[1]);
+			hist_class2.count(pos[0] * SOM_NODE_SQUARE + pos[1]);
 			++mat2[pos[0]][pos[1]];
 			break;
 		case 2:
-			hist_class3.Count(pos[0] * SOM_NODE_SQUARE + pos[1]);
+			hist_class3.count(pos[0] * SOM_NODE_SQUARE + pos[1]);
 			++mat3[pos[0]][pos[1]];
 			break;
 		default :
@@ -472,15 +473,28 @@ void Test5()
 		}
 	}
 
-	hist_class1.Print();
-	hist_class2.Print();
-	hist_class3.Print();
+	hist_class1.print();
+	hist_class2.print();
+	hist_class3.print();
 
 	signn::DispMatrix(mat1, 2);
 	signn::DispMatrix(mat2, 2);
 	signn::DispMatrix(mat3, 2);
 
-	
+	//visualize
+	std::vector<sig::SimpleNodePtr> nodes;
+	std::vector<sig::SimpleEdgePtr> edges;
+
+	for (int y = 0; y<SOM_NODE_SQUARE; ++y){
+		for (int x = 0; x<SOM_NODE_SQUARE; ++x){
+			//auto node = std::make_shared<sig::SimpleNode>(x, y, 0);
+			//node->FontColor(som)
+
+			//nodes.push_back(node);
+		}
+	}
+
+	sig::NodeGraph lg(false, "som", nodes, edges);
 }
 
 

@@ -8,7 +8,7 @@ http://opensource.org/licenses/mit-license.php
 #ifndef SIG_NN_LAYER_SOM_H
 #define SIG_NN_LAYER_SOM_H
 
-#include "edge.hpp"
+#include "node.hpp"
 
 namespace signn{
 
@@ -17,13 +17,13 @@ namespace signn{
 	{
 	public:
 		using ValueType_ = double;
-		using NodeData_ = sig::Array<ValueType_, RefVecDim>;
+		using NodeData_ = sig::array<ValueType_, RefVecDim>;
 		using DEdge_ = DirectedEdge<NodeData_>;
 		using Node_ = Node<NodeData_, DEdge_>;
 		using NodePtr_ = NodePtr<NodeData_, DEdge_>;
 		using C_NodePtr_ = C_NodePtr<NodeData_, DEdge_>;
 		using LayerPtr_ = SOMLayerPtr<RefVecDim>;
-		using DataRange_ = sig::Array<std::pair<ValueType_, ValueType_>, RefVecDim>;
+		using DataRange_ = sig::array<std::pair<ValueType_, ValueType_>, RefVecDim>;
 
 	private:
 		// 2次元の配置を行で直列化. [row*COL + col]でアクセス
@@ -58,10 +58,13 @@ namespace signn{
 
 		C_NodePtr_ Access(uint row, uint col) const{ return nodes_[row * col_num_ + col]; }
 
-		// 指定ノード間の2次元マップ上での距離を返す
+		// 指定ノード間のデータ空間上(参照ベクトル)の距離
+		double VectorDistance() const{ return DFSelector<DistFUnc>::fobj(node1->Score(), node2->Score()); }
+
+		// 指定ノード間の2次元マップ上の距離を返す
 		double Distance(C_NodePtr_ node1, C_NodePtr_ node2) const;
 
-		// 指定ノードの2次元マップ上での座標を返す
+		// 指定ノードの2次元マップ上の座標を返す
 		auto Position(C_NodePtr_ target) const->std::array<uint, 2>;
 
 		auto begin() const ->decltype(nodes_.cbegin()){ return nodes_.cbegin(); }
@@ -80,15 +83,23 @@ namespace signn{
 			auto max = std::get<0>(init_range) < std::get<1>(init_range) ? std::get<1>(init_range) : std::get<0>(init_range);
 			random.push_back(sig::SimpleRandom<double>(min, max, DEBUG_MODE));
 		}		
-
+	
 		for (uint i = 0; i < row_num * col_num; ++i){
 			auto node = std::make_shared<Node_>();
-			sig::Array<double, RefVecDim> init_score;
+			sig::array<double, RefVecDim> init_score;
 			for (uint j = 0; j<RefVecDim; ++j) init_score.push_back(random[j]());
+
+		/*	if (NeighborFunc == DistanceFunc::KL_Div || NeighborFunc == DistanceFunc::JS_Div){
+				auto sum = std::accumulate(init_score.begin(), init_score.end(), 0.0);
+				for (auto& e : init_score){
+					e /= sum;		//合計が１になるよう正規化
+				}
+			}
+		*/
 			node->Score(init_score);
 			nodes_.push_back(node);
 		}
-		
+	
 		//2次元マップ上ノードのリンク生成
 		for (uint rd = 0; rd<row_num; ++rd){
 			for (uint cd = 0; cd<col_num; ++cd){
@@ -99,7 +110,7 @@ namespace signn{
 						signn::Connect(
 							nodes_[rd * col_num_ + cd],
 							nodes_[ra * col_num_ + ca],
-							std::make_shared<DEdge_>(std::labs(rd - ra) + std::labs(cd - ca))
+							std::make_shared<DEdge_>(std::pow(std::labs(rd - ra) + std::labs(cd - ca), 2))
 						);
 					}
 				}
@@ -110,9 +121,11 @@ namespace signn{
 	template <size_t RefVecDim>
 	double SOMLayer<RefVecDim>::Distance(C_NodePtr_ node1, C_NodePtr_ node2) const
 	{
-		using NVal = decltype(*nd->Score().begin());
-		auto delta = sig::ZipWith([&](NVal vd, NVal va){ return sig::DeltaAbs(va, vd); }, );
-		return std::accumulate(std::begin(delta), std::end(delta), 0.0);
+		auto pos1 = Position(node1);
+		auto pos2 = Position(node2);
+
+		std::inner_product(pos1.begin(), pos1.end(), pos2.begin(), 0.0, std::plus<ValueType_>(), );
+		sig::ZipWith([](NodeData_ const& v1, NodeData_ const& v2){ }, pos1, pos2);
 	}
 
 	template <size_t RefVecDim>

@@ -8,7 +8,7 @@ http://opensource.org/licenses/mit-license.php
 #ifndef SIG_KL_DIVERGENCE_H
 #define SIG_KL_DIVERGENCE_H
 
-#include "../SigUtil/lib/sigutil.hpp"
+#include "SigUtil/lib/sigutil.hpp"
 
 namespace sigdm{
 

@@ -8,11 +8,25 @@ http://opensource.org/licenses/mit-license.php
 #ifndef SIG_NN_INFO_H
 #define SIG_NN_INFO_H
 
-#include "external/SigUtil/lib/sigutil.hpp"
-#include "external/distance/distance.hpp"
-#include "external/distance/cosine_similarity.hpp"
-#include "external/distance/KL_divergence.hpp"
-#include "external/distance/JS_divergence.hpp"
+/*
+#define SIG_STR(raw) #raw
+
+#if defined(_WIN32) || defined(_WIN64) // windows env
+	#define SIG_CAT(a, b) SIG_STR(a##b)
+	#define SIG_CAT_INTO_STR(a, b) SIG_CAT(a, b)
+#else
+	#define CAT_2(res) res
+	#define SIG_CAT(a, b) CAT_2(a ## b)
+	#define SIG_CAT(pre, suf) SIG_CAT(pre,suf)
+#endif
+#include SIG_CAT_INTO_STR(SIG_UTIL_DIR, /lib/sigutil.hpp)
+*/
+
+#include "SigUtil/lib/sigutil.hpp"
+#include "distance/distance.hpp"
+#include "distance/cosine_similarity.hpp"
+#include "distance/KL_divergence.hpp"
+#include "distance/JS_divergence.hpp"
 
 namespace signn{
 
@@ -28,7 +42,7 @@ const double L2__regularization_sample = 0.9999;
 const double threshold_theta = 0.5;
 const double SIG_DEFAULT_EDGE_WEIGHT = 0.5;		//default edge weight(must not set same weight on MLP, AutoEncoder and so on)
 
-const double som_learning_rate = 0.2;
+const double som_learning_rate = 0.1;
 
 //forward declaration
 template <class OutputInfo_>

@@ -9,8 +9,6 @@ http://opensource.org/licenses/mit-license.php
 #define SIG_NORM_H
 
 #include <numeric>
-#include "../SigUtil/lib/sigutil.hpp"
-
 #undef max
 #undef min
 

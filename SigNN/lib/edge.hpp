@@ -41,7 +41,7 @@ private:
 
 public:
 	explicit DirectedEdge(typename sig::Just<double>::type weight = sig::Nothing(SIG_DEFAULT_EDGE_WEIGHT))
-		: weight_(weight ? sig::FromJust(weight) : GetRandNum(-1.0, 1.0)), pre_weight_(weight_), delta_(0){}
+		: weight_(weight ? sig::fromJust(weight) : GetRandNum(-1.0, 1.0)), pre_weight_(weight_), delta_(0){}
 	~DirectedEdge(){};
 	
 

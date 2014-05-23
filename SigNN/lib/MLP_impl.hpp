@@ -11,7 +11,7 @@ http://opensource.org/licenses/mit-license.php
 #include "layer_input.hpp"
 #include "layer_output.hpp"
 #include "data_format.hpp"
-#include "external/SigUtil/lib/file.hpp"
+#include "SigUtil/lib/file.hpp"
 
 namespace signn{
 
@@ -172,16 +172,16 @@ std::vector< std::vector<double>> MLP_Impl<InputInfo_, OutputInfo_>::BackPropaga
 template <class InputInfo_, class OutputInfo_>
 void MLP_Impl<InputInfo_, OutputInfo_>::SaveParameter(std::wstring pass) const
 {
-	pass = sig::DirpassTailModify(pass, true);
+	pass = sig::impl::modify_dirpass_tail(pass, true);
 
 	for (uint l = 1; l < layers_.size(); ++l){
-		sig::FileClear(pass + L"weight" + std::to_wstring(l) + L".txt");
+		sig::clear_file(pass + L"weight" + std::to_wstring(l) + L".txt");
 		for (auto const& node : *(layers_[l - 1])){
 			std::vector<double> weight;
 			for (auto edge = node->out_begin(), end = node->out_end(); edge != end; ++edge){
 				weight.push_back((*edge)->Weight());
 			}
-			sig::SaveNum(weight, pass + L"weight" + std::to_wstring(l) + L".txt", ",", sig::WriteMode::append);
+			sig::save_num(weight, pass + L"weight" + std::to_wstring(l) + L".txt", ",", sig::WriteMode::append);
 		}
 	}
 }
@@ -189,15 +189,15 @@ void MLP_Impl<InputInfo_, OutputInfo_>::SaveParameter(std::wstring pass) const
 template <class InputInfo_, class OutputInfo_>
 void MLP_Impl<InputInfo_, OutputInfo_>::LoadParameter(std::wstring pass)
 {
-	pass = File::DirpassTailModify(pass, true);
+	pass = File::modify_dirpass_tail(pass, true);
 	for (uint l = 1; l < layers_.size(); ++l){
 		std::vector<std::string> data;
 		uint n = 0;
-		sig::ReadLine(data, pass + L"weight" + std::to_wstring(l) + L".txt");
+		sig::read_line(data, pass + L"weight" + std::to_wstring(l) + L".txt");
 
 		for (auto const& node : *(layers_[l - 1])){
 			uint e = 0;
-			auto split = sig::Split(data[n], ",");
+			auto split = sig::split(data[n], ",");
 			for (auto edge = node->out_begin(), end = node->out_end(); edge != end; ++edge){
 				(*edge)->Weight(std::stod(split[e]));
 				++e;

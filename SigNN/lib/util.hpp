@@ -21,10 +21,9 @@ http://opensource.org/licenses/mit-license.php
 #include <type_traits>
 
 #include "info.hpp"
-#include "external/SigUtil/lib/sigutil.hpp"
-#include "external/SigUtil/lib/tool.hpp"
-#include "external/SigUtil/lib/calculation.hpp"
-#include "external/SigUtil/lib/array.hpp"
+#include "SigUtil/lib/tool.hpp"
+#include "SigUtil/lib/calculation.hpp"
+#include "SigUtil/lib/array.hpp"
 
 #if SIG_ENABLE_BOOST
 #include <boost/call_traits.hpp>
@@ -149,13 +148,16 @@ namespace signn
 	}
 
 	template <class CC>
-	void DispMatrix(CC const& matrix, uint keta)
+	void DispMatrix(CC const& matrix, uint keta, bool disp_zero = false)
 	{
+		auto Space = [](uint num){ return std::string(num, ' '); };
+
 		for (auto const& row : matrix){
 			std::cout << "|";
 
 			for (auto const& e : row){
-				std::cout << std::setw(keta) << e << "|";
+				if(e != 0) std::cout << std::setw(keta) << e << "|";
+				else std::cout << Space(keta) << "|";
 			}
 
 			std::cout << std::endl;
