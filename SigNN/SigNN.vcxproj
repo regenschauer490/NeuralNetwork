@@ -170,11 +170,6 @@
     <ClInclude Include="lib\util.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Visualize\Visualize\lib\base.cpp" />
-    <ClCompile Include="..\..\Visualize\Visualize\lib\draw_object.cpp" />
-    <ClCompile Include="..\..\Visualize\Visualize\lib\element.cpp" />
-    <ClCompile Include="..\..\Visualize\Visualize\lib\interface_2d.cpp" />
-    <ClCompile Include="..\..\Visualize\Visualize\lib\word_cloud.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

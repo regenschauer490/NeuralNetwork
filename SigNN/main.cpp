@@ -5,7 +5,7 @@
 #include "lib/SOM_batch.hpp"
 
 #include "SigUtil/lib/modify.hpp"
-#include "../../Visualize/Visualize/lib/node_graph.hpp"
+//#include "../../Visualize/Visualize/lib/node_graph.hpp"
 
 const std::wstring test_folder = L"test data/";
 
